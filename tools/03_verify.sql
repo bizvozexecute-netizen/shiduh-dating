@@ -41,6 +41,22 @@ INSERT INTO _chk (class,name,got,want) SELECT 'ПД','Пароли не прив
 INSERT INTO _chk (class,name,got,want) SELECT 'ПД','Остались Auth_Hash',
     COUNT(*),0 FROM User WHERE Auth_Hash IS NOT NULL AND Auth_Hash <> '';
 
+-- Свободные тексты форм обратной связи
+INSERT INTO _chk (class,name,got,want) SELECT 'ПД','Message193.info не заменён',
+    COUNT(*),0 FROM Message193 WHERE info > '' AND info NOT LIKE 'Текст обращения №%';
+INSERT INTO _chk (class,name,got,want) SELECT 'ПД','Message193.ravin не заменён',
+    COUNT(*),0 FROM Message193 WHERE ravin > '' AND ravin NOT LIKE 'рав №%';
+INSERT INTO _chk (class,name,got,want) SELECT 'ПД','Message196.info не заменён',
+    COUNT(*),0 FROM Message196 WHERE info > '' AND info NOT LIKE 'Текст заявки №%';
+INSERT INTO _chk (class,name,got,want) SELECT 'ПД','Message201.info не заменён',
+    COUNT(*),0 FROM Message201 WHERE info > '' AND info NOT LIKE 'Текст обращения №%';
+INSERT INTO _chk (class,name,got,want) SELECT 'ПД','Причины удаления не заменены',
+    COUNT(*),0 FROM Message201 WHERE Profile_delete_reasons > ''
+                                 AND Profile_delete_reasons NOT LIKE 'Причина удаления №%';
+-- Message221/299.text проверяются косвенно: подстановка идёт по всем
+-- непустым строкам, а сохранность их количества контролируется блоком
+-- «Строки» ниже.
+
 -- Имена файлов: первый сегмент до ':' должен быть заменён.
 INSERT INTO _chk (class,name,got,want) SELECT 'ПД','Message204.Photo_avatar: имя не заменено',
     COUNT(*),0 FROM Message204

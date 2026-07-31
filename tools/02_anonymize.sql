@@ -85,7 +85,8 @@ INSERT INTO _anon_health VALUES
  (0,'Здоров'),(1,'Здорова'),(2,'Хронических заболеваний нет'),(3,'Без ограничений'),
  (4,'Аллергия на пыльцу'),(5,'Ношу очки'),(6,'Всё в порядке'),(7,'Хорошее');
 
-CREATE TABLE _anon_wish (i INT PRIMARY KEY, v TEXT) ENGINE=MEMORY DEFAULT CHARSET=utf8;
+-- VARCHAR, а не TEXT: движок MEMORY не поддерживает BLOB/TEXT-колонки.
+CREATE TABLE _anon_wish (i INT PRIMARY KEY, v VARCHAR(500)) ENGINE=MEMORY DEFAULT CHARSET=utf8;
 INSERT INTO _anon_wish VALUES
  (0,'Ищу спутника жизни для создания настоящего еврейского дома. Важно, чтобы человек соблюдал традиции и уважал семью.'),
  (1,'Хочу построить дом, где будет тепло и спокойно. Ценю честность и чувство юмора.'),
@@ -96,7 +97,7 @@ INSERT INTO _anon_wish VALUES
  (6,'Важна близость по мировоззрению и отношение к родителям. Остальное обсуждаемо.'),
  (7,'Мечтаю о крепкой семье, где уважают друг друга и соблюдают шаббат вместе.');
 
-CREATE TABLE _anon_lorem (i INT PRIMARY KEY, v TEXT) ENGINE=MEMORY DEFAULT CHARSET=utf8;
+CREATE TABLE _anon_lorem (i INT PRIMARY KEY, v VARCHAR(255)) ENGINE=MEMORY DEFAULT CHARSET=utf8;
 INSERT INTO _anon_lorem VALUES
  (0,'Здравствуйте! Спасибо за ваше сообщение, отвечу подробнее чуть позже. '),
  (1,'Добрый день. Посмотрел анкету, готов обсудить детали при встрече. '),
@@ -384,18 +385,28 @@ UPDATE Message299 m JOIN _anon_lorem p
 --  6. Формы обратной связи
 -- ===========================================================================
 
+-- Помимо name/email/phone здесь есть свободные тексты: info (текст вопроса
+-- или заявки), ravin (имя раввина) и Profile_delete_reasons (причина
+-- удаления аккаунта) — всё это тоже ПД.
 UPDATE Message193 SET
     name  = CONCAT('Пользователь ', Message_ID),
-    email = CONCAT('u', SUBSTRING(MD5(CONCAT(@salt, email)), 1, 12), '@example.local');
+    email = CONCAT('u', SUBSTRING(MD5(CONCAT(@salt, email)), 1, 12), '@example.local'),
+    ravin = CASE WHEN ravin > '' THEN CONCAT('рав №', Message_ID) ELSE ravin END,
+    info  = CASE WHEN info  > '' THEN CONCAT('Текст обращения №', Message_ID) ELSE info  END;
 
 UPDATE Message196 SET
     name  = CONCAT('Партнёр ', Message_ID),
     email = CONCAT('u', SUBSTRING(MD5(CONCAT(@salt, email)), 1, 12), '@example.local'),
-    phone = CONCAT('+7902', LPAD(CONV(SUBSTRING(MD5(CONCAT(@salt, phone)), 1, 8), 16, 10) % 10000000, 7, '0'));
+    phone = CONCAT('+7902', LPAD(CONV(SUBSTRING(MD5(CONCAT(@salt, phone)), 1, 8), 16, 10) % 10000000, 7, '0')),
+    info  = CASE WHEN info > '' THEN CONCAT('Текст заявки №', Message_ID) ELSE info END;
 
 UPDATE Message201 SET
     name  = CONCAT('Пользователь ', Message_ID),
-    email = CONCAT('u', SUBSTRING(MD5(CONCAT(@salt, email)), 1, 12), '@example.local');
+    email = CONCAT('u', SUBSTRING(MD5(CONCAT(@salt, email)), 1, 12), '@example.local'),
+    info  = CASE WHEN info > '' THEN CONCAT('Текст обращения №', Message_ID) ELSE info END,
+    Profile_delete_reasons = CASE WHEN Profile_delete_reasons > ''
+                                  THEN CONCAT('Причина удаления №', Message_ID)
+                                  ELSE Profile_delete_reasons END;
 
 
 -- ===========================================================================
