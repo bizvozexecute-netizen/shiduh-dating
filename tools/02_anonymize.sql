@@ -23,6 +23,13 @@ SET SESSION group_concat_max_len = 1000000;
 -- Соль. Меняется — меняются все фейки. Хранить не нужно.
 SET @salt = 'shiduh-local-dev-2026';
 
+-- Телефоны в базе записаны в разном формате: «+7 900 123-45-67», «79001234567»,
+-- «(900) 123-45-67». Один и тот же контакт даёт разные строки, поэтому хешировать
+-- надо НОРМАЛИЗОВАННЫЙ номер — иначе 44 реальные группы «один контакт на много
+-- анкет» распадутся на 34. REGEXP_REPLACE в MySQL 5.7 нет, чистим вручную.
+-- Использование: MD5(CONCAT(@salt, NORM(Phone))) через макрос ниже не сделать,
+-- поэтому выражение повторяется в каждом UPDATE.
+
 
 -- ===========================================================================
 --  0. Пулы правдоподобных значений
@@ -153,7 +160,9 @@ UPDATE User SET
  WHERE Email <> '';
 
 UPDATE User SET
-    Phone = CONCAT('+7900', LPAD(CONV(SUBSTRING(MD5(CONCAT(@salt, Phone)), 1, 8), 16, 10) % 10000000, 7, '0'))
+    Phone = CONCAT('+7900', LPAD(CONV(SUBSTRING(MD5(CONCAT(@salt,
+        REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(Phone,' ',''),'+',''),'-',''),'(',''),')',''),'.','')
+    )), 1, 8), 16, 10) % 10000000, 7, '0'))
  WHERE Phone <> '';
 
 -- Дату рождения переносим внутри того же года: распределение по декадам
@@ -210,7 +219,9 @@ UPDATE Message204 SET
  WHERE Email IS NOT NULL AND Email <> '';
 
 UPDATE Message204 SET
-    Phone = CONCAT('+7900', LPAD(CONV(SUBSTRING(MD5(CONCAT(@salt, Phone)), 1, 8), 16, 10) % 10000000, 7, '0'))
+    Phone = CONCAT('+7900', LPAD(CONV(SUBSTRING(MD5(CONCAT(@salt,
+        REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(Phone,' ',''),'+',''),'-',''),'(',''),')',''),'.','')
+    )), 1, 8), 16, 10) % 10000000, 7, '0'))
  WHERE Phone <> '';
 
 UPDATE Message204 SET

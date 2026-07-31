@@ -114,7 +114,10 @@ INSERT INTO _chk (class,name,got,want) SELECT 'Строки','Multifield = 1388'
 INSERT INTO _chk (class,name,got,want) SELECT 'Заполненность','Name = 1189',            COUNT(*),1189 FROM Message204 WHERE Name <> '';
 INSERT INTO _chk (class,name,got,want) SELECT 'Заполненность','Email = 1189',           COUNT(*),1189 FROM Message204 WHERE Email > '';
 INSERT INTO _chk (class,name,got,want) SELECT 'Заполненность','Phone = 1189',           COUNT(*),1189 FROM Message204 WHERE Phone <> '';
-INSERT INTO _chk (class,name,got,want) SELECT 'Заполненность','Date_of_birth = 1160',   COUNT(*),1160 FROM Message204 WHERE Date_of_birth IS NOT NULL AND YEAR(Date_of_birth) > 1900;
+-- 1154, а не 1160: непустых дат 1160, но у 6 записей год <= 1900
+-- ('1877-09-26', '1899-12-01' и т.п.) — заведомый мусор, он не сдвигается
+-- и не учитывается.
+INSERT INTO _chk (class,name,got,want) SELECT 'Заполненность','Date_of_birth = 1154',   COUNT(*),1154 FROM Message204 WHERE Date_of_birth IS NOT NULL AND YEAR(Date_of_birth) > 1900;
 INSERT INTO _chk (class,name,got,want) SELECT 'Заполненность','Height = 794',           COUNT(*),794  FROM Message204 WHERE Height <> 0;
 INSERT INTO _chk (class,name,got,want) SELECT 'Заполненность','City = 802',             COUNT(*),802  FROM Message204 WHERE City > '';
 INSERT INTO _chk (class,name,got,want) SELECT 'Заполненность','Photo_avatar = 465',     COUNT(*),465  FROM Message204 WHERE Photo_avatar > '';
@@ -129,6 +132,9 @@ INSERT INTO _chk (class,name,got,want) SELECT 'Заполненность','EN_C
 INSERT INTO _chk (class,name,got,want)
 SELECT 'Дубли','Message204: групп дублей по Email = 9', COUNT(*), 9
   FROM (SELECT Email FROM Message204 WHERE Email > '' GROUP BY Email HAVING COUNT(*) > 1) t;
+-- 44 группы — это дубли по НОРМАЛИЗОВАННОМУ номеру (по сырому их 34: один
+-- контакт записан в разном формате). Обезличивание хеширует нормализованный
+-- номер, поэтому после него обе цифры сходятся к 44.
 INSERT INTO _chk (class,name,got,want)
 SELECT 'Дубли','Message204: групп дублей по Phone = 44', COUNT(*), 44
   FROM (SELECT Phone FROM Message204 WHERE Phone <> '' GROUP BY Phone HAVING COUNT(*) > 1) t;
