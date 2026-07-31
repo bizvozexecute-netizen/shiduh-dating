@@ -1,0 +1,86 @@
+# Локальная копия production shiduh.org (NetCat 6.2.0).
+#
+# Окружение намеренно зеркалит прод (PHP 7.4 + mod_php + MySQL 5.7.42),
+# а не модернизирует его: цель Фазы A — воспроизвести систему как есть.
+# Апгрейд MySQL/PHP — отдельная задача со своими рисками.
+#
+# Запуск: см. README.dev.md
+
+name: shiduh-local
+
+services:
+
+  web:
+    build:
+      context: ./docker/php
+    ports:
+      - "${HTTP_PORT:-8080}:80"
+    environment:
+      # Читаются в shiduh.org/vars.inc.php через getenv()
+      NC_MYSQL_HOST: db
+      NC_MYSQL_PORT: 3306
+      NC_MYSQL_DB_NAME: ${NC_MYSQL_DB_NAME:-shiduh_org}
+      NC_MYSQL_USER: ${NC_MYSQL_USER:-shiduh_org}
+      NC_MYSQL_PASSWORD: ${NC_MYSQL_PASSWORD:?NC_MYSQL_PASSWORD не задан - скопируйте .env.example в .env}
+      # Читается в netcat/admin/crontab.php вместо прод-домена shid.o-d.one
+      NC_HTTP_HOST: ${NC_HTTP_HOST:-localhost:8080}
+    volumes:
+      # Весь webroot, включая netcat_files (2,68 ГБ) — подключается на месте,
+      # без дублирования.
+      - ./shiduh.org:/var/www/html
+      - ./docker/php/php.ini:/usr/local/etc/php/conf.d/zz-netcat.ini:ro
+      - ./tools:/tools:ro
+      # Дамп только для чтения: случайно перезаписать исходник нельзя.
+      - ./shiduh_org_2026-07-17.sql:/dump/original.sql:ro
+    depends_on:
+      db:
+        condition: service_healthy
+    restart: unless-stopped
+
+  db:
+    image: mysql:5.7
+    command: --default-authentication-plugin=mysql_native_password
+    ports:
+      # Наружу — нестандартный порт, чтобы не конфликтовать с локальным MySQL
+      - "${DB_PORT:-13306}:3306"
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:?MYSQL_ROOT_PASSWORD не задан}
+      MYSQL_DATABASE: ${NC_MYSQL_DB_NAME:-shiduh_org}
+      MYSQL_USER: ${NC_MYSQL_USER:-shiduh_org}
+      MYSQL_PASSWORD: ${NC_MYSQL_PASSWORD:?NC_MYSQL_PASSWORD не задан}
+    volumes:
+      - db-data:/var/lib/mysql
+      - ./docker/mysql/my.cnf:/etc/mysql/conf.d/netcat.cnf:ro
+      - ./tools:/tools:ro
+      - ./shiduh_org_2026-07-17.sql:/dump/original.sql:ro
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "127.0.0.1", "-uroot", "-p${MYSQL_ROOT_PASSWORD}"]
+      interval: 5s
+      timeout: 5s
+      retries: 30
+      start_period: 30s
+    restart: unless-stopped
+
+  # Ловушка для всей исходящей почты. Ни одно письмо не должно уйти
+  # реальным пользователям — п.1 запретов ТЗ.
+  mail:
+    image: axllent/mailpit:latest
+    ports:
+      - "${MAILPIT_PORT:-8025}:8025"
+    environment:
+      MP_SMTP_AUTH_ACCEPT_ANY: 1
+      MP_SMTP_AUTH_ALLOW_INSECURE: 1
+    restart: unless-stopped
+
+  adminer:
+    image: adminer:latest
+    ports:
+      - "${ADMINER_PORT:-8081}:8080"
+    environment:
+      ADMINER_DEFAULT_SERVER: db
+    depends_on:
+      - db
+    restart: unless-stopped
+
+volumes:
+  db-data:

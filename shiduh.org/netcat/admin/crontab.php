@@ -5,7 +5,14 @@
 // Определим путь до DOCUMENT_ROOT (на 2 уровня выше текущей директории):
 $DOCUMENT_ROOT = join('/', array_slice(explode(DIRECTORY_SEPARATOR, __FILE__), 0, -3));
 
-$HTTP_HOST = 'shid.o-d.one'; #  <-------------= put domain here!!! Укажите здесь домен!!!
+# Домен, на который cron стучится по HTTP.
+#
+# ВНИМАНИЕ. Раньше здесь был захардкожен боевой домен 'shid.o-d.one'. Это
+# означало, что cron, запущенный в ЛЮБОМ окружении (в том числе локальном),
+# дёргает задачи на ПРОДЕ: рассылку писем (admin/mailer.php), уведомления
+# и подписки. Теперь домен берётся из окружения — см. NC_HTTP_HOST
+# в .env / docker-compose.yml.
+$HTTP_HOST = getenv('NC_HTTP_HOST') ?: 'shid.o-d.one';
 
 $_SERVER['HTTP_HOST'] = $HTTP_HOST;
 
