@@ -1,0 +1,343 @@
+<!-- FormPrefix --><? if($_GET["search"]): ?>
+<section class="lk-search-candidate">
+  <div class="lk-search-candidate__wrapper">
+    <div class="lk-head lk-search-candidate__head">
+      <h1 class="lk-head__title">Поиск кандидатов</h1>
+      
+    </div>
+    <form class="form--lk-search-candidate " name="adminForm" id="adminForm" enctype="multipart/form-data" method="GET" action="">
+      <div class="form__body">
+        <div class="form__body-section">
+          <div class="form__body-container">
+            <div id="addcandidate_about" class="form__body-title">Укажите параметры для поиска</div>
+            <fieldset class="form__fieldset">
+             
+              <div class="form__item tpl-field">
+                <label class="form__item-name" for="">ID анкеты</label>
+                <input class="form__input tpl-field-input" name="id_candidate"  type="text" id="" placeholder="Укажите ID анкеты" >
+              </div>   
+              <div class="form__item tpl-field">
+                <label class="form__item-name" for="">ФИО</label>
+                <input class="form__input tpl-field-input" name="name"  type="text" id="" placeholder="Укажите ФИО" >
+              </div>   
+             
+              <div class="form__item tpl-field">
+                <label class="form__item-name" for="search_gender">Пол</label>
+                <div class="select form__select">
+                  <select class="select__el" name="srchPat[0]">
+                    <option data-placeholder="true" value="" disabled>-- Выбрать --</option>
+                    <option id="" value="" selected>Не важно</option>
+                    <option id="" value="1">Мужской</option>
+                    <option id="" value="2" >Женский</option>
+                  </select>  
+                  
+                </div>
+              </div>
+              <div class="form__item tpl-field">
+                <label class="form__item-name" for="search_age_start">Возраст</label>
+                <div class="form__item-range">
+                  <input class="form__input tpl-field-input" name="age[0]" min="0" step="any" max="200" maxlength="12" size="12" type="number" id="search_age_start" value="0" placeholder="ОТ" required>
+                  <span class="form__item-range-separator">—</span>
+                  <input class="form__input tpl-field-input" name="age[1]" min="1" step="any" max="200" maxlength="12" size="12" type="number" id="search_age_end" value="100" placeholder="ДО" required>
+                </div>
+              </div>
+              <div class="form__item tpl-field">
+                <label class="form__item-name" for="search_country">Страна</label>
+                <div class="select select--search form__select">
+                  <?=nc_list_select ("Country", "Country", $f_Country_id,"","", "<select id='search_country' id='search_country' class='select__el  select__el--check' name='country[]' multiple>", "<option value='\$value_id' \$value_selected>\$value_name</option>", "", "<option value='' id='' data-placeholder='true' >-- выбрать --</option>")?>  
+                      
+                </div>
+              </div>
+              <div class="form__item tpl-field">
+                <label class="form__item-name" for="search_country">Город</label>
+                <input class="form__input tpl-field-input" name="srchPat[16]"  type="text" id="" placeholder="Укажите город" >
+                <!--<div class="select form__select form__select--city select--search">
+                  <? nc_objects_list( $sub, $cc, "&nc_ctpl=220" ); ?>
+                </div>-->
+              </div>
+              <div class="form__item tpl-field">
+                <label class="form__item-name" for="search_height_start">Рост</label>
+                <div class="form__item-range">
+                  <input class="form__input tpl-field-input" name="srchPat[13]" min="0" step="any" max="250" maxlength="12" size="12" type="number" id="search_height_start" value="" placeholder="ОТ" >
+                  <span class="form__item-range-separator">—</span>
+                  <input class="form__input tpl-field-input" name="srchPat[14]" min="0" step="any" max="250" maxlength="12" size="12" type="number" id="search_height_end" value="250" placeholder="ДО" >
+                </div>
+              </div>
+              <div class="form__item tpl-field">
+                <label class="form__item-name" for="search_jewishness">Еврейство</label>
+                <div class="select form__select form__select--nation">
+                  
+                  <?=nc_list_select ("Jewishness", "Jewishness", $f_Jewishness_id,"","", "<select  class='select__el' name='srchPat[17]'><option data-placeholder='true' value='' disabled>-- Выбрать --</option>", "<option  value='\$value_id' \$value_selected>\$value_name</option>")?>  
+                </div>
+              </div>
+              <div class="form__item tpl-field">
+                <label class="form__item-name" for="">Происхождение</label>
+                <div class="select form__select form__select--nation">
+                  
+                  <?=nc_list_select ("Origin", "Origin", $f_Origin_id,"1","", "<select  class='select__el' name='srchPat[23]'><option data-placeholder='true' value='' disabled>-- Выбрать --</option>", "<option  value='\$value_id' \$value_selected>\$value_name</option>")?>  
+                </div>
+              </div>
+              <div class="form__item tpl-field">
+                <label class="form__item-name" for="">Происхождение Мамы</label>
+                <div class="select form__select form__select--nation">
+                  
+                  <?=nc_list_select ("Origin", "Mother_Origin", $f_Mother_Origin_id,"1","", "<select  class='select__el'  name='srchPat[24]'><option data-placeholder='true' value='' disabled>-- Выбрать --</option>", "<option  value='\$value_id' \$value_selected>\$value_name</option>")?>  
+                </div>
+              </div>
+              <div class="form__item tpl-field">
+                <label class="form__item-name" for="">Происхождение Папы</label>
+                <div class="select form__select form__select--nation">
+                  
+                  <?=nc_list_select ("Origin", "Father_Origin", $f_Father_Origin_id,"1","", "<select  class='select__el'  name='srchPat[25]'><option data-placeholder='true' value='' disabled>-- Выбрать --</option>", "<option  value='\$value_id' \$value_selected>\$value_name</option>")?>  
+                </div>
+              </div>
+              <div class="form__item tpl-field">
+                <label class="form__item-name" for="search__degree_compliance">Степень соблюдения</label>
+              
+                <div class="select form__select">
+                  <?=nc_list_select ("Degree_of_compliance", "Degree_of_compliance", $f_Degree_of_compliance_id,"1","", "<select  class='select__el' name='srchPat[18]'><option data-placeholder='true' value='' disabled>-- Выбрать --</option>", "<option  value='\$value_id' \$value_selected>\$value_name</option>")?>  
+                
+                </div>
+              </div>
+              
+              <div class="form__item tpl-field">
+                <label class="form__item-name" for="search__degree_compliance">Течение соблюдения</label>
+                <div class="select form__select">
+                  <?=nc_list_select ("Course_of_compliance", "Course_of_compliance", $f_Course_of_compliance_id,"1","", "<select  class='select__el'  name='srchPat[26]'><option data-placeholder='true' value='' disabled>-- Выбрать --</option>", "<option  value='\$value_id' \$value_selected>\$value_name</option>")?>  
+                </div>
+              </div>
+              
+              <div class="form__item tpl-field">
+                <label class="form__item-name" for="search_education">Образование</label>
+                <div class="select form__select">
+                  <?=nc_list_select ("Education", "Education", $f_Education_id,2,"", "<select  class='select__el' name='srchPat[20]'><option data-placeholder='true' value='' disabled>-- Выбрать --</option>", "<option  value='\$value_id' \$value_selected>\$value_name</option>")?>  
+                
+                </div>
+              </div>
+              <div class="form__item tpl-field">
+                <label class="form__item-name" for="search_marriage">Семейное положение</label>
+                <div class="select form__select">
+                  <?=nc_list_select ("Marital_status", "Marital_status", $f_Marital_status_id,"","", "<select  class='select__el' name='srchPat[27]'><option data-placeholder='true' value='' disabled>-- Выбрать --</option>", "<option  value='\$value_id' \$value_selected>\$value_name</option>")?>  
+                
+                </div>
+              </div>
+              <div class="form__item tpl-field">
+                <label class="form__item-name" for="search_childs">Наличие детей</label>
+                <div class="select form__select">
+                  <?=nc_list_select ("Number_of_children", "Number_of_children", $f_Number_of_children_id,"","", "<select  class='select__el' name='srchPat[22]'><option data-placeholder='true' value='' disabled>-- Выбрать --</option>", "<option  value='\$value_id' \$value_selected>\$value_name</option>")?>  
+                
+                </div>
+              </div>
+            </fieldset>
+          </div>
+        </div>
+      </div>
+      <button class="form__submit button button--fill" type="submit">Найти кандидата</button>
+      <input name="gender" value="<?=$_GET["gender"];?>"  type="hidden"  >    
+      <input name="ID" value="<?=$_GET["ID"];?>"  type="hidden"  >
+
+    </form>
+  </div>
+</section>
+<? else: ?>
+<? 
+if(!$_GET["age"][0]) {
+    $_GET["age"][0] = 0;
+} 
+if(!$_GET["age"][1]) {
+    $_GET["age"][1] = 3000;
+} 
+?>
+<section class="lk-shiduch">
+            <div class="lk-shiduch__wrapper">
+              <div class="lk-head lk-shiduch__head">
+                <h1 class="lk-head__title">Поиск шидуха</h1>
+                <span class="lk-head__badge lk-head__badge--step">Шаг <?= ($_GET['ID'] && $_GET['gender']) ? '2' : '1'; ?></span>
+              </div>
+<?
+// Собираем информацию о незаполненных полях
+$emptyFields = [];
+
+// Проверяем каждое поле
+if (empty($_GET['country'])) {
+    $emptyFields[] = 'страна';
+}
+
+if (empty($_GET['Education'])) {
+    $emptyFields[] = 'образование';
+} 
+
+if (empty($_GET['Number_of_children'])) {
+    $emptyFields[] = 'количество детей';
+} 
+
+if (empty($_GET['Marital_status'])) {
+    $emptyFields[] = 'семейное положение';
+} 
+
+if (empty($_GET['Belonging_denomination'])) {
+    $emptyFields[] = 'религиозная принадлежность';
+} 
+
+// Проверяем возраст (считаем незаполненным, если значения по умолчанию)
+$ageStart = $_GET['age'][0] ?? 0;
+$ageEnd = $_GET['age'][1] ?? 3000;
+
+if ($ageStart == 0 && $ageEnd == 3000) {
+    $emptyFields[] = 'возраст';
+} 
+
+// Формируем сообщение о незаполненных полях
+$message = '';
+if (!empty($emptyFields)) {
+    $message = 'Некоторые параметры поиска не заполнены: ' . implode(', ', $emptyFields) . '.<br/> Система выдаёт широкий спектр кандидатов.';
+}
+?>
+
+<?php if (!empty($message) && $_GET['ID'] ): ?>
+<div class="lk-head lk-shiduch__head">
+    <p><?= $message ?></p>
+</div>
+<?php endif; ?>
+           
+              
+              <div class="lk-sort lk-shiduch__sort">
+                <div class="lk-sort__sort">
+                  <div class="lk-sort__sort-text">Сортировка: </div>
+                  <button id="sortNew" class="lk-sort__sort-button lk-sort__sort-button--active">Новые анкеты</button>
+                  <button id="sortAlphabet" class="lk-sort__sort-button">По алфавиту</button>
+                </div>
+                <a class="lk-sort__search" href="<?=$subLink;?>?search=1&ID=<?=$_GET["ID"];?>&gender=<?=$_GET["gender"];?>" title="">
+                  <span class="lk-sort__search-text">Поиск</span>
+                  <svg class="lk-sort__search-icon">
+                    <use xlink:href="/images/sprite.svg#search"></use>
+                  </svg>
+                </a>
+              </div>
+
+              <div class="lk-shiduch__table lk-table lk-table--avatar">
+                <div class="lk-table__head">
+                  <div class="lk-table__row">
+                    <div class="lk-table__cell lk-table__cell--avatar">Фото</div>
+                    <div class="lk-table__cell lk-table__cell--name">ФИО</div>
+                    <div class="lk-table__cell lk-table__cell--address">Страна</div>
+                    <div class="lk-table__cell lk-table__cell--age">Возраст</div>
+                    <div class="lk-table__cell lk-table__cell--gender">Пол</div>
+                  </div>
+                </div>
+                <div class="lk-table__body lk-sort-container js-scroll-list">
+<? endif; ?>
+
+<? $numEl  = 0; ?> 
+<!-- /FormPrefix -->
+
+<!-- RecordTemplate --><?
+if($nc_core->user->get_by_id($f_User_ID, 'Checked') && $f_Checked):
+  $now = time(); // текущее время (метка времени)
+  $your_date = strtotime($f_Created_year.'-'.$f_Created_month.'-'.$f_Created_day); // какая-то дата в строке (1 января 2017 года)
+  $datediff = $now - $your_date; // получим разность дат (в секундах)
+
+  $daysSumm = floor($datediff / (60 * 60 * 24));
+  if( get_age($f_Date_of_birth) >= $_GET["age"][0]  && get_age($f_Date_of_birth) <= $_GET["age"][1]):
+?>
+<div class="lk-table__row lk-sort-item " data-name="<?= $f_Name;?> " data-new="<?= $daysSumm <= 30 ? 'true': 'false';?>">
+  <div class="lk-table__cell lk-table__cell--avatar">
+    <picture class="lk-table__cell-picture">
+      <img class="lk-table__cell-picture-img js-lazy" data-src="<?= $f_Photo_avatar ? $f_Photo_avatar : ($f_Gender_id == 1 ? '/images/avatar/man.png' : '/images/avatar/woman.png'); ?>" alt="">
+    </picture>
+  </div>
+  <div class="lk-table__cell lk-table__cell--name">
+    <div class="lk-table__cell-key">ФИО</div>
+    <div class="lk-table__cell-val">
+      <div class="lk-table__cell-val-name"><?= $f_Name;?></div>
+      <a class="lk-table__cell-val-link js-scroll-link" href="/my/candidate/candidate_<?= $f_Message_ID;?>.html" title="">Подробнее</a>
+    </div>
+  </div>
+  <div class="lk-table__cell lk-table__cell--address">
+    <div class="lk-table__cell-key">Страна</div>
+    <div class="lk-table__cell-val"><?= $f_Country;?></div>
+  </div>
+  <div class="lk-table__cell lk-table__cell--age">
+    <div class="lk-table__cell-key">Возраст</div>
+    <div class="lk-table__cell-val"><?= $f_Date_of_birth_year < 2024 && $f_Date_of_birth_year !== '0000' ? get_age($f_Date_of_birth) : ''; ?> <?= num2word(get_age($f_Date_of_birth), array('год', 'года', 'лет'));?></div>
+  </div>
+  <div class="lk-table__cell lk-table__cell--gender">
+    <div class="lk-table__cell-key">Пол</div>
+    <div class="lk-table__cell-val"><?= $f_Gender;?></div>
+  </div>
+  <div class="lk-table__cell lk-table__cell--manage">
+    <div class="lk-table__cell-inner lk-table__cell-inner--btn-more">
+      <a class="lk-table__cell-button button js-scroll-link" href="/my/candidate/candidate_<?= $f_Message_ID;?>.html" title="">Подробнее</a>
+    </div>
+    <? if($daysSumm <= 5): ?>   
+    <div class="lk-table__cell-inner lk-table__cell-inner--badge-new"></div>
+    <? endif; ?>
+    
+    <? if(!$_GET['ID'] && !$_GET['gender']): ?>
+    <? 
+    $Marital_status = [];
+    foreach ($f_Search_was_previously_married as &$value) {
+        if($value == 'Да'){
+          $Marital_status[] = 2;   
+        }
+        if($value == 'Нет'){
+          $Marital_status[] = 1;   
+        }
+    }
+    foreach ($f_Search_divorced as &$value) {
+        if($value == 'Да' && !in_array(2, $Marital_status)){
+          $Marital_status[] = 2;   
+        }
+     
+        if($value == 'Вдова/ец'){
+          $Marital_status[] = 3;   
+        }
+    }
+
+    ?>
+    <a href="<?= $subLink; ?>?ID=<?= $f_Message_ID; ?>&gender=<?= $f_Search_gender_id;?>&<?= $f_Search_education_id[0] === '1'  ? '' : http_build_query(['Education' => $f_Search_education_id]); ?>&<?= http_build_query(['Number_of_children' => $f_Search_number_of_children]); ?>&<?= http_build_query(['Marital_status' => $Marital_status]); ?>&<?= http_build_query(['Belonging_denomination' => $f_Search_belonging_denomination_id]); ?>&age[0]=<?= $f_Search_age_start ? $f_Search_age_start -5 : 0; ?>&age[1]=<?= $f_Search_age_end ? $f_Search_age_end + 5 :  300; ?>" class="lk-table__cell-inner lk-table__cell-inner--btn-choose js-scroll-link">
+      <button class="lk-table__cell-button button button--write">
+        <span class="button__text">Выбрать кандидата</span>
+      </button>
+    </a>
+
+    <? endif; ?>
+    <? if($_GET['ID'] && $_GET['gender']): ?>
+    <? $IDCandidate2 = $_GET['ID'];?>
+    <!--<a href="/my/message/add_soobscheniya.html?uid=<?=$f_User_ID;?>" class="lk-shiduch__item-manage-write button button--write">
+      <svg class="button__icon">
+        <use xlink:href="/images/sprite.svg#letter"></use>
+      </svg>
+      <span class="button__text">Написать</span>
+    </a>-->
+    <a href="/my/message/add_soobscheniya.html?uid=<?=$f_User_ID;?>&shiduch=1&candidateId=<?=$IDCandidate2;?>&candidate2Id=<?=$f_Message_ID;?>" class="lk-shiduch__item-manage-write button button--write">
+      <svg class="button__icon">
+        <use xlink:href="/images/sprite.svg#letter"></use>
+      </svg>
+      <span class="button__text">Написать</span>
+    </a>
+    <? endif; ?>
+  </div>
+</div>
+<? $numEl++; ?> 
+<? endif;?>
+<? endif;?><!-- /RecordTemplate -->
+
+<!-- FormSuffix --><? if(!$_GET["search"]): ?>
+<? if(!$numEl): ?>
+<div class="lk-shiduch__result">
+                <h2 class="lk-shiduch__result-title">Кандидаты не найдены</h2>
+                <a class="button button--ghost lk-shiduch__result-goback" href="/my/poisk-shiduha/" title="">Вернуться назад</a>
+              </div>
+<? endif; ?>
+
+</div>
+<div class="lk-load-more lk-shiduch__load-more">
+                  <button class="lk-load-more__btn">Показать еще</button>
+                </div>
+              </div>
+               </div>
+          </section>
+<? endif; ?>   
+
+       <!-- /FormSuffix -->

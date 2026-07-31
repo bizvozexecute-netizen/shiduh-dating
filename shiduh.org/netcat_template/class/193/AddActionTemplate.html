@@ -1,0 +1,34 @@
+<?
+$subject = "Задать вопрос с сайта One Soul";
+$text = "<table>
+    <tr>
+        <td><p>Имя:</p></td>
+        <td><p>$f_name</p></td>
+    </tr>
+    <tr>
+        <td><p>Равин:</p></td>
+        <td><p>$f_ravin</p></td>
+    </tr>
+    <tr>
+        <td><p>E-mail:</p></td>
+        <td><p>$f_email</p></td>
+    </tr>
+    <tr>
+        <td><p>Дополнительная информация:</p></td>
+        <td><p>$f_info</p></td>
+    </tr>
+</table>";
+
+
+$nc_core = nc_Core::get_object();
+$nc_core->mail->mailbody( strip_tags($text), $text);
+
+// $mailer = new CMIMEMail();
+// $mailer->mailbody( strip_tags($text), $text);
+
+// $var = $nc_core->db->get_var("SELECT `tenant_room` FROM `Message187` WHERE `Message_ID` = 1");
+// $mailer->send('ask@shiduh.org', 'info@shiduh.org', 'info@shiduh.org', $subject, $subject);
+
+$nc_core->mail->send('ask@shiduh.org', 'info@shiduh.org', 'info@shiduh.org', $subject, $subject, $subject);
+
+?>

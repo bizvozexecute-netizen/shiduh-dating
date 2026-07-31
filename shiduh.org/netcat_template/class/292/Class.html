@@ -1,0 +1,53 @@
+<!-- FormPrefix --><?
+if($current_user['Type_id'] === 1) {
+    header('Location: https://'.$_SERVER['HTTP_HOST'].'');
+    exit();
+}
+?>
+<? if($_GET['addTheme']): ?>
+<?= $addForm; ?>
+<? else: ?>
+<section class="lk-messages">
+  <div class="lk-messages__wrapper">
+    <div class="lk-head lk-messages__head lk-messages__head--border">
+      <h1 class="lk-head__title">Темы</h1>
+      <a class="lk-head__button button button--fill" href="?addTheme=1" title="">
+        <svg class="lk-head__button-icon">
+          <use xlink:href="/images/sprite1.svg#lk-add-theme"></use>
+        </svg>
+        <span class="lk-head__button-text">Создать тему</span>
+      </a>
+    </div>
+    <div class="lk-messages__body">
+<? endif; ?>    <!-- /FormPrefix -->
+
+<!-- RecordTemplate --><? if(!$_GET['addTheme']): ?>
+<div class="lk-messages__item ">
+  <div class="lk-messages__item-name">
+    <img class="lk-messages__item-name-img js-lazy" data-src="<?= $nc_core->user->get_by_id($f_User_ID, "Photo_avatar") ? $nc_core->user->get_by_id($f_User_ID, "Photo_avatar") : ($nc_core->user->get_by_id($f_User_ID, "Gender_id") == 1 ? '/images/avatar/man.png' : '/images/avatar/woman.png'); ?>" alt="">
+    <span class="lk-messages__item-name-text"><?= $nc_core->user->get_by_id($f_User_ID, 'Name'); ?></span>
+  </div>
+  <a class="lk-messages__item-theme" href="<?= $fullLink; ?>" title=""> <?= $f_Theme; ?> </a>
+  <div class="lk-messages__item-date" data-time="<?=$f_Created_year;?>-<?=$f_Created_month;?>-<?=$f_Created_day;?> <?=$f_Created_hours;?>:<?=$f_Created_minutes;?>:00 GMT+0000"> <?=$f_Created_day.".".$f_Created_month.".".$f_Created_year." - ".$f_Created_hours.":".$f_Created_minutes?> </div>
+  <? if($current_user['User_ID'] === '1' || $current_user['User_ID'] === '119'): ?>
+  <a class="lk-messages__item-delete" href="<?=$checkedLink?>" title=""> Удалить </a>
+  <? endif; ?>
+</div>
+<? endif; ?><!-- /RecordTemplate -->
+
+<!-- FormSuffix --><? if(!$_GET['addTheme']): ?>
+<div class="lk-messages__load-more">
+      <button class="lk-messages__load-more-btn" type="button">Показать ещё</button>
+    </div>
+    </div>
+  </div>
+</section>
+  <script>
+[...document.querySelectorAll('.lk-messages__item-date')].forEach(el => {
+    var date = new Date(el.getAttribute('data-time').replace(/-/g, "/"));
+    el.innerHTML = `${("0" + date.getDate()).slice(-2)}.${("0" + (date.getMonth() + 1)).slice(-2)}.${date.getFullYear()} - ${("0" + date.getHours()).slice(-2)}:${("0" + date.getMinutes()).slice(-2)}`;
+    //el.innerHTML = date;
+});
+
+</script>
+<? endif; ?>  <!-- /FormSuffix -->

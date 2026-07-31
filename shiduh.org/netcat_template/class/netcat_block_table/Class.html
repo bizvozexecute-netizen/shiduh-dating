@@ -1,0 +1,31 @@
+<!-- FormPrefix --><?= $f_AdminCommon; ?>
+<table class="tpl-table">
+    <?php $column_decor = json_decode($cc_settings['columnDecor']); ?>
+    <?php if (!$cc_settings['hideHeader']) { ?>
+        <?php $column_title = json_decode($cc_settings['columnTitle']); ?>
+        <thead>
+        <?php for ($col = 1; $col <= $cc_settings['columnCount']; $col++) { ?>
+            <th data-col="<?= $col ?>" class="tpl-text-thead <?= $column_decor[$col] ? $column_decor[$col]->header_align : ""; ?>">
+                <?= $column_title[$col]; ?>
+            </th>
+        <?php } ?>
+        </thead>
+    <?php } ?>
+    <tbody><!-- /FormPrefix -->
+
+<!-- RecordTemplate --><tr>
+<?php $column_values = $f_rowData ? unserialize($f_rowData) : array(); ?>
+<?php for ($col = 1; $col <= $cc_settings['columnCount']; $col++) { ?>
+    <td data-col="<?= $col ?>" class="tpl-text-default <?= $column_decor[$col] ? $column_decor[$col]->cell_align : ""; ?>">
+    <?= ($col == 1 ? $f_AdminButtons : ""); ?>
+    <?php if ($column_decor[$col] && $column_decor[$col]->cell_bold) { ?>
+        <strong><?= nl2br($column_values[$col]); ?></strong>
+    <?php } else { ?>
+        <?= nl2br($column_values[$col]); ?>
+    <?php } ?>
+    </td>
+<?php } ?>
+</tr><!-- /RecordTemplate -->
+
+<!-- FormSuffix --></tbody>
+</table><!-- /FormSuffix -->

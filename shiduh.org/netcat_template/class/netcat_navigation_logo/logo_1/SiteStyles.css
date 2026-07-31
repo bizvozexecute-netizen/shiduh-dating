@@ -1,0 +1,16 @@
+& {height:100%;}
+a {
+	height:100%;
+    display: inline-block;
+    color: var(--tpl-color-foreground-accent);
+    text-decoration: none;
+}
+a img, a svg{
+    max-height: 100%;
+    max-width: 100%;
+    /* height: 100%; width: 100%; */
+    object-fit: contain;
+}
+a svg path{
+    fill: var(--tpl-color-foreground-accent);
+}

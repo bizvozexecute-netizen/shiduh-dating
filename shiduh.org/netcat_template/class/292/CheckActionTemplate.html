@@ -1,0 +1,12 @@
+<?
+if($inside_admin) {
+    ob_end_clean();
+    header('Location: '.$goBackLink.'&inside_admin=1');
+    exit;
+} else { 
+	//echo ($checked-1 ? ( count($messages) == 1 ? NETCAT_MODERATION_OBJISON : NETCAT_MODERATION_OBJSAREON) :
+ 	//		 (count($messages) == 1 ? NETCAT_MODERATION_OBJISOFF : NETCAT_MODERATION_OBJSAREOFF) );
+	//echo "<br /><br />".$goBack;
+    header('Location: '.$subLink);
+}
+?>

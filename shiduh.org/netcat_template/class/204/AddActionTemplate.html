@@ -1,0 +1,62 @@
+<?
+if($f_Checked) {
+    //отправка сообщения шадханам об добавлении кандидата
+    $candidateDate = date("Y-m-d H:i:s");
+    $candidateUserID = 1;
+    
+    $candidateTheme = 'На сайте появился новый кандидат';    
+    $candidateMessage = 'Уважаемый шадхан! <br>
+На сайте One Soul зарегистрировался новый <a href="https://shiduh.org/my/candidate/candidate_'.$message.'.html">кандидат </a>. Анкета кандидата открыта для Вас. Ознакомившись с анкетой и познакомившись с кандидатом, создайте идею шидуха!  <br>
+Команда One Soul желает Сията деШмая и плодотворных шидухов!';
+
+    $nc_core->db->query("SELECT * FROM User WHERE Type = 2 AND User_ID != 1 AND User_ID != 119", ARRAY_A );
+    $arr = $nc_core->db->last_result;
+    
+    foreach ($arr as $row) {
+        $shadhanID = $row['User_ID'];
+        sendEmail($shadhanID, $candidateTheme, $candidateMessage);
+        $nc_core->db->query("INSERT INTO `Message6` 
+                        (`Checked`, `ToUser`, `Subject`, `Message`, `User_ID`, `Subdivision_ID`, `Sub_Class_ID`, `Created`, `Status`) 
+                        VALUES 
+                        ('1', '$shadhanID', '$candidateTheme', '$candidateMessage', '$candidateUserID', '28', '29', '$candidateDate', '0') "); 
+    }    
+
+}
+
+if($inside_admin) {
+    ob_end_clean();
+    header('Location: '.$goBackLink.'&inside_admin=1');
+    exit;
+} else { 
+    $nc_core = nc_Core::get_object();
+    if($IsChecked) {
+      
+      //Обновление рейтинга при добавлении кандидата
+      $userID = $current_user['User_ID'];
+      $nc_core->db->query("SELECT * FROM `User` WHERE `User_ID` = '$userID'");  
+      $arr = $nc_core->db->last_result;
+      $currentNC = $arr[0]->Number_of_candidate_add;
+      $newNC = ++$currentNC;
+
+      if($newNC >= 50) {
+          $currentAccountRaiting = $arr[0]->Account;
+          $newcurrentAccountRaiting = $currentAccountRaiting + 10;
+          $nc_core->db->query("UPDATE `User` SET `Account` = '$newcurrentAccountRaiting' WHERE `User_ID` = '$userID'");  
+          $nc_core->db->query("UPDATE `User` SET `Number_of_candidate_add` = 0 WHERE `User_ID` = '$userID'");  
+      } else {
+          $nc_core->db->query("UPDATE `User` SET `Number_of_candidate_add` = '$newNC' WHERE `User_ID` = '$userID'");   
+      }
+      
+      
+      echo '<div class="lk-profile__body-message lk-profile__body-message--success">Кандидатура добавлена</div>';
+      echo ' <a class="lk-profile__password-updated-goback" href="/my/" title="">
+                    <svg class="lk-profile__password-updated-goback-icon">
+                      <use xlink:href="/images/sprite.svg#arrow"></use>
+                    </svg>На главную кабинета</a>';  
+    } else {
+      echo ($IsChecked ? NETCAT_MODERATION_MSG_OBJADD : NETCAT_MODERATION_MSG_OBJADDMOD);
+    }
+	
+	
+}
+?>

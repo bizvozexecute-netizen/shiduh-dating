@@ -1,0 +1,107 @@
+<!-- FormPrefix --><?= $f_AdminCommon; ?>
+<?php $shops = array(); ?>
+<?php if ($admin_mode && !$cc_settings['YandexMapApiKey']) { ?>
+    <?php nc_print_status("
+    Для работы с JS API Карт и HTTP API Геокодера каждому проекту нужен <a href='https://developer.tech.yandex.ru/' target='_blank'>API ключ</a>. 
+    В случае отсутствия ключа работоспособность карты не гарантируется. 
+    После <a href='https://developer.tech.yandex.ru/' target='_blank'>получения API-ключа</a> внесите его в настройках инфоблока
+    ", "info"); ?>
+<?php } ?>
+<div id="map"></div>
+<!-- /FormPrefix -->
+
+<!-- RecordTemplate --><?= $f_AdminButtons; ?>
+<?php
+$phones = null;
+if ($f_Phones) {
+    $phones = explode(',', $f_Phones);
+    if (count($phones) > 0) {
+        foreach ($phones as $i => $phone) {
+            $phone = trim($phone);
+            $phones[$i] = '<a href="tel:' . nc_normalize_phone_number($phone) . '">' . $i_open . $phone . $i_close . '</a>';
+        }
+        $phones = implode(', ', $phones);
+    }
+}
+
+$shops[] = array(
+    'name' => $f_Name,
+    'address' => $f_Address,
+    'phones' => $f_Phones,
+    'phones_processed' => $phones,
+    'working_time' => $f_WorkingTime,
+    'coordinates' => $f_Coordinates,
+);
+?>
+<div class="object-item">
+    <div class="tpl-text-alt-paragraph"><?= $f_Name; ?></div>
+    <div class="tpl-text-header6"><?= $f_Address; ?></div>
+    <?php if ($f_WorkingTime): ?><div class="tpl-text-default-paragraph"><?= $f_WorkingTime; ?></div><?php endif; ?>
+    <?php if ($f_Phones): ?><div class="tpl-text-default-paragraph"><?= $phones; ?></div><?php endif; ?>
+</div><!-- /RecordTemplate -->
+
+<!-- FormSuffix --><?php if ($totRows) { ?>
+    <?php
+    $center_latitude_min = $center_latitude_max = null;
+    $center_longitude_min = $center_longitude_max = null;
+    foreach ($shops as $shop) {
+        $lat_long = nc_parse_coordinates_to_lat_long($shop['coordinates']);
+        $center_latitude_min = !is_null($center_latitude_min) ? min($center_latitude_min, $lat_long['latitude']) : $lat_long['latitude'];
+        $center_latitude_max = !is_null($center_latitude_max) ? max($center_latitude_max, $lat_long['latitude']) : $lat_long['latitude'];
+        $center_longitude_min = !is_null($center_longitude_min) ? min($center_longitude_min, $lat_long['longitude']) : $lat_long['longitude'];
+        $center_longitude_max = !is_null($center_longitude_max) ? max($center_longitude_max, $lat_long['longitude']) : $lat_long['longitude'];
+    }
+    $center_latitude = ($center_latitude_min + $center_latitude_max) / 2.0;
+    $center_longitude = ($center_longitude_min + $center_longitude_max) / 2.0;
+
+    $apikey = $cc_settings['YandexMapApiKey'] ? "&apikey=" . $cc_settings['YandexMapApiKey'] : "";
+    ?>
+
+    <script type="text/javascript" src="https://api-maps.yandex.ru/2.1/?lang=ru_RU<?= $apikey; ?>"></script>
+    <script>
+        function init() {
+            let mapCenter = [
+                <?= number_format($center_latitude, 6); ?>,
+                <?= number_format($center_longitude, 6); ?>
+            ];
+            let myMap = new ymaps.Map("map", {center: mapCenter, zoom: 10});
+            let points = [];
+            <?php foreach ($shops as $shop) {
+                $shop_name = array(
+                    "{$b_open}{$shop['name']}{$b_close}",
+                    "{$b_open}Адрес:{$b_close} {$shop['address']}",
+                );
+                if ($shop['working_time']) {
+                    $shop_name[] = "{$b_open}Часы работы:{$b_close} {$shop['working_time']}";
+                }
+                if ($shop['phones_processed']) {
+                    $shop_name[] = "{$b_open}Контакты:{$b_close} {$shop['phones_processed']}";
+                }
+                $shop_name = implode('<br>', $shop_name);
+                ?>
+                myMap.geoObjects.add(new ymaps.Placemark([<?= $shop['coordinates']; ?>],
+                    {
+                        hintContent: '<?= $shop['name']; ?>',
+                        balloonContent: '<?= $shop_name; ?>'
+                    },
+                    {
+                        preset: 'islands#icon',
+                        iconColor: '#0095b6'
+                    }
+                ));
+                points.push(<?= $shop['coordinates']; ?>);
+            <?php } ?>
+        }
+
+        if (document.readyState == 'loading') {
+            document.addEventListener("DOMContentLoaded", function (event) {
+                ymaps.ready(init);
+            });
+        } else {
+            ymaps.ready(init);
+        }
+    </script>
+<?php } ?>
+<?php if ($totRows > $recNum): ?>
+    <?= nc_browse_messages($cc_env, 10); ?>
+<?php endif; ?><!-- /FormSuffix -->

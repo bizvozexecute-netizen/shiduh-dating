@@ -1,0 +1,24 @@
+<?/* Служебная часть */for ($f_RowNum = 0; $f_RowNum < $rowCount; $f_RowNum++) {    if($fetch_row[$f_RowNum] instanceof Iterator) {        extract($fetch_row[$f_RowNum]->to_array(), EXTR_PREFIX_ALL, "f");    } else {        extract($fetch_row[$f_RowNum], EXTR_PREFIX_ALL, "f");    }    foreach($iteration_RecordTemplate[$f_RowNum] as $value) {        extract($value);    }    eval($cc_env["convert2txt"]);    ob_start();/* Конец служебной части */?>
+<?= $f_AdminButtons; ?>
+<a class="news-item" href="<?= $fullLink; ?>"<?= $styles; ?>>
+    <?php $isOldDate = $f_Date_year < date("Y"); ?>
+    <div class="news-item-image" style="background-image: url(<?= $f_Image; ?>);">
+        <div class="news-item-date news-date">
+            <div class="tpl-text-alt-biggest-paragraph">
+                <?= ($isOldDate ? $f_Date_day . "." . $f_Date_month : $f_Date_day); ?>
+            </div>
+            <div class="tpl-text-alt-<?= ($isOldDate ? "big" : "smallest"); ?>-paragraph">
+                <?= ($isOldDate ? $f_Date_year : $months_number_to_text[(int)$f_Date_month]); ?>
+            </div>
+        </div>
+    </div>
+    <div class="news-item-content">
+        <div class="news-item-title tpl-text-header4">
+            <?= nc_edit_inline('Name', $f_RowID, $cc); ?>
+        </div>
+        <div class="news-item-text tpl-text-default-paragraph">
+            <?= nc_edit_inline('Description', $f_RowID, $cc); ?>
+        </div>
+    </div>
+</a>
+<?/* Служебная часть */    echo nc_finishing_RecordTemplate(ob_get_clean(), $inside_admin, $classID, $f_RowID, $parent_message, $cc, $cc_env["Class_Name"], $no_cache_marks);}/* Конец служебной части */?>

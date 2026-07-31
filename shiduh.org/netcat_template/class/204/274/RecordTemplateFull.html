@@ -1,0 +1,469 @@
+<section class="lk-questionnaire lk-questionnaire--candidate">
+  <div class="lk-questionnaire__wrapper">
+    <div class="lk-head lk-questionnaire__head">
+      <div class="lk-questionnaire__head-row">
+        <h1 class="lk-head__title lk-questionnaire__head-title">ID: <?= $f_Message_ID; ?></h1>
+        <div class="lk-questionnaire__head-manage">
+          <?= nc_objects_list(73, 77, "&IDCandidate=$f_Message_ID&nc_ctpl=273" ); ?>
+          <? if($f_User_ID === $current_user['User_ID']): ?>
+          <a href="/en/my/edit-anket/?object=<?= $f_Message_ID; ?>" class="lk-questionnaire__head-write button button--write-short">
+            <svg class="button__icon">
+              <use xlink:href="/images/sprite.svg#write"></use>
+            </svg>
+          </a>
+          <? endif; ?>
+        </div>
+        <a class="lk-questionnaire__head-exit" href="<?= $_SERVER['HTTP_REFERER'] ? $_SERVER['HTTP_REFERER'] : '/en/my/favourites/'; ?>" title="">Back</a>
+      </div>
+      
+      <div class="lk-questionnaire__head-redistration-date">Дата регистрации: <?= $f_Created_day; ?>.<?= $f_Created_month; ?>.<?= $f_Created_year; ?></div>
+      <div class="lk-questionnaire__head-info-list">
+        <? if($f_Success_docs):?>
+        <div class="lk-questionnaire__head-subtitle lk-questionnaire__head-subtitle--check">Свидетельство о рождении подтверждено</div>
+        <? else: ?>
+        <div class="lk-questionnaire__head-subtitle lk-questionnaire__head-subtitle--uncheck">Свидетельство о рождении не подтверждено</div>
+        <? endif; ?>
+        <? if($f_Success_ravin):?>
+        <div class="lk-questionnaire__head-subtitle lk-questionnaire__head-subtitle--check">Подтвержден раввином</div>
+        <? else: ?>
+        <div class="lk-questionnaire__head-subtitle lk-questionnaire__head-subtitle--uncheck">Не подтвержден раввином</div>
+        <? endif; ?>
+      </div>
+      
+    </div>
+    <div class="lk-questionnaire__body">
+      <div class="lk-questionnaire__body-main">
+        <div class="lk-questionnaire__body-table">
+          <? if($current_user['User_ID'] == 1 || $f_User_ID === $current_user['User_ID'] || $f_Shadhan_1 === $current_user['User_ID'] || $f_Shadhan_2 === $current_user['User_ID'] || $f_Shadhan_3 === $current_user['User_ID']): ?>  
+          <div class="lk-questionnaire__body-table-row">
+            <div class="lk-questionnaire__body-table-cell lk-questionnaire__body-table-cell--key"><b>Full Name:</b></div>
+            <div class="lk-questionnaire__body-table-cell lk-questionnaire__body-table-cell--value"><?= $f_Name; ?></div>
+          </div>
+          <? endif; ?>
+          <? if($f_EN_Jewish_name): ?>  
+          <div class="lk-questionnaire__body-table-row">
+            <div class="lk-questionnaire__body-table-cell lk-questionnaire__body-table-cell--key"><b>Jewish name:</b></div>
+            <div class="lk-questionnaire__body-table-cell lk-questionnaire__body-table-cell--value"><?= $f_EN_Jewish_name; ?></div>
+          </div>
+          <? endif; ?>
+          <? if($f_Gender): ?>  
+          <div class="lk-questionnaire__body-table-row">
+            <div class="lk-questionnaire__body-table-cell lk-questionnaire__body-table-cell--key"><b>Gender:</b></div>
+            <div class="lk-questionnaire__body-table-cell lk-questionnaire__body-table-cell--value"><?= $f_Gender_value; ?></div>
+          </div>
+          <? endif; ?>
+          <? if($f_Date_of_birth_day): ?>  
+          <div class="lk-questionnaire__body-table-row">
+            <div class="lk-questionnaire__body-table-cell lk-questionnaire__body-table-cell--key"><b>Day of birth:</b></div>
+            <div class="lk-questionnaire__body-table-cell lk-questionnaire__body-table-cell--value"><?= $f_Date_of_birth_day; ?>.<?= $f_Date_of_birth_month; ?>.<?= $f_Date_of_birth_year; ?> (<?= $f_Date_of_birth_year < 2024 && $f_Date_of_birth_year !== '0000' ? get_age($f_Date_of_birth) : ''; ?> <?= num2word(get_age($f_Date_of_birth), array('year', 'year', 'year'));?>)</div>
+          </div>
+          <? endif; ?>
+          <? if($f_EN_Place_of_birth): ?>  
+          <div class="lk-questionnaire__body-table-row">
+            <div class="lk-questionnaire__body-table-cell lk-questionnaire__body-table-cell--key"><b>Place of birth:</b></div>
+            <div class="lk-questionnaire__body-table-cell lk-questionnaire__body-table-cell--value"><?= $f_EN_Place_of_birth; ?></div>
+          </div>
+          <? endif; ?>
+          <? if($f_Country): ?>  
+          <div class="lk-questionnaire__body-table-row">
+            <div class="lk-questionnaire__body-table-cell lk-questionnaire__body-table-cell--key"><b>Country of residence:</b></div>
+            <div class="lk-questionnaire__body-table-cell lk-questionnaire__body-table-cell--value"><?= $f_Country_value; ?></div>
+          </div>
+          <? endif; ?>
+          <? if($f_EN_City): ?>  
+          <div class="lk-questionnaire__body-table-row">
+            <div class="lk-questionnaire__body-table-cell lk-questionnaire__body-table-cell--key"><b>City of residence:</b></div>
+            <div class="lk-questionnaire__body-table-cell lk-questionnaire__body-table-cell--value"><?= $f_EN_City; ?></div>
+          </div>
+          <? endif; ?>
+          <? if($f_Height): ?>  
+          <div class="lk-questionnaire__body-table-row">
+            <div class="lk-questionnaire__body-table-cell lk-questionnaire__body-table-cell--key"><b>Height:</b></div>
+            <div class="lk-questionnaire__body-table-cell lk-questionnaire__body-table-cell--value"><?= $f_Height; ?> cm</div>
+          </div>
+          <? endif; ?>
+          <? if($f_Jewishness): ?>  
+          <div class="lk-questionnaire__body-table-row">
+            <div class="lk-questionnaire__body-table-cell lk-questionnaire__body-table-cell--key"><b>Jewry:</b></div>
+            <div class="lk-questionnaire__body-table-cell lk-questionnaire__body-table-cell--value"><?= $f_Jewishness_value; ?></div>
+          </div>
+          <? endif; ?>
+          <? if($f_Origin): ?>  
+          <div class="lk-questionnaire__body-table-row">
+            <div class="lk-questionnaire__body-table-cell lk-questionnaire__body-table-cell--key"><b>Origin:</b></div>
+            <div class="lk-questionnaire__body-table-cell lk-questionnaire__body-table-cell--value"><?= $f_Origin_value; ?></div>
+          </div>
+          <? endif; ?>
+          <? if($f_Mother_Origin): ?>  
+          <div class="lk-questionnaire__body-table-row">
+            <div class="lk-questionnaire__body-table-cell lk-questionnaire__body-table-cell--key"><b>Происхождение Мамы:</b></div>
+            <div class="lk-questionnaire__body-table-cell lk-questionnaire__body-table-cell--value"><?= $f_Mother_Origin; ?></div>
+          </div>
+          <? endif; ?>
+          <? if($f_Father_Origin): ?>  
+          <div class="lk-questionnaire__body-table-row">
+            <div class="lk-questionnaire__body-table-cell lk-questionnaire__body-table-cell--key"><b>Происхождение Папы:</b></div>
+            <div class="lk-questionnaire__body-table-cell lk-questionnaire__body-table-cell--value"><?= $f_Father_Origin; ?></div>
+          </div>
+          <? endif; ?>
+          <? if($f_Degree_of_compliance): ?>  
+          <div class="lk-questionnaire__body-table-row">
+            <div class="lk-questionnaire__body-table-cell lk-questionnaire__body-table-cell--key"><b>Degree of compliance:</b></div>
+            <div class="lk-questionnaire__body-table-cell lk-questionnaire__body-table-cell--value"><?= nc_array_to_string($f_Degree_of_compliance, $arfloor)?></div>
+          </div>
+          <? endif; ?>
+          <? if($f_Course_of_compliance): ?>  
+          <div class="lk-questionnaire__body-table-row">
+            <div class="lk-questionnaire__body-table-cell lk-questionnaire__body-table-cell--key"><b>Течение соблюдения:</b></div>
+            <div class="lk-questionnaire__body-table-cell lk-questionnaire__body-table-cell--value"><?= $f_Course_of_compliance; ?></div>
+          </div>
+          <? endif; ?>
+          <? if($f_Belonging_denomination): ?>  
+          <div class="lk-questionnaire__body-table-row">
+            <div class="lk-questionnaire__body-table-cell lk-questionnaire__body-table-cell--key"><b>Religious affiliation:</b></div>
+            <div class="lk-questionnaire__body-table-cell lk-questionnaire__body-table-cell--value"><?= $f_Belonging_denomination_value; ?></div>
+          </div>
+          <? endif; ?>
+          <? if($f_Education): ?>  
+          <div class="lk-questionnaire__body-table-row">
+            <div class="lk-questionnaire__body-table-cell lk-questionnaire__body-table-cell--key"><b>Education:</b></div>
+            <div class="lk-questionnaire__body-table-cell lk-questionnaire__body-table-cell--value"><?= $f_Education_value; ?></div>
+          </div>
+          <? endif; ?>
+          <? if($f_EN_Specialization): ?>  
+          <div class="lk-questionnaire__body-table-row">
+            <div class="lk-questionnaire__body-table-cell lk-questionnaire__body-table-cell--key"><b>Speciality:</b></div>
+            <div class="lk-questionnaire__body-table-cell lk-questionnaire__body-table-cell--value"><?= $f_EN_Specialization; ?></div>
+          </div>
+          <? endif; ?>
+          <? if($f_EN_What_does): ?>  
+          <div class="lk-questionnaire__body-table-row">
+            <div class="lk-questionnaire__body-table-cell lk-questionnaire__body-table-cell--key"><b>What do You do:</b></div>
+            <div class="lk-questionnaire__body-table-cell lk-questionnaire__body-table-cell--value"><?= $f_EN_What_does; ?></div>
+          </div>
+          <? endif; ?>
+          <? if($f_EN_Hobby_description): ?>  
+          <div class="lk-questionnaire__body-table-row">
+            <div class="lk-questionnaire__body-table-cell lk-questionnaire__body-table-cell--key"><b>Hobby:</b></div>
+            <div class="lk-questionnaire__body-table-cell lk-questionnaire__body-table-cell--value"><?= $f_EN_Hobby_description; ?></div>
+          </div>
+          <? endif; ?>
+          <? if($f_Bad_habits): ?>  
+          <div class="lk-questionnaire__body-table-row">
+            <div class="lk-questionnaire__body-table-cell lk-questionnaire__body-table-cell--key"><b>Bad habbits:</b></div>
+            <div class="lk-questionnaire__body-table-cell lk-questionnaire__body-table-cell--value"><?= $f_Bad_habits_value; ?></div>
+          </div>
+          <? endif; ?>
+          <? if($f_EN_Health_status): ?>  
+          <div class="lk-questionnaire__body-table-row">
+            <div class="lk-questionnaire__body-table-cell lk-questionnaire__body-table-cell--key"><b>Health status:</b></div>
+            <div class="lk-questionnaire__body-table-cell lk-questionnaire__body-table-cell--value"><?= $f_EN_Health_status; ?></div>
+          </div>
+          <? endif; ?>
+          <? if($f_Marital_status): ?>  
+          <div class="lk-questionnaire__body-table-row">
+            <div class="lk-questionnaire__body-table-cell lk-questionnaire__body-table-cell--key"><b>Семейное положение:</b></div>
+            <div class="lk-questionnaire__body-table-cell lk-questionnaire__body-table-cell--value"><?= $f_Marital_status; ?></div>
+          </div>
+          <? endif; ?>
+          <? if($f_Number_of_children): ?>  
+          <div class="lk-questionnaire__body-table-row">
+            <div class="lk-questionnaire__body-table-cell lk-questionnaire__body-table-cell--key"><b>Amount of children:</b></div>
+            <div class="lk-questionnaire__body-table-cell lk-questionnaire__body-table-cell--value"><?= $f_Number_of_children_value; ?></div>
+          </div>
+          <? endif; ?>
+          <? if($f_Age_of_children): ?>    
+          <div class="lk-questionnaire__body-table-row">
+            <div class="lk-questionnaire__body-table-cell lk-questionnaire__body-table-cell--key"><b>Age of children:</b></div>
+            <div class="lk-questionnaire__body-table-cell lk-questionnaire__body-table-cell--value"><?= $f_Age_of_children; ?></div>
+          </div>
+          <? endif; ?>
+          <? if($f_Family_composition_relationships): ?>  
+          <div class="lk-questionnaire__body-table-row">
+            <div class="lk-questionnaire__body-table-cell lk-questionnaire__body-table-cell--key"><b>Family composition:</b></div>
+            <div class="lk-questionnaire__body-table-cell lk-questionnaire__body-table-cell--value"><?= $f_Family_composition_relationships; ?></div>
+          </div>
+          <? endif; ?>
+          <? if($f_Are_you_ready_to_move): ?>  
+          <div class="lk-questionnaire__body-table-row">
+            <div class="lk-questionnaire__body-table-cell lk-questionnaire__body-table-cell--key"><b>Are you ready to move:</b></div>
+            <div class="lk-questionnaire__body-table-cell lk-questionnaire__body-table-cell--value"><?= $f_Are_you_ready_to_move_value; ?></div>
+          </div>
+          <? endif; ?>
+          <? if($f_Country_of_relocation): ?>  
+          <div class="lk-questionnaire__body-table-row">
+            <div class="lk-questionnaire__body-table-cell lk-questionnaire__body-table-cell--key"><b>Страна переезда:</b></div>
+            <div class="lk-questionnaire__body-table-cell lk-questionnaire__body-table-cell--value"><?= nc_array_to_string($f_Country_of_relocation, $arfloor)?></div>
+          </div>
+          <? endif; ?>
+          <? if($f_Your_ravin): ?>  
+          <div class="lk-questionnaire__body-table-row">
+            <div class="lk-questionnaire__body-table-cell lk-questionnaire__body-table-cell--key"><b>Раввин:</b></div>
+            <div class="lk-questionnaire__body-table-cell lk-questionnaire__body-table-cell--value"><?= $f_Your_ravin; ?></div>
+          </div>
+          <? endif; ?>
+          <? if($f_Your_ravin_contact): ?>  
+          <div class="lk-questionnaire__body-table-row">
+            <div class="lk-questionnaire__body-table-cell lk-questionnaire__body-table-cell--key"><b>Контактные данные раввина:</b></div>
+            <div class="lk-questionnaire__body-table-cell lk-questionnaire__body-table-cell--value"><?= $f_Your_ravin_contact; ?></div>
+          </div>
+          <? endif; ?>
+          <? if($f_Your_sinagoga): ?>  
+          <div class="lk-questionnaire__body-table-row">
+            <div class="lk-questionnaire__body-table-cell lk-questionnaire__body-table-cell--key"><b>Синагога:</b></div>
+            <div class="lk-questionnaire__body-table-cell lk-questionnaire__body-table-cell--value"><?= $f_Your_sinagoga; ?></div>
+          </div>
+          <? endif; ?>
+          
+          <? if($f_Email || $f_Shadhan_1 === $current_user['User_ID'] || $f_Shadhan_2 === $current_user['User_ID'] || $f_Shadhan_3 === $current_user['User_ID']): ?>  
+          <div class="lk-questionnaire__body-table-row">
+            <div class="lk-questionnaire__body-table-cell lk-questionnaire__body-table-cell--key"><b>Email:</b></div>
+            <div class="lk-questionnaire__body-table-cell lk-questionnaire__body-table-cell--value"><?= $f_Email; ?></div>
+          </div>
+          <? endif; ?>
+          <? if($f_Phone || $f_Shadhan_1 === $current_user['User_ID'] || $f_Shadhan_2 === $current_user['User_ID'] || $f_Shadhan_3 === $current_user['User_ID']): ?>  
+          <div class="lk-questionnaire__body-table-row">
+            <div class="lk-questionnaire__body-table-cell lk-questionnaire__body-table-cell--key"><b>Телефон:</b></div>
+            <div class="lk-questionnaire__body-table-cell lk-questionnaire__body-table-cell--value"><?= $f_Phone; ?></div>
+          </div>
+          <? endif; ?>
+          
+          
+          
+        </div>
+        
+        <div class="lk-questionnaire__body-buttons">
+          <? if($f_User_ID !== $current_user['User_ID']): ?>
+          <a href="<?= nc_auth_messages_url($f_User_ID); ?>" class="lk-questionnaire__body-write button button--write">
+            <svg class="button__icon">
+              <use xlink:href="/images/sprite.svg#letter"></use>
+            </svg>
+            <span class="button__text">Написать</span>
+          </a>
+          <? endif; ?>
+        </div>
+        
+      </div>
+      <? if($current_user['User_ID'] == 1 || $f_User_ID === $current_user['User_ID'] || $f_Shadhan_1 === $current_user['User_ID'] || $f_Shadhan_2 === $current_user['User_ID'] || $f_Shadhan_3 === $current_user['User_ID']): ?>  
+      <picture class="lk-questionnaire__body-picture">
+        <img class="lk-questionnaire__body-img js-lazy" data-src="<?= $f_Photo_avatar; ?>" alt="">
+      </picture>
+      <? endif; ?>
+    </div>
+    <? if($f_Search_gender || $f_Search_jewish_name || $f_Search_place_of_birth || $f_Search_country || $f_Search_belonging_denomination || $f_Search_education || $f_Search_specialization || $f_Search_what_does || $f_Search_hobby || $f_Search_bad_habits || $f_Search_health_status || $f_Search_was_previously_married || $f_Search_divorced || $f_Search_number_of_children || $f_Search_age_of_children || $f_Search_family_composition_relationships || $f_Search_are_you_ready_to_move): ?>  
+    <div class="lk-questionnaire__section">
+      <div class="lk-questionnaire__section-title title title--lk">Preferences</div>
+      <div class="lk-questionnaire__body-table">
+          <? if($f_Search_gender): ?>  
+          <div class="lk-questionnaire__body-table-row">
+            <div class="lk-questionnaire__body-table-cell lk-questionnaire__body-table-cell--key"><b>Gender:</b></div>
+            <div class="lk-questionnaire__body-table-cell lk-questionnaire__body-table-cell--value"><?= $f_Search_gender_value; ?></div>
+          </div>
+          <? endif; ?>
+          <? if($f_Search_jewish_name): ?>  
+          <div class="lk-questionnaire__body-table-row">
+            <div class="lk-questionnaire__body-table-cell lk-questionnaire__body-table-cell--key"><b>Jewish name:</b></div>
+            <div class="lk-questionnaire__body-table-cell lk-questionnaire__body-table-cell--value"><?= $f_Search_jewish_name; ?></div>
+          </div>
+          <? endif; ?>
+          <? if($f_Search_place_of_birth): ?>  
+          <div class="lk-questionnaire__body-table-row">
+            <div class="lk-questionnaire__body-table-cell lk-questionnaire__body-table-cell--key"><b>Place of birth:</b></div>
+            <div class="lk-questionnaire__body-table-cell lk-questionnaire__body-table-cell--value"><?= $f_Search_place_of_birth; ?></div>
+          </div>
+          <? endif; ?>
+          <? if($f_Search_country): ?>  
+          <div class="lk-questionnaire__body-table-row">
+            <div class="lk-questionnaire__body-table-cell lk-questionnaire__body-table-cell--key"><b>Country of residence:</b></div>
+            <div class="lk-questionnaire__body-table-cell lk-questionnaire__body-table-cell--value"><?= nc_array_to_string($f_Search_country_value, $arfloor)?> </div>
+          </div>
+          <? endif; ?>
+          <? if($f_Search_belonging_denomination): ?>  
+          <div class="lk-questionnaire__body-table-row">
+            <div class="lk-questionnaire__body-table-cell lk-questionnaire__body-table-cell--key"><b>Religious affiliation:</b></div>
+            <div class="lk-questionnaire__body-table-cell lk-questionnaire__body-table-cell--value"><?= nc_array_to_string($f_Search_belonging_denomination_value, $arfloor)?></div>
+          </div>
+          <? endif; ?>
+          <? if($f_Search_education): ?>  
+          <div class="lk-questionnaire__body-table-row">
+            <div class="lk-questionnaire__body-table-cell lk-questionnaire__body-table-cell--key"><b>Education:</b></div>
+            <div class="lk-questionnaire__body-table-cell lk-questionnaire__body-table-cell--value"><?= nc_array_to_string($f_Search_education_value, $arfloor)?></div>
+          </div>
+          <? endif; ?>
+          <? if($f_Search_specialization): ?>  
+          <div class="lk-questionnaire__body-table-row">
+            <div class="lk-questionnaire__body-table-cell lk-questionnaire__body-table-cell--key"><b>Speciality:</b></div>
+            <div class="lk-questionnaire__body-table-cell lk-questionnaire__body-table-cell--value"><?= $f_Search_specialization; ?></div>
+          </div>
+          <? endif; ?>
+          <? if($f_Search_what_does): ?>  
+          <div class="lk-questionnaire__body-table-row">
+            <div class="lk-questionnaire__body-table-cell lk-questionnaire__body-table-cell--key"><b>What do You do:</b></div>
+            <div class="lk-questionnaire__body-table-cell lk-questionnaire__body-table-cell--value"><?= $f_Search_what_does; ?></div>
+          </div>
+          <? endif; ?>
+          <? if($f_Search_hobby): ?>  
+          <div class="lk-questionnaire__body-table-row">
+            <div class="lk-questionnaire__body-table-cell lk-questionnaire__body-table-cell--key"><b>Hobby:</b></div>
+            <div class="lk-questionnaire__body-table-cell lk-questionnaire__body-table-cell--value"><?= $f_Search_hobby; ?></div>
+          </div>
+          <? endif; ?>
+          <? if($f_Search_bad_habits): ?>  
+          <div class="lk-questionnaire__body-table-row">
+            <div class="lk-questionnaire__body-table-cell lk-questionnaire__body-table-cell--key"><b>Bad habbits:</b></div>
+            <div class="lk-questionnaire__body-table-cell lk-questionnaire__body-table-cell--value"><?= nc_array_to_string($f_Search_bad_habits_value, $arfloor)?> </div>
+          </div>
+          <? endif; ?>
+          <? if($f_Search_health_status): ?>  
+          <div class="lk-questionnaire__body-table-row">
+            <div class="lk-questionnaire__body-table-cell lk-questionnaire__body-table-cell--key"><b>Health status:</b></div>
+            <div class="lk-questionnaire__body-table-cell lk-questionnaire__body-table-cell--value"><?= $f_Search_health_status; ?></div>
+          </div>
+          <? endif; ?>
+          <? if($f_Search_was_previously_married): ?>  
+          <div class="lk-questionnaire__body-table-row">
+            <div class="lk-questionnaire__body-table-cell lk-questionnaire__body-table-cell--key"><b>Have you been previously married:</b></div>
+            <div class="lk-questionnaire__body-table-cell lk-questionnaire__body-table-cell--value"><?= nc_array_to_string($f_Search_was_previously_married_value, $arfloor)?> </div>
+          </div>
+          <? endif; ?>
+          <? if($f_Search_divorced): ?>  
+          <div class="lk-questionnaire__body-table-row">
+            <div class="lk-questionnaire__body-table-cell lk-questionnaire__body-table-cell--key"><b>Devorced:</b></div>
+            <div class="lk-questionnaire__body-table-cell lk-questionnaire__body-table-cell--value"><?= nc_array_to_string($f_Search_divorced_value, $arfloor)?> </div>
+          </div>
+          <? endif; ?>
+          <? if($f_Search_number_of_children): ?>  
+          <div class="lk-questionnaire__body-table-row">
+            <div class="lk-questionnaire__body-table-cell lk-questionnaire__body-table-cell--key"><b>Amount of children:</b></div>
+            <div class="lk-questionnaire__body-table-cell lk-questionnaire__body-table-cell--value"><?= nc_array_to_string($f_Search_number_of_children_value, $arfloor)?></div>
+          </div>
+          <? endif; ?>
+          <? if($f_Search_age_of_children): ?>  
+          <div class="lk-questionnaire__body-table-row">
+            <div class="lk-questionnaire__body-table-cell lk-questionnaire__body-table-cell--key"><b>Age of children:</b></div>
+            <div class="lk-questionnaire__body-table-cell lk-questionnaire__body-table-cell--value"><?= $f_Search_age_of_children; ?></div>
+          </div>
+          <? endif; ?>
+          <? if($f_Search_family_composition_relationships): ?>  
+          <div class="lk-questionnaire__body-table-row">
+            <div class="lk-questionnaire__body-table-cell lk-questionnaire__body-table-cell--key"><b>Family composition:</b></div>
+            <div class="lk-questionnaire__body-table-cell lk-questionnaire__body-table-cell--value"><?= $f_Search_family_composition_relationships	; ?></div>
+          </div>
+          <? endif; ?>
+          <? if($f_Search_are_you_ready_to_move): ?>  
+          <div class="lk-questionnaire__body-table-row">
+            <div class="lk-questionnaire__body-table-cell lk-questionnaire__body-table-cell--key"><b>Are you ready to move:</b></div>
+            <div class="lk-questionnaire__body-table-cell lk-questionnaire__body-table-cell--value"><?= nc_array_to_string($f_Search_are_you_ready_to_move_value, $arfloor)?></div>
+          </div>
+          <? endif; ?>
+          <? if($f_Search_height_start || $f_Search_height_end): ?>  
+          <div class="lk-questionnaire__body-table-row">
+            <div class="lk-questionnaire__body-table-cell lk-questionnaire__body-table-cell--key"><b>Height:</b></div>
+            <div class="lk-questionnaire__body-table-cell lk-questionnaire__body-table-cell--value">From <?= $f_Search_height_start; ?> Until <?= $f_Search_height_end; ?> cm.</div>
+          </div>
+          <? endif; ?>
+          <? if($f_Search_age_start || $f_Search_age_end): ?>  
+          <div class="lk-questionnaire__body-table-row">
+            <div class="lk-questionnaire__body-table-cell lk-questionnaire__body-table-cell--key"><b>Age:</b></div>
+            <div class="lk-questionnaire__body-table-cell lk-questionnaire__body-table-cell--value">From <?= $f_Search_age_start; ?> Until <?= $f_Search_age_end; ?> year</div>
+          </div>
+          <? endif; ?>
+          <? if($f_Search_for_shadhan && $f_User_ID === $current_user['User_ID'] || $f_Search_for_shadhan && $f_Shadhan_1 === $current_user['User_ID'] || $f_Search_for_shadhan && $f_Shadhan_2 === $current_user['User_ID'] || $f_Search_for_shadhan && $f_Shadhan_3 === $current_user['User_ID']): ?>  
+          <div class="lk-questionnaire__body-table-row">
+            <div class="lk-questionnaire__body-table-cell lk-questionnaire__body-table-cell--key"><b>A note for shadhan:</b></div>
+            <div class="lk-questionnaire__body-table-cell lk-questionnaire__body-table-cell--value"><?= $f_Search_for_shadhan; ?></div>
+          </div>
+          <? endif; ?>
+      </div>
+    </div>
+    <? endif; ?>
+    <? if($nc_core->user->get_by_id($f_User_ID, "Type_id" ) === 2 || $f_Shadhan_1 || $f_Shadhan_2 || $f_Shadhan_3): ?>  
+    <div class="lk-questionnaire__section">
+      <div class="lk-questionnaire__section-title title title--lk">Shadkhans</div>
+      <div class="">
+        <ul class="shadhans lk-questionnaire__shadhans">  
+          <? if($nc_core->user->get_by_id($f_User_ID, "Type_id" ) === 2): ?>  
+          <a class="shadhans__item" href="/en/my/shadhany/shadhan_<?= $f_User_ID;?>.html">
+            <div class="shadhans__item-avatar">
+              <img class="shadhans__item-avatar-img js-lazy" data-src="<?= $nc_core->user->get_by_id($f_User_ID, "Photo_avatar" ); ?>" alt="">
+            </div>
+            <div class="shadhans__item-body">
+              <div class="shadhans__item-name"><?= $nc_core->user->get_by_id($f_User_ID, "Name" ); ?></div>
+              <div class="shadhans__item-address"><?= $nc_core->user->get_by_id($f_User_ID, "Country" ); ?></div>
+            </div>
+          </a>
+          <? endif; ?>    
+           
+          <? if($f_Shadhan_1): ?>  
+          <a class="shadhans__item" href="/en/my/shadhany/shadhan_<?= $f_Shadhan_1;?>.html">
+            <div class="shadhans__item-avatar">
+              <img class="shadhans__item-avatar-img js-lazy" data-src="<?= $nc_core->user->get_by_id($f_Shadhan_1, "Photo_avatar" ); ?>" alt="">
+            </div>
+            <div class="shadhans__item-body">
+              <div class="shadhans__item-name"><?= $nc_core->user->get_by_id($f_Shadhan_1, "Name" ); ?></div>
+              <div class="shadhans__item-address"><?= $nc_core->user->get_by_id($f_Shadhan_1, "Country" ); ?></div>
+            </div>
+          </a>
+          <? endif; ?>
+          <? if($f_Shadhan_2): ?>  
+          <a class="shadhans__item " href="/en/my/shadhany/shadhan_<?= $f_Shadhan_2;?>.html">
+            <div class="shadhans__item-avatar">
+              <img class="shadhans__item-avatar-img js-lazy" data-src="<?= $nc_core->user->get_by_id($f_Shadhan_2, "Photo_avatar" ); ?>" alt="">
+            </div>
+            <div class="shadhans__item-body">
+              <div class="shadhans__item-name"><?= $nc_core->user->get_by_id($f_Shadhan_2, "Name" ); ?></div>
+              <div class="shadhans__item-address"><?= $nc_core->user->get_by_id($f_Shadhan_2, "Country" ); ?></div>
+            </div>
+          </a>
+          <? endif; ?>
+          <? if($f_Shadhan_3): ?>  
+          <a class="shadhans__item " href="/en/my/shadhany/shadhan_<?= $f_Shadhan_3;?>.html">
+            <div class="shadhans__item-avatar">
+              <img class="shadhans__item-avatar-img js-lazy" data-src="<?= $nc_core->user->get_by_id($f_Shadhan_3, "Photo_avatar" ); ?>" alt="">
+            </div>
+            <div class="shadhans__item-body">
+              <div class="shadhans__item-name"><?= $nc_core->user->get_by_id($f_Shadhan_3, "Name" ); ?></div>
+              <div class="shadhans__item-address"><?= $nc_core->user->get_by_id($f_Shadhan_3, "Country" ); ?></div>
+            </div>
+          </a>
+          <? endif; ?>  
+        </ul>
+      </div>
+    </div>
+    <? endif; ?>
+    <? if($current_user['User_ID'] == 1 || $f_User_ID === $current_user['User_ID'] || $f_Shadhan_1 === $current_user['User_ID'] || $f_Shadhan_2 === $current_user['User_ID'] || $f_Shadhan_3 === $current_user['User_ID']): ?>
+    <? if ($f_Photo_questionnaire->count()): ?>
+    <div class="lk-questionnaire__gallery">
+      <div class="lk-questionnaire__gallery-title title title--lk">Photo</div>
+      <div class="lk-questionnaire__gallery-swiper swiper">
+        <div class="swiper-wrapper">
+          <? foreach($f_Photo_questionnaire->to_array() as &$file): ?>
+ 
+            <a class="lk-questionnaire__gallery-slide swiper-slide" href="<?= $file['path']; ?>" data-glightbox>
+                        <img class="lk-questionnaire__gallery-swiper-img js-lazy" data-src="<?= $file['path']; ?>" alt="">
+            </a>
+          <? endforeach; ?>  
+        </div>
+        <div class="swiper-navigation swiper-navigation--angle-icon lk-questionnaire__gallery-swiper-nav">
+          <button class="swiper-navigation__button swiper-navigation__button--prev">
+            <svg class="swiper-navigation__icon">
+              <use xlink:href="/images/sprite.svg#angle2"></use>
+            </svg>
+          </button>
+          <button class="swiper-navigation__button swiper-navigation__button--next">
+            <svg class="swiper-navigation__icon">
+              <use xlink:href="/images/sprite.svg#angle2"></use>
+            </svg>
+          </button>
+        </div>
+      </div>
+    </div>
+    <? endif;?>
+    <? endif; ?>
+    <?= nc_objects_list( 29, 30, "&candidate=$f_Message_ID&nc_ctpl=244" ); ?>
+    <div class="lk-questionnaire__goback">
+
+      <a class="lk-questionnaire__goback-link" href="<?= $_SERVER['HTTP_REFERER'] ? $_SERVER['HTTP_REFERER'] : '/en/my/favourites/'; ?>" title="">Вернуться назад</a>
+    </div>
+  </div>
+</section>

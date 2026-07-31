@@ -1,0 +1,29 @@
+<!-- FormPrefix --><?= $f_AdminCommon; ?><!-- /FormPrefix -->
+
+<!-- RecordTemplate --><?= $f_AdminButtons; ?>
+<a class="news-item" href="<?= $fullLink; ?>"<?= $styles; ?>>
+    <?php $isOldDate = $f_Date_year < date("Y"); ?>
+    <div class="news-item-image" style="background-image: url(<?= $f_Image; ?>);">
+        <div class="news-item-date news-date">
+            <div class="tpl-text-alt-biggest-paragraph">
+                <?= ($isOldDate ? $f_Date_day . "." . $f_Date_month : $f_Date_day); ?>
+            </div>
+            <div class="tpl-text-alt-<?= ($isOldDate ? "big" : "smallest"); ?>-paragraph">
+                <?= ($isOldDate ? $f_Date_year : $months_number_to_text[(int)$f_Date_month]); ?>
+            </div>
+        </div>
+    </div>
+    <div class="news-item-content">
+        <div class="news-item-title tpl-text-header4">
+            <?= nc_edit_inline('Name', $f_RowID, $cc); ?>
+        </div>
+        <div class="news-item-text tpl-text-default-paragraph">
+            <?= nc_edit_inline('Description', $f_RowID, $cc); ?>
+        </div>
+    </div>
+</a><!-- /RecordTemplate -->
+
+<!-- FormSuffix --><?php if ($totRows > $recNum): ?>
+    <?= nc_browse_messages($cc_env, 10); ?>
+<?php endif; ?>
+<!-- /FormSuffix -->

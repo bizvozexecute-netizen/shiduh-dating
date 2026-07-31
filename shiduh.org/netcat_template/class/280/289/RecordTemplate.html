@@ -1,0 +1,110 @@
+<?/* Служебная часть */for ($f_RowNum = 0; $f_RowNum < $rowCount; $f_RowNum++) {    if($fetch_row[$f_RowNum] instanceof Iterator) {        extract($fetch_row[$f_RowNum]->to_array(), EXTR_PREFIX_ALL, "f");    } else {        extract($fetch_row[$f_RowNum], EXTR_PREFIX_ALL, "f");    }    foreach($iteration_RecordTemplate[$f_RowNum] as $value) {        extract($value);    }    eval($cc_env["convert2txt"]);    ob_start();/* Конец служебной части */?>
+<?
+if($nc_core->user->get_by_id($f_User_ID, 'Checked')):
+  $now = time(); // текущее время (метка времени)
+  $your_date = strtotime($f_Created_year.'-'.$f_Created_month.'-'.$f_Created_day); // какая-то дата в строке (1 января 2017 года)
+  $datediff = $now - $your_date; // получим разность дат (в секундах)
+
+  $daysSumm = floor($datediff / (60 * 60 * 24));
+?>
+<div class="lk-table__row">
+  <? if($f_Candidate1 == $candidateID) {
+       echo nc_objects_list(23, 22, "&idsCandidate=$f_Candidate2&nc_ctpl=290" );
+     } else {
+       echo nc_objects_list(23, 22, "&idsCandidate=$f_Candidate1&nc_ctpl=290" );
+     }
+  ?> 
+  
+
+  <div class="lk-table__cell lk-table__cell--shadhans">
+    <div class="lk-table__cell-key">Шадхан</div>
+    <div class="lk-table__cell-val">
+      <a class="lk-table__cell-shadhan" href="/my/shadhany/shadhan_<?= $f_User_ID;?>.html" title="">
+        <img class="lk-table__cell-shadhan-img js-lazy" style="object-fit:cover;"  data-src="<?= $nc_core->user->get_by_id($f_User_ID, "Photo_avatar" ); ?>" alt="">
+      </a>
+    </div>
+  </div>
+  <div class="lk-table__cell lk-table__cell--manage">
+  
+    <div class="lk-table__cell-inner lk-table__cell-inner--shiduch-status">
+    
+      <? if($f_choose === 'Понравился'): ?>    
+      <div class="islike islike--full-one islike--disable">
+        <label class="islike__item islike__item--success">
+          <input class="islike__input" type="radio" name="islike" checked>
+          <div class="islike__icon-wrap">
+            <svg class="islike__icon">
+              <use xlink:href="/images/sprite.svg#lk-heart-2"></use>
+            </svg>
+          </div>
+          <span class="islike__text">Понравился</span>
+        </label>
+      </div>
+      <? endif; ?>
+      <? if($f_choose === 'Не понравился'): ?>    
+      <div class="islike islike--full-one islike--disable">
+        <label class="islike__item islike__item--fail">
+          <input class="islike__input" type="radio" name="islike" checked>
+          <div class="islike__icon-wrap">
+            <svg class="islike__icon">
+              <use xlink:href="/images/sprite.svg#lk-heart-3"></use>
+            </svg>
+          </div>
+          <span class="islike__text">Не понравился</span>
+        </label>
+      </div>
+      <? endif; ?>
+      <? if($f_choose === 'Встречи'): ?>  
+      <label class="lk-table__shiduch-info-item  lk-table__shiduch-info-item--disable">
+        <input class="lk-table__shiduch-info-item-input" type="radio" name="f_choose" value="3" checked >
+        <div class="lk-table__shiduch-info-icon-wrapper">
+          <svg class="lk-table__shiduch-info-icon">
+            <use xlink:href="/images/sprite.svg#lk-shiduch--table"></use>
+          </svg>
+        </div>
+        <span class="lk-table__shiduch-info-item-text">Встречи</span>
+      </label>
+      <? endif; ?>
+      <? if($f_choose === 'Шидух'): ?>
+      <label class="lk-table__shiduch-info-item  lk-table__shiduch-info-item--disable">
+        <input class="lk-table__shiduch-info-item-input" type="radio" name="f_choose" value="4" checked>
+        <div class="lk-table__shiduch-info-icon-wrapper">
+          <svg class="lk-table__shiduch-info-icon lk-table__shiduch-info-icon--stroke">
+            <use xlink:href="/images/sprite.svg#lk-shiduch--hearts"></use>
+          </svg>
+        </div>
+        <span class="lk-table__shiduch-info-item-text">Шидух</span>
+      </label>
+      <? endif; ?>
+      <? if($f_choose === 'Обручение'): ?>
+      <label class="lk-table__shiduch-info-item  lk-table__shiduch-info-item--disable">
+
+        <input class="lk-table__shiduch-info-item-input" type="radio" name="f_choose" value="5" checked>
+        <div class="lk-table__shiduch-info-icon-wrapper">
+          <svg class="lk-table__shiduch-info-icon">
+            <use xlink:href="/images/sprite.svg#lk-shiduch--rings"></use>
+          </svg>
+        </div>
+        <span class="lk-table__shiduch-info-item-text">Обручение</span>
+      </label>
+      <? endif; ?>
+      <? if($f_choose === 'Хупа'): ?>
+      <label class="lk-table__shiduch-info-item  lk-table__shiduch-info-item--disable">
+
+        <input class="lk-table__shiduch-info-item-input" type="radio" name="f_choose" value="6" checked>
+        <div class="lk-table__shiduch-info-icon-wrapper">
+          <svg class="lk-table__shiduch-info-icon">
+            <use xlink:href="/images/sprite.svg#lk-shiduch--hoop"></use>
+          </svg>
+        </div>
+        <span class="lk-table__shiduch-info-item-text">Хупа</span>
+      </label>
+      <? endif; ?>
+    </div>  
+    
+    
+  </div>
+</div>
+
+<? endif;?>
+<?/* Служебная часть */    echo nc_finishing_RecordTemplate(ob_get_clean(), $inside_admin, $classID, $f_RowID, $parent_message, $cc, $cc_env["Class_Name"], $no_cache_marks);}/* Конец служебной части */?>

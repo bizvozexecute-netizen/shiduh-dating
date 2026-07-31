@@ -1,0 +1,33 @@
+<?
+if($f_Checked) {
+    //отправка сообщения шадханам о предоставлении доступа
+    $candidateDate = date("Y-m-d H:i:s");
+    $nc_core->db->query("SELECT * FROM Message204 WHERE Message_ID = $f_Candidate");
+    $arr = $nc_core->db->last_result;
+    $candidateName = $arr[0]->Name;
+    $candidateUserID = 1;
+    
+ 
+    $candidateTheme = 'Вам предоставлен доступ к анкете кандидата';    
+    $candidateMessage = 'Уважаемый Шадхан! <br>
+Вам предоставлен доступ к анкете кандидата '.$f_Candidate.'<br> 
+Перейдите по <a href="https://shiduh.org/my/candidate/candidate_'.$f_Candidate.'.html">ссылке</a>, чтобы ознакомиться с анкетой кандидата и предложите ему/ей идею шидуха . <br>
+Команда One Soul желает Сията деШмая и плодотворных шидухов!';
+    $shadhanID = $f_ID_User;
+    sendEmail($shadhanID, $candidateTheme, $candidateMessage);
+    $nc_core->db->query("INSERT INTO `Message6` 
+                    (`Checked`, `ToUser`, `Subject`, `Message`, `User_ID`, `Subdivision_ID`, `Sub_Class_ID`, `Created`, `Status`) 
+                    VALUES 
+                    ('1', '$shadhanID', '$candidateTheme', '$candidateMessage', '$candidateUserID', '28', '29', '$candidateDate', '0') "); 
+
+
+}
+if($inside_admin) {
+    ob_end_clean();
+    header('Location: '.$goBackLink.'&inside_admin=1');
+    exit;
+} else { 
+	echo ($IsChecked ? NETCAT_MODERATION_MSG_OBJADD : NETCAT_MODERATION_MSG_OBJADDMOD);
+	echo "<br /><br />".$goBack;
+}
+?>

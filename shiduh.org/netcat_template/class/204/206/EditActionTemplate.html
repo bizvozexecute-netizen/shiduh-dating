@@ -1,0 +1,54 @@
+<?
+if($f_Checked) {
+    //отправка сообщения шадханам об изменние анкеты кандидата
+    $candidateDate = date("Y-m-d H:i:s");
+    $nc_core->db->query("SELECT * FROM Message204 WHERE Message_ID = $message");
+    $arr = $nc_core->db->last_result;
+    $candidateName = $arr[0]->Name;
+    $candidateUserID = 1;
+    
+    $candidateTheme = 'Кандидат '.$message.' изменил данные';
+    $candidateMessage = 'Уважаемый шадхан! </br>
+
+Кандидат '.$message.' внес изменения в свою анкету ✡️ Перейдите по <a href="/my/candidate/candidate_'.$message.'.html">ссылке</a>, чтобы ознакомиться с новыми параметрами в анкете кандидата 😎 </br>
+
+Команда one Soul желает Сията деШмая и плодотворных шидухов!';
+
+
+    if ($arr[0]->Shadhan_1) {
+       $shadhanID = $arr[0]->Shadhan_1;
+       $nc_core->db->query("INSERT INTO `Message6` 
+                    (`Checked`, `ToUser`, `Subject`, `Message`, `User_ID`, `Subdivision_ID`, `Sub_Class_ID`, `Created`) 
+                    VALUES 
+                    ('1', '$shadhanID', '$candidateTheme', '$candidateMessage', '$candidateUserID', '28', '29', '$candidateDate') "); 
+    }
+    if ($arr[0]->Shadhan_2) {
+       $shadhanID = $arr[0]->Shadhan_2;
+       $nc_core->db->query("INSERT INTO `Message6` 
+                    (`Checked`, `ToUser`, `Subject`, `Message`, `User_ID`, `Subdivision_ID`, `Sub_Class_ID`, `Created`) 
+                    VALUES 
+                    ('1', '$shadhanID', '$candidateTheme', '$candidateMessage', '$candidateUserID', '28', '29', '$candidateDate') "); 
+    }
+    if ($arr[0]->Shadhan_3) {
+       $shadhanID = $arr[0]->Shadhan_3;
+       $nc_core->db->query("INSERT INTO `Message6` 
+                    (`Checked`, `ToUser`, `Subject`, `Message`, `User_ID`, `Subdivision_ID`, `Sub_Class_ID`, `Created`) 
+                    VALUES 
+                    ('1', '$shadhanID', '$candidateTheme', '$candidateMessage', '$candidateUserID', '28', '29', '$candidateDate') "); 
+    }
+}
+if($inside_admin) {
+    ob_end_clean();
+    header('Location: '.$goBackLink.'&inside_admin=1');
+    exit;
+} else { 
+
+    echo '<div class="lk-profile__body-message lk-profile__body-message--success">Данные изменены</div>';
+	echo ' <a class="lk-profile__password-updated-goback" href="/my/" title="">
+                  <svg class="lk-profile__password-updated-goback-icon">
+                    <use xlink:href="/images/sprite.svg#arrow"></use>
+                  </svg>На главную кабинета</a>';
+	//echo NETCAT_MODERATION_MSG_OBJCHANGED;
+	//echo "<br /><br />".$goBack;
+}
+?>

@@ -1,0 +1,15 @@
+<?php
+
+$query_where = 'events = 2';
+
+if($_GET['autor']) {
+    $autor = $_GET['autor'];
+    $query_where .= " AND a.autor_ID = $autor";
+}
+if($_GET['user']) {
+    $autor = $_GET['user'];
+    $query_where .= " AND a.User_ID = $user";
+}
+
+// $query_where = "a.mainNews = 1";
+?>

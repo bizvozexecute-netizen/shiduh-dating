@@ -1,0 +1,26 @@
+<?= $f_AdminButtons; ?>
+<article class="vacancy-full">
+    <h1 class="item-title tpl-text-header1"><?= nc_edit_inline('Name', $f_RowID, $cc_env['Sub_Class_ID']); ?></h1>
+    <div class="item-salary tpl-text-header6">
+        <?php if ($f_Salary): ?>
+            <?= nc_edit_inline('Salary', $f_RowID, $cc_env['Sub_Class_ID']); ?>
+        <?php else: ?>
+            <div class="no-salary">з/п не указана</div>
+            <?= nc_edit_inline('Salary', $f_RowID, $cc_env['Sub_Class_ID']); ?>
+        <?php endif; ?>
+    </div>
+    <div class="item-details tpl-text-default-paragraph"><?= nc_edit_inline('Text', $f_RowID, $cc); ?></div>
+
+    <?php if ($cc_settings['SendEmailTo']): ?>
+        <div class="send-email-block tpl-text-alt">
+            <span class="icon-email">
+                <?php
+                $icon_path = $nc_core->DOCUMENT_ROOT . $nc_core->HTTP_TEMPLATE_PATH . "icon/font_awesome/envelope.svg";
+                ?>
+                <?= nc_get_svg_for_embedding($icon_path); ?>
+            </span>
+            Резюме присылайте на <a href="mailto:<?= $cc_settings['SendEmailTo']; ?>"><?= $cc_settings['SendEmailTo']; ?></a>
+        </div>
+    <?php endif; ?>
+</article>
+

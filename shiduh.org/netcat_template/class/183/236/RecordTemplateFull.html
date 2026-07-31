@@ -1,0 +1,33 @@
+<?
+$arrayMonth = array("january", "february", "march", "april", "may", "june", "july", "august", "september", "october", "november", "december");
+?>
+
+<section class="lk-blog-inner">
+  <div class="lk-blog-inner__wrapper">
+    <div class="lk-head lk-blog-inner__head">
+      <h1 class="lk-head__title"><?= $f_newsTitle; ?></h1>
+      <div class="avatar lk-blog-inner__head-avatar">
+        <picture class="avatar__picture">
+          <img class="avatar__img js-lazy" data-src="<?= $f_autor_ID ? nc_objects_list(34, 32, "&nc_ctpl=249&ItemID=$f_autor_ID" ) : $nc_core->user->get_by_id($f_User_ID, "Photo_avatar" ); ?>" alt="">
+        </picture>
+        <div class="avatar__body">
+          <div class="avatar__date"><?= $f_newsDate_day; ?> <?= $arrayMonth[(int)$f_newsDate_month - 1] ?> <?= $f_newsDate_year; ?> y.</div>
+          <a class="avatar__autor" href="/en/my/blog/?<?= $f_autor_ID ? 'autor='.$f_autor_ID : 'user='.$f_User_ID;?>"  title=""><?=listQuery("SELECT * FROM Message200 WHERE Message_ID=$f_autor_ID", '$data[name]')?></a>
+        </div>
+      </div>
+    </div>
+    <div class="lk-blog-inner__body">
+      <div class="lk-blog-inner__content content">
+        <?= $f_text;?>
+      </div>
+      <div class="lk-blog-inner__right">
+        <picture class="lk-blog-inner__banner">
+          <img class="lk-blog-inner__banner-img js-lazy" data-src="<?= $f_newsImage;?>" alt="">
+        </picture>
+      </div>
+    </div>
+    <div class="lk-blog-inner__go-back">
+      <a class="lk-blog-inner__go-back-link" href="/en/my/blog/" title="">Back</a>
+    </div>
+  </div>
+</section>

@@ -1,0 +1,42 @@
+<!-- FormPrefix --><?
+$arrShadhanIDS = [];
+
+?><!-- /FormPrefix -->
+
+<!-- RecordTemplate --><? if($nc_core->user->get_by_id($f_User_ID, "Type_id" ) === 2 && !in_array($f_User_ID, $arrShadhanIDS) ): ?>  
+<?
+$arrShadhanIDS[] = $f_User_ID;
+?>
+<a class="lk-table__cell-shadhan" href="/my/shadhany/shadhan_<?= $f_User_ID;?>.html" title="">
+  <img class="lk-table__cell-shadhan-img js-lazy" style="object-fit:cover;"  data-src="<?= $nc_core->user->get_by_id($f_User_ID, "Photo_avatar" ); ?>" alt="">
+</a>
+<? endif; ?>  
+<? if($f_Shadhan_1 && !in_array($f_Shadhan_1, $arrShadhanIDS) ): ?>  
+<?
+$arrShadhanIDS[] = $f_Shadhan_1;
+?>
+<a class="lk-table__cell-shadhan" href="/my/shadhany/shadhan_<?= $f_Shadhan_1;?>.html" title="">
+  <img class="lk-table__cell-shadhan-img js-lazy" style="object-fit:cover;"  data-src="<?= $nc_core->user->get_by_id($f_Shadhan_1, "Photo_avatar" ); ?>" alt="">
+</a>
+<? endif; ?>
+<? if($f_Shadhan_2 && !in_array($f_Shadhan_2, $arrShadhanIDS) ): ?>  
+<?
+$arrShadhanIDS[] = $f_Shadhan_2;
+?>
+<a class="lk-table__cell-shadhan" href="/my/shadhany/shadhan_<?= $f_Shadhan_2;?>.html" title="">
+  <img class="lk-table__cell-shadhan-img js-lazy" style="object-fit:cover;"  data-src="<?= $nc_core->user->get_by_id($f_Shadhan_2, "Photo_avatar" ); ?>" alt="">
+</a>
+<? endif; ?>
+<? if($f_Shadhan_3 && !in_array($f_Shadhan_3, $arrShadhanIDS) ): ?> 
+<?
+$arrShadhanIDS[] = $f_Shadhan_3;
+?>
+<a class="lk-table__cell-shadhan" href="/my/shadhany/shadhan_<?= $f_Shadhan_3;?>.html" title="">
+  <img class="lk-table__cell-shadhan-img js-lazy" style="object-fit:cover;"  data-src="<?= $nc_core->user->get_by_id($f_Shadhan_3, "Photo_avatar" ); ?>" alt="">
+</a>
+<? endif; ?>
+<? if($nc_core->user->get_by_id($f_User_ID, "Type_id" ) === 1 && !$f_Shadhan_1 && !$f_Shadhan_2 && !$f_Shadhan_3): ?>  
+<span>—</span>
+<? endif; ?><!-- /RecordTemplate -->
+
+<!-- FormSuffix --><!-- /FormSuffix -->

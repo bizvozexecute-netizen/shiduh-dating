@@ -1,0 +1,98 @@
+<!-- Header -->%Header
+<?
+if(!$current_user['User_ID']) {
+    header('Location: https://'.$_SERVER['HTTP_HOST'].'');
+    exit();
+}
+//$user = $nc_core->user->get_by_id(30);
+//print_r($user);
+?>
+
+<section class="lk-body ">
+  <div class="lk-body__wrapper wrapper">
+    <?= $this->partial('aside_profile') ?>
+
+    <?
+    if($_GET["ID"] && $_GET["ToUser"] && $_GET["User_ID"]) {
+        //$nc_core->message->delete_by_id($_GET["ID"], 6);
+        $ToUser = $_GET["ToUser"];
+        $User_ID = $_GET["User_ID"];
+        $Hidden_message = $_GET["ID"];
+        //$nc_core->db->query("UPDATE `Message6` SET `Checked` = 0 WHERE `Message_ID` = '$IDElement'");
+        $nc_core->db->query("SELECT * FROM Message6 WHERE ToUser = '$ToUser' AND User_ID = '$User_ID'");
+        $arr = $nc_core->db->last_result;
+
+        // вывод результатов
+        if (!empty($arr)) {
+            foreach ($arr as $row) {
+                $msgIDRow = $row->Message_ID;
+                if(!$row->Hidden_message_1) {
+                    $nc_core->db->query("UPDATE Message6 SET Hidden_message_1 = $Hidden_message WHERE ToUser = '$ToUser' AND User_ID = '$User_ID'");
+                    $nc_core->db->query("UPDATE Message6 SET Hidden_message_1 = $Hidden_message WHERE User_ID = '$ToUser' AND ToUser = '$User_ID'");
+                    $nc_core->db->query("UPDATE Message6 SET Status = 1 WHERE ToUser = '$ToUser' AND User_ID = '$User_ID'");
+                    $nc_core->db->query("UPDATE Message6 SET Status = 1 WHERE User_ID = '$ToUser' AND ToUser = '$User_ID'");
+                } elseif(!$row->Hidden_message_2) {
+                    $nc_core->db->query("UPDATE Message6 SET Hidden_message_2 = $Hidden_message WHERE ToUser = '$ToUser' AND User_ID = '$User_ID'");
+                    $nc_core->db->query("UPDATE Message6 SET Hidden_message_2 = $Hidden_message WHERE User_ID = '$ToUser' AND ToUser = '$User_ID'");
+                    $nc_core->db->query("UPDATE Message6 SET Status = 1 WHERE ToUser = '$ToUser' AND User_ID = '$User_ID'");
+                    $nc_core->db->query("UPDATE Message6 SET Status = 1 WHERE User_ID = '$ToUser' AND ToUser = '$User_ID'");
+                }
+            }
+        }
+        
+        
+        
+        header('Location: https://'.$_SERVER['HTTP_HOST'].'/my/message/');
+        
+        ?>
+        <section class="lk-messages">
+            <div class="lk-messages__wrapper">
+              
+            <div class="lk-head lk-messages__head">
+              <h1 class="lk-head__title">
+	              Message delete
+              </h1>
+            </div>
+              <div class="" >
+                <a class="lk-questionnaire__goback-link" href="/en/my/message/" title="">Back</a>
+              </div>            
+              
+            </div>
+          </section><?
+    } else {?>
+        <section class="lk-messages">
+            <div class="lk-messages__wrapper">
+              
+            <div class="lk-head lk-messages__head">
+              <h1 class="lk-head__title">
+	              Incorrect link
+              </h1>
+            </div>
+              <div class="" >
+                <a class="lk-questionnaire__goback-link" href="/en/my/message/" title="">Back</a>
+              </div>            
+              
+            </div>
+          </section><?
+      
+    }
+    ?>
+    
+
+      
+      
+      
+      
+
+
+
+
+
+
+<!-- /Header -->
+
+<!-- Footer -->  <?= $this->partial('lk-footer-mobile') ?>
+  </div>
+</section>
+
+%Footer<!-- /Footer -->

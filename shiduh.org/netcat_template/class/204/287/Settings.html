@@ -1,0 +1,9 @@
+<?
+$idUser = $current_user['User_ID'];
+if($idsCandidate) {
+    $query_where .= " Message_ID IN ($idsCandidate) AND User_ID != '$idUser'";
+}
+if($idCandidate) {
+    $query_where .= " Message_ID IN ($idCandidate) ";
+}
+?>

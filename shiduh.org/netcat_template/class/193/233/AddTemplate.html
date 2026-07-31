@@ -1,0 +1,47 @@
+<form class="form form--question modal__form" action="<?= $SUB_FOLDER ?><?= $HTTP_ROOT_PATH ?>add.php" autocomplete="off">
+
+<input name='admin_mode' type='hidden' value='<?= $admin_mode ?>' />
+<?= $nc_core->token->get_input() ?>
+<input name='catalogue' type='hidden' value='<?= $catalogue ?>' />
+<input name='cc' type='hidden' value='<?= $cc ?>' />
+<input name='sub' type='hidden' value='<?= $sub ?>' /><input name='posting' type='hidden' value='1' />
+<input name='curPos' type='hidden' value='<?= $curPos ?>' />
+<input name='f_Parent_Message_ID' type='hidden' value='<?= $f_Parent_Message_ID ?>' />
+<?= nc_form_moderate('add', $admin_mode, 0, $systemTableID, $current_cc, (isset($f_Checked) ? $f_Checked  : null), $f_Priority , $f_Keyword, $f_ncTitle, $f_ncKeywords, $f_ncDescription ) ?> 
+
+              <div class="form__body">
+                <input class="form__input" type="text" placeholder="Your name" name="f_name">
+                <div class="select form__select form__select--ravin">
+                  <select class="select__el" name="f_ravin">
+                    <option value="рав Ифраим Якубов">рав Ифраим Якубов</option>
+                    <option value="рав Имануэль Мигиров">рав Имануэль Мигиров</option>
+                  </select>
+                </div>
+                <input class="form__input form__input--email" type="email" name="f_email" placeholder="Your e-mail">
+                <textarea class="form__textarea" name="f_info" placeholder="More information"></textarea>
+              </div>
+              <label class="checkbox form__checkbox">
+                <input class="checkbox__input" type="checkbox" checked>
+                <div class="checkbox__body">
+                  <span class="checkbox__el">
+                    <svg class="checkbox__el-icon">
+                      <use xlink:href="/images/sprite.svg#checked"></use>
+                    </svg>
+                  </span>
+                  <span class="checkbox__text">Consent to processing <a href="/en/policy/" title="">personal data</a></span>
+                </div>
+              </label>
+              <div class="form__footer">
+                <div class="form__captcha" data-sitekey="ysc1_3QYXeVavemfOKWtl3VBJa0GYXPIfsgUCRQtqfeRveda4c355"></div>
+                <button class="form__submit button" type="submit">Send</button>
+              </div>
+            </form>
+
+
+
+
+
+
+
+
+

@@ -1,0 +1,37 @@
+<?=( $warnText ? "<div class='warnText'>$warnText</div>" : NULL )?>
+<form id="add_note" class="notes__form notes__form--notes form form--add-note " enctype='multipart/form-data' method='post' action='<?= $SUB_FOLDER ?><?= $HTTP_ROOT_PATH ?>add.php'>
+<div id='nc_moderate_form'>
+<div class='nc_clear'></div>
+<input name='admin_mode' type='hidden' value='<?= $admin_mode ?>' />
+<?= $nc_core->token->get_input() ?>
+<input name='catalogue' type='hidden' value='<?= $catalogue ?>' />
+<input name='cc' type='hidden' value='<?= $cc ?>' />
+<input name='sub' type='hidden' value='<?= $sub ?>' /><input name='posting' type='hidden' value='1' />
+<input name='curPos' type='hidden' value='<?= $curPos ?>' />
+<input name='f_Parent_Message_ID' type='hidden' value='<?= $f_Parent_Message_ID ?>' />
+<?= nc_form_moderate('add', $admin_mode, 0, $systemTableID, $current_cc, (isset($f_Checked) ? $f_Checked  : null), $f_Priority , $f_Keyword, $f_ncTitle, $f_ncKeywords, $f_ncDescription ) ?>
+</div>
+
+<div class="form__item form__item--date">
+                    <label class="form__item-name" for="note_date">Дата заметки</label>
+                    <div class="datepicker ">
+                      <input class="datepicker__el" name="note_date" type="text" value="" placeholder="Укажите дату" required>
+                    </div>
+                    <input class="" name="f_Candidate" type="hidden" value="<?= $candidate;?>" placeholder="" required>
+                    
+                    <input id="note_date_day" type="hidden" name="f_Date_day" maxlength="2" size="2" class="form__input-date-day tpl-field-input" value="" placeholder="ДД" />
+                    <input id="note_date_month" type="hidden" name="f_Date_month" class="form__input-date-month tpl-field-input" value="" placeholder="ММ" />
+                    <input id="note_date_year" type="hidden" name="f_Date_year" class="form__input-date-year tpl-field-input" value="" placeholder="ГГГГ" />
+                    <input id="note_date_hours" type="hidden" name="f_Date_hours" class="tpl-field-input" value="00" placeholder="чч" />
+                    <input id="note_date_minutes" type="hidden" name="f_Date_minutes" class="tpl-field-input" value="00" placeholder="мм" />
+                    <input id="note_date_seconds" type="hidden" name="f_Date_seconds" class="tpl-field-input" value="00" placeholder="сс" />
+                  </div>
+                  <div class="form__item form__item--textarea">
+                    <label class="form__item-name" for="note_date">Текст заметки</label>
+                    <textarea class="form__textarea" placeholder="Введите текст сообщения" name="f_text"></textarea>
+                  </div>
+                  <div class="form__footer" style="align-items:center;">
+                    <button class="form__submit button button--fill" type="submit">Добавить заметку</button>
+                    <a href="" class="form__reset" type="reset">Отменить</a>
+                  </div>
+</form>

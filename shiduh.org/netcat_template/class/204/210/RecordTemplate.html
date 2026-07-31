@@ -1,0 +1,15 @@
+<?/* Служебная часть */for ($f_RowNum = 0; $f_RowNum < $rowCount; $f_RowNum++) {    if($fetch_row[$f_RowNum] instanceof Iterator) {        extract($fetch_row[$f_RowNum]->to_array(), EXTR_PREFIX_ALL, "f");    } else {        extract($fetch_row[$f_RowNum], EXTR_PREFIX_ALL, "f");    }    foreach($iteration_RecordTemplate[$f_RowNum] as $value) {        extract($value);    }    eval($cc_env["convert2txt"]);    ob_start();/* Конец служебной части */?>
+<div class="lk-header-mobile__user">
+
+  <picture class="lk-header-mobile__user-avatar">
+    <img class="lk-header-mobile__user-avatar-img js-lazy" style="object-fit:cover;" data-src="<?= $f_Photo_avatar ? $f_Photo_avatar : ($f_Gender_id == 1 ? '/images/avatar/man.png' : '/images/avatar/woman.png'); ?>" alt="">
+  </picture>
+
+  <div class="lk-header-mobile__user-info">
+    <div class="lk-header-mobile__user-name"><?= $f_Name;?></div>
+    <div class="lk-header-mobile__user-id">ID <?= $f_Message_ID;?></div>
+    <a class="lk-header-mobile__user-exit" href="/netcat/modules/auth/?logoff=1&REQUESTED_FROM=<?= $REQUEST_URI?>&REQUESTED_BY=<?= $REQUEST_METHOD?>" title="">Выйти</a>  
+
+  </div>
+</div>
+<?/* Служебная часть */    echo nc_finishing_RecordTemplate(ob_get_clean(), $inside_admin, $classID, $f_RowID, $parent_message, $cc, $cc_env["Class_Name"], $no_cache_marks);}/* Конец служебной части */?>

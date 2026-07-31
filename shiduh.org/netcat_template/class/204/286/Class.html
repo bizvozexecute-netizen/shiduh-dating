@@ -1,0 +1,26 @@
+<!-- FormPrefix --><!-- /FormPrefix -->
+
+<!-- RecordTemplate --><div class="lk-table__cell lk-table__cell--avatar">
+  <div class="lk-table__cell-val">
+    <picture class="lk-table__cell-picture">
+      <img class="lk-table__cell-picture-img js-lazy" data-src="<?= $f_Photo_avatar ? $f_Photo_avatar : ($f_Gender_id == 1 ? '/images/avatar/man.png' : '/images/avatar/woman.png'); ?>" alt="">
+    </picture>
+  </div>
+</div>
+<div class="lk-table__cell lk-table__cell--name">
+  <div class="lk-table__cell-key">ФИО</div>
+  <div class="lk-table__cell-val">
+    <div class="lk-table__cell-val-name"><?= $f_Name; ?></div>
+    <a class="lk-table__cell-val-link" href="<?=$fullLink?>" title="">Подробнее</a>
+  </div>
+</div>
+<div class="lk-table__cell lk-table__cell--address">
+  <div class="lk-table__cell-key">Страна</div>
+  <div class="lk-table__cell-val"><?= $f_Country;?></div>
+</div>
+<div class="lk-table__cell lk-table__cell--age">
+  <div class="lk-table__cell-key">Возраст</div>
+  <div class="lk-table__cell-val"><?= $f_Date_of_birth_year < 2024 && $f_Date_of_birth_year !== '0000' ? get_age($f_Date_of_birth) : ''; ?></div>
+</div><!-- /RecordTemplate -->
+
+<!-- FormSuffix --><!-- /FormSuffix -->

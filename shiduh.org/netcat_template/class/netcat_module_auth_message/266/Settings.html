@@ -1,0 +1,13 @@
+<?
+if ($uid) header("Location: ".$cc_env['addLink']."?uid=".$uid);
+
+$ignore_parent = true;
+
+
+//$query_where = '(a.ToUser = "'.$current_user['User_ID'].'" AND a.User_ID = "'.$show_messages_by_id_user.'" AND a.Message_ID != "'.$disable_message.'") or (a.User_ID = "'.$current_user['User_ID'].'" AND a.ToUser = "'.$show_messages_by_id_user.'" AND a.Message_ID != "'.$disable_message.'")';
+$query_where = '(a.ToUser = "'.$current_user['User_ID'].'" AND a.User_ID = "'.$show_messages_by_id_user.'") or (a.User_ID = "'.$current_user['User_ID'].'" AND a.ToUser = "'.$show_messages_by_id_user.'" )';
+
+
+// запрет кэширования
+$cc_env['Cache_Access_ID'] = 2;
+?>

@@ -1,0 +1,5 @@
+<?
+$idUser = $current_user['User_ID'];
+if($idUser != 1 && $idUser != 119 && $current_user['Type_id'] == 2) {
+    $query_where .= "a.User_ID = $idUser or a.Shadhan_1 = $idUser or a.Shadhan_2 = $idUser or a.Shadhan_3 = $idUser";
+}

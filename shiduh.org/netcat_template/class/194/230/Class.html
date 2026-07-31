@@ -1,0 +1,17 @@
+<!-- FormPrefix --><!-- /FormPrefix -->
+
+<!-- RecordTemplate --><?
+$arrayMonth = array("january", "february", "march", "april", "may", "june", "july", "august", "september", "october", "november", "december");
+?>
+<div class="video-item appearance-container video-section__swiper-slide swiper-slide" data-videoid="<?= $f_videoID; ?>">
+                <div class="video-item__wrapper appearance">
+                  <div class="video-item__banner-wrapper">
+                    <img class="video-item__banner js-lazy" data-src="<?= $f_RowID == $begRow ? $f_newsImage->resize(1580, 877) : $f_newsImage->resize(505, 280) ?>" alt="">
+                    <button class="video-item__play">play</button>
+                  </div>
+                  <div class="video-item__date"><?= $f_newsDate_day; ?> <?= $arrayMonth[(int)$f_newsDate_month - 1] ?> <?= $f_newsDate_year; ?> г.</div>
+                  <div class="video-item__title"><?= $f_newsTitle; ?></div>
+                </div>
+              </div><!-- /RecordTemplate -->
+
+<!-- FormSuffix --><!-- /FormSuffix -->

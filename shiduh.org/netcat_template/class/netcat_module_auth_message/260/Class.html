@@ -1,0 +1,108 @@
+<!-- FormPrefix --><?
+echo $f_AdminCommon;
+echo $query_from;
+if (!$AUTH_USER_ID) {
+    echo "Access error";
+    exit;
+}
+
+?>
+<!-- /FormPrefix -->
+
+<!-- RecordTemplate --><? if($f_RowNum == '0'): ?>
+<!--<div class="lk-messages-write__history-message">  <?= htmlspecialchars_decode($f_Message);?>  </div>-->
+<div style="display:flex;" class="lk-messages-write__history-item <?=($current_user['User_ID']==$f_UserID ? "nc_msg_text nc_msg_out" : "nc_msg_text")?>">
+  <div class="lk-messages-write__history-item-head">
+    <a class="lk-messages-write__history-item-name" href="" title=""><?= $nc_core->user->get_by_id($f_UserID, 'Name') ?: $f_Author; ?></a>
+    <div class="lk-messages-write__history-item-date" data-time="<?=$f_Created_year;?>-<?=$f_Created_month;?>-<?=$f_Created_day;?> <?=$f_Created_hours;?>:<?=$f_Created_minutes;?>:00 GMT+0000"><?=$f_Created_day.".".$f_Created_month.".".$f_Created_year." - ".$f_Created_hours.":".$f_Created_minutes?></div>
+  </div>
+  <div class="lk-messages-write__history-item-text"><?= htmlspecialchars_decode($f_Message);?> </div>
+  <? if ($f_image->count()): ?>
+  <div class="lk-messages-write__history-message-gallery">
+    <div class="lk-messages-write__history-message-gallery-swiper swiper">
+      <div class="swiper-wrapper">
+      <? foreach($f_image->to_array() as &$file): ?>
+      <a
+        class="lk-messages-write__history-message-gallery-slide swiper-slide"
+        href="<?= $file['path']; ?>"
+        data-glightbox
+      >
+        <img
+          class="lk-messages-write__history-message-gallery-swiper-img js-lazy"
+          data-src="<?= $file['path']; ?>"
+          alt=""
+        />
+      </a>
+      <? endforeach; ?>  
+      </div>
+      <div class="swiper-navigation swiper-navigation--angle-icon lk-questionnaire__gallery-swiper-nav">
+        <button class="swiper-navigation__button swiper-navigation__button--prev">
+          <svg class="swiper-navigation__icon">
+            <use xlink:href="/images/sprite.svg#angle2"></use>
+          </svg>
+        </button>
+        <button class="swiper-navigation__button swiper-navigation__button--next">
+          <svg class="swiper-navigation__icon">
+            <use xlink:href="/images/sprite.svg#angle2"></use>
+          </svg>
+        </button>
+      </div>
+    </div>
+  </div>
+  <? endif;?>
+</div>
+<? else: ?>
+<? if($f_RowNum == '1'): ?>
+<div class="lk-messages-write__history-list">
+<? endif; ?>
+<div class="lk-messages-write__history-item <?=($current_user['User_ID']==$f_UserID ? "nc_msg_text nc_msg_out" : "nc_msg_text")?>">
+  <div class="lk-messages-write__history-item-head">
+    <a class="lk-messages-write__history-item-name" href="" title=""><?= $nc_core->user->get_by_id($f_UserID, 'Name') ?: $f_Author; ?></a>
+    <div class="lk-messages-write__history-item-date" data-time="<?=$f_Created_year;?>-<?=$f_Created_month;?>-<?=$f_Created_day;?> <?=$f_Created_hours;?>:<?=$f_Created_minutes;?>:00 GMT+0000"><?=$f_Created_day.".".$f_Created_month.".".$f_Created_year." - ".$f_Created_hours.":".$f_Created_minutes?></div>
+  </div>
+  <div class="lk-messages-write__history-item-text"><?= htmlspecialchars_decode($f_Message);?> </div>
+  <? if ($f_image->count()): ?>
+  <div class="lk-messages-write__history-message-gallery">
+    <div class="lk-messages-write__history-message-gallery-swiper swiper">
+      <div class="swiper-wrapper">
+      <? foreach($f_image->to_array() as &$file): ?>
+      <a
+        class="lk-messages-write__history-message-gallery-slide swiper-slide"
+        href="<?= $file['path']; ?>"
+        data-glightbox
+      >
+        <img
+          class="lk-messages-write__history-message-gallery-swiper-img js-lazy"
+          data-src="<?= $file['path']; ?>"
+          alt=""
+        />
+      </a>
+      <? endforeach; ?>  
+      </div>
+      <div class="swiper-navigation swiper-navigation--angle-icon lk-questionnaire__gallery-swiper-nav">
+        <button class="swiper-navigation__button swiper-navigation__button--prev">
+          <svg class="swiper-navigation__icon">
+            <use xlink:href="/images/sprite.svg#angle2"></use>
+          </svg>
+        </button>
+        <button class="swiper-navigation__button swiper-navigation__button--next">
+          <svg class="swiper-navigation__icon">
+            <use xlink:href="/images/sprite.svg#angle2"></use>
+          </svg>
+        </button>
+      </div>
+    </div>
+  </div>
+  <? endif;?>
+</div>
+<? endif; ?><!-- /RecordTemplate -->
+
+<!-- FormSuffix --><? if($rowCount > 0): ?>
+</div>
+<? endif; ?>
+<script>
+[...document.querySelectorAll('.lk-messages-write__history-item-date')].forEach(el => {
+    var date = new Date(el.getAttribute('data-time').replace(/-/g, "/"));
+    el.innerHTML = `${("0" + date.getDate()).slice(-2)}.${("0" + (date.getMonth() + 1)).slice(-2)}.${date.getFullYear()} - ${("0" + date.getHours()).slice(-2)}:${("0" + date.getMinutes()).slice(-2)}`;
+});
+</script><!-- /FormSuffix -->

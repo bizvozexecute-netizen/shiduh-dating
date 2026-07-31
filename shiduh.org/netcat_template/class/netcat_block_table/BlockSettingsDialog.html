@@ -1,0 +1,112 @@
+<?php
+/** @var array $infoblock_data */
+$infoblock_settings = $infoblock_data['Sub_Class_Settings'];
+?>
+<div class="nc-block-menu-custom-settings">
+    <div class="nc-block-menu-count-column">
+        <div class="nc-field">
+            <label>Количество колонок</label>
+            <input type="number" min="1" step="1" name="custom_settings[columnCount]" class="nc--medium"
+                   value="<?= nc_array_value($infoblock_settings, 'columnCount', '3'); ?>">
+        </div>
+    </div>
+    <input type="hidden" name="custom_settings[columnTitle]"
+           value='<?= nc_array_value($infoblock_settings, 'columnTitle', '[]'); ?>'>
+    <input type="hidden" name="custom_settings[columnDecor]"
+           value='<?= nc_array_value($infoblock_settings, 'columnDecor', '[]'); ?>'>
+    <div class="nc-block-menu-count-column">
+        <input type="hidden" value="0" name="custom_settings[hideHeader]">
+        <div class="nc-field">
+            <label>
+                <input type="checkbox" value="1" name="custom_settings[hideHeader]"
+                       <?= nc_array_value($infoblock_settings, 'hideHeader') ? "checked" : ""; ?>>
+                Не показывать заголовок таблицы
+            </label>
+        </div>
+    </div>
+    <div class="nc-block-menu-column-title">
+        <table class="nc-table">
+            <thead>
+            <tr>
+                <th rowspan="2" style="width:1%">колонка</th>
+                <th rowspan="2">заголовок</th>
+                <th colspan="2" class="nc-text-center">выравнивание содержимого</th>
+                <th rowspan="2" style="width:1%" class="nc-text-center">выделить жирным</th>
+            </tr>
+            <tr>
+                <th class="nc-text-center" style="width:1%">ячейки</th>
+                <th class="nc-text-center" style="width:1%">заголовка</th>
+            </tr>
+            </thead>
+            <tbody></tbody>
+        </table>
+    </div>
+</div>
+<script>
+    (function () {
+        let dialog = nc.ui.modal_dialog.get_current_dialog(),
+            settings_div = dialog.find('.nc-block-menu-custom-settings'),
+            get_input = function (name) {
+                return settings_div.find('[name="custom_settings[' + name + ']"]');
+            };
+
+        let column_count = get_input('columnCount'),
+            column_title = get_input('columnTitle'),
+            column_decor = get_input('columnDecor'),
+            block_column_title = dialog.find('.nc-block-menu-column-title table tbody');
+
+        function render_column_fields() {
+            // перед рендером сохраняем текущие значения
+            let columnTitleCurrent = get_input('columnTitle').val() ? get_input('columnTitle').val() : "[]";
+            columnTitleCurrent = JSON.parse(columnTitleCurrent);
+
+            let columnDecorCurrent = get_input('columnDecor').val() ? get_input('columnDecor').val() : "[]";
+            columnDecorCurrent = JSON.parse(columnDecorCurrent);
+
+            block_column_title.html("");
+            for (let i = 1; i <= column_count.val(); i++) {
+                let val = columnTitleCurrent[i] ? columnTitleCurrent[i] : '';
+                if (!columnDecorCurrent[i]) {
+                    columnDecorCurrent[i] = {'cell_align': '', 'header_align': '', 'cell_bold': 0};
+                }
+                let html = "<tr>" +
+                    "<td class='nc-text-center'>#" + i + "</td>" +
+                    "<td><input type='text' name='column_title[" + i + "]' value='" + val + "'  data-num='" + i + "' placeholder='Заголовок колонки " + i + "' class='nc--wide'></td>" +
+                    "<td><select name='column_decor[" + i + "][cell_align]'>" + align_options(columnDecorCurrent[i]['cell_align']) + "</select></td>" +
+                    "<td><select name='column_decor[" + i + "][header_align]'>" + align_options(columnDecorCurrent[i]['header_align']) + "</select></td>" +
+                    "<td class='nc-text-center'><input type='checkbox' name='column_decor[" + i + "][cell_bold]' value='1' " + (columnDecorCurrent[i]['cell_bold'] ? "checked" : "") + "></td>" +
+                    "</tr>";
+                block_column_title.append(html);
+            }
+            settings_div.find('[name^="column_title"]').trigger("change");
+        }
+
+        function align_options(selected) {
+            return '<option value="">по умолчанию</option>' +
+                '<option value="align-left" ' + (selected === 'align-left' ? 'selected' : '') + '>по левому краю</option>' +
+                '<option value="align-center"' + (selected === 'align-center' ? 'selected' : '') + '>по центру</option>' +
+                '<option value="align-right"' + (selected === 'align-right' ? 'selected' : '') + '>по правому краю</option>' +
+                '<option value="align-justify"' + (selected === 'align-justify' ? 'selected' : '') + '>по ширине</option>';
+        }
+
+        function save_column_fields() {
+            let values = [],
+                decor = [];
+            settings_div.find('[name^="column_title"]').each(function () {
+                $nc(this).val($nc(this).val().replace(/'|"/gi, '')); // вырезаем ' "
+                let num = $nc(this).data('num');
+                values[num] = $nc(this).val() || '';
+                decor[num] = {
+                    'cell_align': settings_div.find('[name="column_decor[' + num + '][cell_align]"] :selected').val(),
+                    'header_align': settings_div.find('[name="column_decor[' + num + '][header_align]"] :selected').val(),
+                    'cell_bold': (settings_div.find('[name="column_decor[' + num + '][cell_bold]"]')[0].checked)
+                }
+            });
+            column_title.val(JSON.stringify(values));
+            column_decor.val(JSON.stringify(decor));
+        }
+
+        column_count.change(render_column_fields).trigger("change");
+        $nc(document).on("change", settings_div.find('[name^="column_title"], [name^="column_decor"]'), save_column_fields);
+    })();
+</script>

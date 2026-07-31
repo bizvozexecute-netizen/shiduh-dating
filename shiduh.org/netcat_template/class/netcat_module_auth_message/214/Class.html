@@ -1,0 +1,81 @@
+<!-- FormPrefix --><?
+echo $f_AdminCommon;
+echo $query_from;
+if (!$AUTH_USER_ID) {
+    echo "Ошибка доступа";
+    exit;
+}
+
+
+if (!$group_id) {?>
+   <section class="lk-messages">
+            <div class="lk-messages__wrapper">
+              <form class="lk-messages__body-form form form--lk-messages">
+                <div class="lk-head lk-messages__head">
+                  <h1 class="lk-head__title">Сообщения</h1>
+                </div>
+                <div class="lk-messages__bar">
+                  <a class="lk-messages__bar-link lk-messages__bar-link--message <?=(isset($outbox) ? "" : "lk-messages__bar-link--active")?>" href="./" title="">
+                    <svg class="lk-messages__bar-link-icon">
+                      <use xlink:href="/images/sprite.svg#letter"></use>
+                    </svg> Входящие </a>
+                  <a class="lk-messages__bar-link lk-messages__bar-link--send <?=(isset($outbox) ? "lk-messages__bar-link--active" : "")?>" href="?outbox" title="">
+                    <svg class="lk-messages__bar-link-icon">
+                      <use xlink:href="/images/sprite.svg#send"></use>
+                    </svg> Исходящие </a>
+                  <button class="lk-messages__bar-delete form__submit" style="display:none;" type="submit">
+                    <svg class="lk-messages__bar-delete-icon">
+                      <use xlink:href="/images/sprite.svg#delete"></use>
+                    </svg> Удалить </button>
+                </div>
+                <div class="lk-messages__body"><?
+} else {?>
+ 
+<? } ?>
+<?
+
+if ($totRows) {
+    ?><?
+} else {
+    ?>Нет сообщений<?
+}
+if (!$group_id && $totRows) { ?>
+
+<? } ?><!-- /FormPrefix -->
+
+<!-- RecordTemplate --><? if (!$group_id) {?>
+<div class="lk-messages__item <?=!$f_Status ? ' lk-messages__item--active': '';?>" href='<?= $fullLink; ?>'>
+  
+  <a href='<?= $fullLink; ?>' class="lk-messages__item-name"><?= $nc_core->user->get_by_id($f_UserID, 'Name') ?: $f_Author; ?> </a>
+  <a href='<?= $fullLink; ?>' class="lk-messages__item-theme" title=""> <?=$f_Subject?>  </a>
+  <a href='<?= $fullLink; ?>'  class="lk-messages__item-date"> <?=$f_Created_day.".".$f_Created_month.".".$f_Created_year." - ".$f_Created_hours.":".$f_Created_minutes?> </a>
+  <a href="/my/delete-message/?ID=<?=$f_Message_ID;?>"  class="lk-messages__item-delete">
+  Удалить
+  </a>
+</div>
+
+<? } else { ?>
+  <? if ($show_all || $full_msg_id == $f_RowID) { ?>
+  <div class="lk-messages-write__history-item <?=($current_user['User_ID']==$f_UserID ? "nc_msg_text nc_msg_out" : "nc_msg_text")?>">
+                      <div class="lk-messages-write__history-item-head">
+                        <a class="lk-messages-write__history-item-name" href="" title=""><?=$f_Author?></a>
+                        <div class="lk-messages-write__history-item-date"><?=$f_Created_day.".".$f_Created_month.".".$f_Created_year." - ".$f_Created_hours.":".$f_Created_minutes?></div>
+                      </div>
+                      <div class="lk-messages-write__history-item-text"><?= htmlspecialchars_decode($f_Message);?> </div>
+                    </div>
+  <? } ?>
+<? }  ?><!-- /RecordTemplate -->
+
+<!-- FormSuffix --><? if (!$group_id) {
+    ?>
+    <div class="lk-messages__load-more">
+                    <button class="lk-messages__load-more-btn" type="button">Показать ещё</button>
+                  </div>
+                </div>
+              </form>
+            </div>
+          </section>
+    
+    <?
+}?>
+<!-- /FormSuffix -->

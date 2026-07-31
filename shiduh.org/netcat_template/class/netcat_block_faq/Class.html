@@ -1,0 +1,13 @@
+<!-- FormPrefix --><?= $f_AdminCommon; ?><!-- /FormPrefix -->
+
+<!-- RecordTemplate --><?= $f_AdminButtons; ?>
+<div class="objects-item tpl-text-default">
+    <div class="item-question tpl-text-header6" data-toggle="collapse" href=".faq<?= $f_RowID; ?>" role="button" aria-expanded="false" aria-controls="faq<?= $f_RowID; ?>">
+        <?= nc_edit_inline('Question', $f_RowID, $cc_env['Sub_Class_ID']); ?>
+    </div>
+    <div class="item-answer collapse faq<?= $f_RowID; ?>">
+        <?= nc_edit_inline('Answer', $f_RowID, $cc_env['Sub_Class_ID']); ?>
+    </div>
+</div><!-- /RecordTemplate -->
+
+<!-- FormSuffix --><!-- /FormSuffix -->

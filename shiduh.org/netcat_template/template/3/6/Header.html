@@ -1,0 +1,39 @@
+%Header
+
+<div class="breadcrumbs ">
+        <div class="breadcrumbs__wrapper wrapper">
+          <a class="breadcrumbs__item" href="/" title="">
+            <svg class="breadcrumbs__item-icon">
+              <use xlink:href="/images/sprite.svg#home"></use>
+            </svg> Главная </a>
+          <a class="breadcrumbs__item" href="" title="">Партнеры</a>
+        </div>
+      </div>
+      <section class="partners">
+        <div class="partners__wrapper wrapper">
+          <div class="page-head partners__page-head">
+            <div class="page-head__title">Партнеры</div>
+          </div>
+          <picture class="partners__picture">
+            <source data-srcset="/images/partners/partners__img-xs.png 1x, images/partners/partners__img-xs--2x.png 2x" media="(max-width: 767.98px)">
+            <source data-srcset="/images/partners/partners__img-sm.png 1x, images/partners/partners__img-sm--2x.png 2x" media="(max-width: 1279.98px)">
+            <source data-srcset="/images/partners/partners__img-md.png" media="(max-width: 1709.98px)">
+            <img class="js-lazy" data-src="/images/partners/partners__img.png" alt="">
+          </picture>
+          <div class="partners__main">
+            <div class="partners__text">
+              <b>К нашей программе подключены специалисты из всех общин горских евреев: </b> Махачкалы, Баку, Дербента, Кубы, Нальчика, Пятигорска, США, Израиля и Канады со своими базами кандидатов.
+            </div>
+            <button class="partners__partner-btn button" data-hystmodal=".modal--partner">Стать партнером</button>
+            <div class="partners__grid">
+              <?= nc_objects_list(12, 9, "&nc_ctpl=190"  ); ?>
+              
+              
+            </div>
+            <!--<button class="partners__more-btn button button--ghost button--repeat">
+              <svg class="button__icon">
+                <use xlink:href="/images/sprite.svg#repeat"></use>
+              </svg> Показать еще </button>-->
+          </div>
+        </div>
+      </section>

@@ -1,0 +1,127 @@
+<section class="lk-create-article">
+  <div class="lk-create-article__wrapper">
+    <div class="lk-head lk-create-article__head">
+      <h1 class="lk-head__title"> Редактирование статьи </h1>
+    </div>
+    <div class="lk-create-article__body">
+      <div div class="nc_form">
+        <?=( $warnText ? "<div class='warnText'>$warnText</div>" : NULL )?>
+        <form name='adminForm' id='adminForm' class='nc-form' enctype='multipart/form-data' method='post' action='<?= $SUB_FOLDER ?><?= $HTTP_ROOT_PATH ?>message.php'>
+        <div id='nc_moderate_form' style="display:none;">
+        <div class='nc_clear'></div>
+        <input name='admin_mode' type='hidden' value='<?= $admin_mode ?>' />
+        <?= $nc_core->token->get_input() ?>
+        <input name='catalogue' type='hidden' value='<?= $catalogue ?>' />
+        <input name='cc' type='hidden' value='<?= $cc ?>' />
+        <input name='sub' type='hidden' value='<?= $sub ?>' /><input name='message' type='hidden' value='<?= $message ?>' />
+        <input name='posting' type='hidden' value='1' />
+        <input name='curPos' type='hidden' value='<?= $curPos ?>' />
+        <input name='f_Parent_Message_ID' type='hidden' value='<?= $f_Parent_Message_ID ?>' />
+        <?= nc_form_moderate('change', $admin_mode, 0, $systemTableID, $current_cc, (isset($f_Checked) ? $f_Checked  : null), $f_Priority , $f_Keyword, $f_ncTitle, $f_ncKeywords, $f_ncDescription ) ?>
+        </div>
+        <div class='nc-field nc-field-type-boolean'><?= nc_bool_field('mainNews', "", ($class_id ? $class_id : $classID ), 1) ?></div>
+        
+        <div class="nc-field nc-field-type-string form__item form__item--2col">
+            <span class="nc-field-caption form__item-name" style="" id="nc_capfld_427">Заголовок (*):</span>
+            <input required name="f_newsTitle" type="text" maxlength="255" size="50" value="<?= $f_newsTitle ?>" class="form__input">
+        </div>
+        
+        <div class="nc-field nc-field-type-datetime form__item" style="font-size: 0px;">
+            <span class="nc-field-caption form__item-name" style="" id="nc_capfld_429">Дата (*):</span>
+            <input required type="hidden" name="f_newsDate_day" maxlength="2" size="2" value="<?= $f_newsDate_day; ?>" placeholder="ДД">-<input required type="hidden" name="f_newsDate_month" maxlength="2" size="2" value="<?= $f_newsDate_month; ?>" placeholder="ММ">-<input required type="hidden" name="f_newsDate_year" maxlength="4" size="4" value="<?= $f_newsDate_year; ?>" placeholder="ГГГГ"> 
+
+               <input type="hidden" name="f_newsDate_hours" maxlength="2" size="2" value="<?= $f_newsDate_hours; ?>" placeholder="чч">:
+               <input type="hidden" name="f_newsDate_minutes" maxlength="2" size="2" value="<?= $f_newsDate_minutes; ?>" placeholder="мм">:
+               <input type="hidden" name="f_newsDate_seconds" maxlength="2" size="2" value="<?= $f_newsDate_seconds; ?>" placeholder="сс">
+        </div>
+        
+        
+        <div class='nc-field nc-field-type-select'><?= nc_list_field('events', "required", ($class_id ? $class_id : $classID), 1) ?></div>
+        
+      
+        
+        <div class="form__item form__item--upload tpl-field form__item--2col">
+          <div class="upload upload--default form__upload">
+            <input class="upload__input" id="nc-upload-input-479" value="<?= $f_newsImage;?>" data-name="<?= $f_newsImage_name;?>" name="f_newsImage" type="file" accept="image/png, image/jpg, image/jpeg, .pdf">
+            <label class="upload__body" for="nc-upload-input-479">
+
+              <div class="upload__preview"></div>
+              <div class="upload__text">
+                <div class="upload__text-title">Загрузите фотографию</div>
+                <div class="upload__text-description upload__text-description--unselected">.png .jpeg (до 5 мб)</div>
+                <div class="upload__text-description upload__text-description--selected">Вы можете изменить фото</div>
+              </div>
+              <div class="upload__button">Обзор</div>
+
+            </label>
+          </div>
+        </div>
+        
+        <!--<div class='nc-field nc-field-type-file'><?= nc_file_field('newsImage', "size='50' required", ($class_id ? $class_id : $classID), 1) ?></div>   -->
+        
+        <div class="form__item form__item--2col">
+          <span class="nc-field-caption form__item-name" style="" id="">Выбрать автора:</span>
+          <div class="select form__select form__select--removal">
+          <?
+          $nc_core->db->query("SELECT * FROM Message200 WHERE Subdivision_ID = 11", ARRAY_A );
+          $arr = $nc_core->db->last_result;
+
+          if (!empty($arr)) {?>
+          <select class="select__el" name="f_autor_ID" >
+            <option data-placeholder="true" value="0">-- Выбрать --</option>
+            <? foreach ($arr as $row) {
+                  echo '<option value="'.$row['Message_ID'].'"  '.($row['Message_ID'] === $f_autor_ID ? 'selected' : '').'>'.$row['name'].'</option>';
+            }?>
+          </select>    
+          <?}?>
+          </div>
+        </div>
+   
+        
+        <div class="form__item form__item--2col">
+          <span class="nc-field-caption form__item-name" style="" id="">Краткий анонс:</span>
+          <textarea name='f_newsSubTitle' id='f_newsSubTitle' tabindex='2'><?= ($action != 'full' ? htmlspecialchars($f_newsSubTitle) : NULL) ?></textarea>
+        </div>
+
+        <div class="form__item form__item--2col">
+          <span class="nc-field-caption form__item-name" style="" id="">Описание:</span>
+          <textarea name='f_text' id='f_text' tabindex='2'><?= ($action != 'full' ? htmlspecialchars($f_text) : NULL) ?></textarea>
+        </div>
+        <script src="/ckeditor/ckeditor.js"></script>
+              <script>
+                CKEDITOR.replace( 'f_newsSubTitle' );
+                CKEDITOR.replace( 'f_text' );
+              </script>
+              
+     
+
+        <div class='nc-field nc-field-type-multifile'><?= $f_newsFiles->form() ?></div>
+
+
+
+
+        <div class='nc-hint nc-hint-required-fields'><?= NETCAT_MODERATION_INFO_REQFIELDS ?></div>
+        <?= nc_submit_button(NETCAT_MODERATION_BUTTON_CHANGE) ?>
+        </form>
+<script>
+const form = document.querySelector('#adminForm'); // #addForm
+  if (form) {
+    form.addEventListener('submit', (e) => {
+      e.preventDefault();
+      
+    
+      document.querySelector('#f_newsSubTitle').value = CKEDITOR.instances['f_newsSubTitle'].getData();
+      document.querySelector('#f_text').value = CKEDITOR.instances['f_text'].getData();
+
+      
+      
+    });
+  }
+</script>   
+        
+        
+        
+      </div>
+    </div>
+  </div>
+</section>

@@ -1,0 +1,66 @@
+<!-- FormPrefix --><?=$f_AdminCommon;?>
+
+<section class="lk-shadhans">
+  <div class="lk-shadhans__wrapper">
+    <div class="lk-head lk-shadhans__head">
+      <h1 class="lk-head__title">Список раввинов </h1>
+
+    </div>
+    <div class="lk-shadhans__body">
+      <div class="lk-shadhans__body-head">
+        <div class="lk-shadhans__body-head-cell lk-shadhans__body-head-cell--photo">Фото</div>
+        <div class="lk-shadhans__body-head-cell lk-shadhans__body-head-cell--name">ФИО</div>
+        <div class="lk-shadhans__body-head-cell lk-shadhans__body-head-cell--address">Страна</div>
+        <div class="lk-shadhans__body-head-cell lk-shadhans__body-head-cell--age">Возраст</div>
+        <div class="lk-shadhans__body-head-cell lk-shadhans__body-head-cell--rating"></div>
+      </div><!-- /FormPrefix -->
+
+<!-- RecordTemplate --><div class="lk-shadhans__item">
+  <div class="lk-shadhans__item-avatar">
+    <picture class="lk-shadhans__item-avatar-picture">
+      <img class="lk-shadhans__item-avatar-img js-lazy" data-src="<?= $f_Photo_avatar ? $f_Photo_avatar : ($f_Gender_id == 1 ? '/images/avatar/man.png' : '/images/avatar/woman.png'); ?>" alt="">
+    </picture>
+  </div>
+  <div class="lk-shadhans__item-info">
+    <div class="lk-shadhans__item-key">ФИО</div>
+    <div class="lk-shadhans__item-info-name">
+      <?= $f_Name;?>
+      <svg class="lk-search-candidate-result__table-cell-value-check-item tooltip <? if($f_Success_ravin):?>lk-search-candidate-result__table-cell-value-check-item--checked<? endif; ?>" data-tippy-content="<? if($f_Success_ravin):?>Подтвержден<? else: ?>Не подтвержден<? endif; ?>  раввином">
+        <use xlink:href="/images/sprite.svg#check"></use>
+      </svg>
+    </div>
+    <a class="lk-shadhans__item-info-link" href="<?=$fullLink?>" title="">Подробнее</a>
+  </div>
+  <div class="lk-shadhans__item-address">
+    <div class="lk-shadhans__item-key">Страна</div>
+    <div class="lk-shadhans__item-address-value"> <?= $f_Country;?></div>
+  </div>
+  <div class="lk-shadhans__item-age">
+    <div class="lk-shadhans__item-key">Возраст</div>
+    <div class="lk-shadhans__item-age-value"><?= $f_Date_of_birth_year < 2024 && $f_Date_of_birth_year !== '0000' ? get_age($f_Date_of_birth) : ''; ?> <?= num2word(get_age($f_Date_of_birth), array('год', 'года', 'лет'));?></div>
+  </div>
+  <div class="lk-shadhans__item-rating">
+    <div class="lk-shadhans__item-key"></div>
+    <div class="lk-shadhans__item-rating-value"></div>
+  </div>
+  <div class="lk-shadhans__item-manage">
+      <a class="lk-shadhans__item-manage-more button" href="<?=$fullLink?>" title="">Подробнее</a>
+      <? if($f_User_ID !== $current_user['User_ID']): ?>
+      <a href='<?= nc_auth_messages_url($f_RowID) ?>' class="lk-shadhans__item-manage-write button button--write">
+        <svg class="button__icon">
+          <use xlink:href="/images/sprite.svg#letter"></use>
+        </svg>
+        <span class="button__text">Написать</span>
+      </a>
+      <? endif;?>
+      
+    </div>
+
+</div><!-- /RecordTemplate -->
+
+<!-- FormSuffix --><div class="lk-load-more">
+  <button class="lk-load-more__btn">Показать еще</button>
+</div>  
+              </div>
+            </div>
+          </section><!-- /FormSuffix -->

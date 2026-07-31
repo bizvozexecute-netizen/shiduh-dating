@@ -1,0 +1,205 @@
+<?php $auth_settings = $nc_core->get_settings('', 'auth') ?>
+<?php if ($auth_settings['deny_reg']): ?>
+    <?= NETCAT_MODULE_AUTH_SELFREG_DISABLED; ?>
+<?php else: ?>
+    <?= ($warnText ? "<div class='warnText'>$warnText</div>" : null); ?>
+    
+    <form name='adminForm' id='adminForm' class="form form--registration tpl-module-auth-registration-form" enctype='multipart/form-data'
+          method='post' action='<?= $nc_core->SUB_FOLDER . $nc_core->HTTP_ROOT_PATH ?>add.php'>
+        <div id='nc_moderate_form'>
+            <div class='nc_clear'></div>
+            <input name='admin_mode' type='hidden' value='<?= $admin_mode ?>'/>
+            <input name='catalogue' type='hidden' value='<?= $catalogue ?>'/>
+            <input name='cc' type='hidden' value='<?= $cc ?>'/>
+            <input name='sub' type='hidden' value='<?= $sub ?>'/>
+            <input name='posting' type='hidden' value='1'/>
+            <input name='curPos' type='hidden' value='<?= $curPos ?>'/>
+            <div class='nc_clear'></div>
+        </div>
+        
+        <div class="form__body">
+          <?php
+          $cmp = new nc_Component('User');
+          $user_fields = $cmp->get_fields();
+
+          $login_field = array();
+
+          $allowed_fields = explode(',', $nc_core->get_settings('field_custom', 'auth'));
+          $show_all_fields = $nc_core->get_settings('field_all', 'auth');
+
+          foreach ($user_fields as $user_field) {
+
+              if ($user_field['name'] === $nc_core->AUTHORIZE_BY) {
+                  $login_field = $user_field;
+                  continue;
+              }
+
+              $is_field_accessible_by_admin_only = +$user_field['edit_type'] === NC_FIELD_PERMISSION_ADMIN;
+              $is_field_accessible_by_no_one = +$user_field['edit_type'] === NC_FIELD_PERMISSION_NOONE;
+              $should_hide_field_from_user = ($is_field_accessible_by_admin_only && !nc_field_check_admin_perm()) || $is_field_accessible_by_no_one;
+              $is_field_marked_as_disabled = !$show_all_fields && !in_array($user_field['name'], $allowed_fields, true);
+
+              if ($should_hide_field_from_user || $is_field_marked_as_disabled) {
+                  continue;
+              }
+
+              // остаются поля доступные для заполнения в полной форме регистрации
+              // в модальном окне регистрации только емайл и пароль, остальные поля не заполняются
+              ?>
+              <!--<div class="form__item form__item--<?= $user_field['name']; ?> form__item--req">
+                  <label class="form__item-name" for="f_<?= $user_field['name']; ?>"><?= $user_field['description']; ?><?= $user_field['not_null'] ? "" : ""; ?></label>
+                  <?= nc_put_field($user_field['name'], "id='f_" . $user_field['name'] . "' class='form__input tpl-field-input' " . ($user_field['not_null'] ? "required" : ""), '0', 0); ?>
+              </div>-->
+              <?php
+          }
+          ?>
+          
+          <div class="form__item  ">
+            <label class="form__item-name" for="f_Name">Ф.И.О.</label>
+            <input class="form__input -input" name="f_Name" maxlength="255" size="50" type="text" id="f_Name" required="" value="" placeholder="Введите ФИО">
+          </div>
+          <div class="form__item  ">
+            <label class="form__item-name" for="f_Type">Регистрация для <?= $_GET['shadchan'] ? 'Шадханов' : 'Кандидатов';?></label>
+            <div class="select form__select ">
+              <? nc_list_select ("Type_of_user", "Type", 1,"","", "<select required class='select__el' name='f_Type'><option data-placeholder='true' value=''>-- Выбрать --</option>", "<option value='\$value_id' \$value_selected>\$value_name</option>")?>
+              
+              <select required="" class="select__el" name="f_Type"  tabindex="-1" aria-hidden="true" >
+                  <option data-placeholder="true" value="">-- Выбрать --</option>
+                  <? if($_GET['shadchan']):?>
+                  <option value="2" selected>Шадхан</option>
+                  <? else: ?>
+                  <option value="1" selected>Кандидат</option>
+                  <? endif; ?>
+              </select>
+              
+            </div>
+          </div>
+          <div class="form__item  ">
+            <label class="form__item-name" for="f_Gender">Пол</label>
+            <div class="select form__select ">
+              <?=nc_list_select ("Sex", "Gender", $f_Gender,"","", "<select required class='select__el' name='f_Gender'><option data-placeholder='true' value=''>-- Выбрать --</option>", "<option value='\$value_id' \$value_selected>\$value_name</option>")?>
+            </div>
+          </div>
+          <div class="form__item form__item--req ">
+            <label class="form__item-name" for="">Дата рождения</label>
+           
+         
+            <div class="datepicker ">
+                      <input class="datepicker__el" name="" type="text" value="" placeholder="Укажите дату" required="">
+                    </div>
+            
+            <input style="position: absolute;left: -999px;top: -999px;opacity: 0;pointer-events: none;" id="f_Date_of_birth_day" type="text" name="f_Date_of_birth_day" maxlength="2" size="2" class="form__input-date-day" required="" value="01" placeholder="ДД" />
+            <input style="position: absolute;left: -999px;top: -999px;opacity: 0;pointer-events: none;" id="f_Date_of_birth_month" type="text" name="f_Date_of_birth_month" class="form__input-date-month" required="" value="01" placeholder="ММ" />
+            <input style="position: absolute;left: -999px;top: -999px;opacity: 0;pointer-events: none;" id="f_Date_of_birth_year" type="text" name="f_Date_of_birth_year" class="form__input-date-year" required="" value="2024" placeholder="ГГГГ" />
+            
+            <input style="position: absolute;left: -999px;top: -999px;opacity: 0;pointer-events: none;" id="f_Date_of_birth_hours" type="text" name="f_Date_of_birth_hours" class="-input" required="" value="00" placeholder="чч" />
+            <input style="position: absolute;left: -999px;top: -999px;opacity: 0;pointer-events: none;" id="f_Date_of_birth_minutes" type="text" name="f_Date_of_birth_minutes" class="-input" required="" value="00" placeholder="мм" />
+            <input style="position: absolute;left: -999px;top: -999px;opacity: 0;pointer-events: none;" id="f_Date_of_birth_seconds" type="text" name="f_Date_of_birth_seconds" class="-input" required="" value="00" placeholder="сс" />
+          </div>
+          
+          <div class="form__item  form__item--req">
+            <label class="form__item-name" for="f_Phone">Телефон</label>
+            <input class="form__input -input" name="f_Phone" maxlength="255" size="50" type="tel" id="f_Phone" required="" value="" placeholder="Укажите номер">
+          </div>
+          <div class="form__item  form__item--req">
+              <label class="form__item-name" for="f_<?= $login_field['name']; ?>"><?= $login_field['description']; ?><?= $login_field['not_null'] ? "" : ""; ?></label>
+              <?= nc_put_field($login_field['name'],"id='f_Login'  placeholder='Укажите e-mail' class='form__input tpl-field-input' " . ($login_field['not_null'] ? "required" : ""), '0', 0); ?>
+              <div class="form__item-subscription-wrapper">
+                <div id='nc_auth_wait' class='form__item-subscription form__item-subscription--loading nc_auth_login_check nc_auth_check'><?= NETCAT_MODULE_AUTH_LOGIN_WAIT ?></div>
+                <div id='nc_auth_login_ok' class='form__item-subscription form__item-subscription--success nc_auth_login_check nc_auth_check_success'><?= NETCAT_MODULE_AUTH_LOGIN_FREE ?></div>
+                <div id='nc_auth_login_fail' class='form__item-subscription form__item-subscription--error nc_auth_login_check nc_auth_check_error'><?= NETCAT_MODULE_AUTH_LOGIN_BUSY ?></div>
+                <div id='nc_auth_login_incorrect' class='form__item-subscription form__item-subscription--error nc_auth_login_check nc_auth_check_error'><?= NETCAT_MODULE_AUTH_LOGIN_INCORRECT ?></div>
+              </div>
+          </div>
+          <div class="form__item form__item--password form__item--req ">
+              <label class="form__item-name" for="f_Password1"><?=NETCAT_MODULE_AUTH_PASSWORD;?></label>
+              <div class="form__input-wrap form__input-wrap--password">
+                  <input id='f_Password1' name='Password1' type='password' size='25' class='form__input tpl-field-input-password' value='' required/>
+                  <button class="form__input-show" type="button">
+                    <svg class="form__input-show-icon">
+                      <use xlink:href="/images/sprite.svg#eye"></use>
+                    </svg>
+                  </button>
+              </div>
+              <div class="form__item-subscription-wrapper">
+                <div id="nc_auth_pass1" class="form__item-subscription nc_auth_pass1_check nc_auth_check_error" style="display: none;"></div>
+                <div id='nc_auth_pass1_security' class='form__item-subscription nc_auth_pass1_check nc_auth_check'><?=NETCAT_MODULE_AUTH_PASS_RELIABILITY;?></div>
+                <div id='nc_auth_pass1_s1' class='form__item-subscription nc_auth_pass1_check nc_auth_check_error'><?= NETCAT_MODULE_AUTH_PASS_LOW; ?></div>
+                <div id='nc_auth_pass1_s2' class='form__item-subscription nc_auth_pass1_check nc_auth_check_error'><?= NETCAT_MODULE_AUTH_PASS_MIDDLE; ?></div>
+                <div id='nc_auth_pass1_s3' class='form__item-subscription nc_auth_pass1_check nc_auth_check_success'><?= NETCAT_MODULE_AUTH_PASS_HIGH; ?></div>
+                <div id='nc_auth_pass1_s4' class='form__item-subscription nc_auth_pass1_check nc_auth_check_success'><?= NETCAT_MODULE_AUTH_PASS_VHIGH; ?></div>
+                <div id='nc_auth_pass1_empty' class='form__item-subscription nc_auth_pass1_check nc_auth_check_error'><?= NETCAT_MODULE_AUTH_PASS_EMPTY; ?></div>
+                <div id='nc_auth_pass_min' class='form__item-subscription nc_auth_pass1_check nc_auth_check_success'><?= NETCAT_MODULE_AUTH_PASS_SHORT; ?></div>
+              </div>
+          </div>
+          <div class="form__item form__item--password-repeat form__item--req ">
+              <label class="form__item-name" for="f_Password2"><?=NETCAT_MODULE_AUTH_PASSWORD_CONFIRMATION;?></label>
+              <div class="form__input-wrap form__input-wrap--password">
+                  <input id='f_Password2' name='Password2' type='password' size='25' class='form__input tpl-field-input-password' value='' required/>
+                  <button class="form__input-show" type="button">
+                    <svg class="form__input-show-icon">
+                      <use xlink:href="/images/sprite.svg#eye"></use>
+                    </svg>
+                  </button>
+              </div>
+              <div class="form__item-subscription-wrapper">
+                <div id="nc_auth_pass2" class="form__item-subscription nc_auth_pass2_check" style="display: none;"></div>  
+                <div id='nc_auth_pass2_ok' class='form__item-subscription nc_auth_pass2_check nc_auth_check_success'><?= NETCAT_MODULE_AUTH_PASS_COINCIDE; ?></div>
+                <div id='nc_auth_pass2_fail' class='form__item-subscription nc_auth_pass2_check nc_auth_check_error'><?= NETCAT_MODULE_AUTH_PASS_N_COINCIDE; ?></div>
+              </div>
+          </div>
+        </div>
+        <div class="form__captcha" data-sitekey="ysc1_3QYXeVavemfOKWtl3VBJa0GYXPIfsgUCRQtqfeRveda4c355"></div>
+        
+        <div class="form__footer">
+          <button class="form__submit button tpl-button-primary" type="submit" title="<?= NETCAT_MODULE_AUTH_REGISTER ?>"><?= NETCAT_MODULE_AUTH_REGISTER ?></button>
+          <label class="checkbox form__personal-check ">
+            <input class="checkbox__input" value='1' type="checkbox" name="nc_agreed" id="nc_agreed" checked required>
+            <div class="checkbox__body">
+              <span class="checkbox__el">
+                <svg class="checkbox__el-icon">
+                  <use xlink:href="/images/sprite.svg#checked"></use>
+                </svg>
+              </span>
+              <span class="checkbox__text">Я принимаю условия <a href="/policy/" title="" target="_blank">пользовательского соглашения</a></span>
+            </div>
+          </label>
+        </div>
+        
+        <!--<?php if ($nc_core->modules->get_by_keyword('captcha')): ?>
+            <?php if (!$AUTH_USER_ID && $current_cc['UseCaptcha'] && $MODULE_VARS['captcha']): ?>
+                <div class="tpl-field">
+                    <label for="nc_captcha_code"><?= NETCAT_MODERATION_CAPTCHA; ?>*:</label>
+                    <div class="tpl-field-input-captcha">
+                        <?php $icon_refresh = nc_get_svg_for_embedding($nc_core->DOCUMENT_ROOT
+                            . $nc_core->HTTP_TEMPLATE_PATH . "/icon/google_material_icons/refresh.svg"); ?>
+                        <?= nc_captcha_formfield('', '', '', '', $icon_refresh); ?>
+                        <input type='text' name='nc_captcha_code' size='10'>
+                    </div>
+                </div>
+            <?php endif; ?>
+        <?php endif; ?>
+        <?php if ($nc_core->get_settings('agreed', 'auth')): ?>
+            <div class="tpl-field tpl-field-agreed">
+                <input type='checkbox' name='nc_agreed' id='nc_agreed' value='1' required/>
+                <label for='nc_agreed'><?= str_replace('%USER_AGR', nc_folder_url($current_catalogue['Rules_Sub_ID']), NETCAT_MODULE_AUTH_USER_AGREEMENT) ?></label>
+            </div>
+        <?php endif; ?>-->
+     
+        <script type="text/javascript"
+                src="<?= $nc_core->SUB_FOLDER . $nc_core->HTTP_ROOT_PATH; ?>modules/auth/auth.js"></script>
+        <script type='text/javascript'>
+            var SUB_FOLDER = '<?= $nc_core->SUB_FOLDER ?>';
+            var NETCAT_PATH = '<?= $nc_core->HTTP_ROOT_PATH ?>';
+            var nc_auth_obj = "";
+            document.addEventListener('DOMContentLoaded', function () {
+                nc_auth_obj = new nc_auth(<?= json_encode(array(
+                    'check_login' => $auth_settings['check_login'],
+                    'pass_min'    => intval($auth_settings['pass_min']),
+                    'check_pass'  => $auth_settings['check_pass'],
+                    'check_pass2' => $auth_settings['check_pass2'],
+                )) ?>);
+            });
+        </script>
+    </form>
+<?php endif; ?>

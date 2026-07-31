@@ -1,0 +1,14 @@
+& { min-height: 1em; }
+.object-item { display: flex; align-items: center; }
+.object-item.vertical { flex-direction: column; }
+.object-item.vertical > .tpl-icon { margin-bottom: var(--tpl-object-item--icon-space-text); }
+.object-item:not(.vertical) > .tpl-icon { margin-right: var(--tpl-object-item--icon-space-text); }
+.object-item a { text-decoration: none; white-space: nowrap; }
+.tpl-icon { margin: 0; height: 1em; width: 1em; display: inline-flex; align-items: center; justify-content: center; overflow: hidden; }
+.tpl-icon > svg, .tpl-icon > img { width: 100%; height: 100%; max-width: 100%; max-height: 100%; }
+.tpl-icon svg path { fill: var(--tpl-object-item--icon-color); }
+.tpl-icon[class*='icon-decor-'] { border: 1px solid var(--tpl-object-item--icon-decor-color); }
+.tpl-icon[class*='icon-decor-'][class*='-fill'] { background-color: var(--tpl-object-item--icon-decor-color); }
+.tpl-icon > * { max-width: 50%; max-height: 50%; }
+.tpl-icon[class*='icon-decor-circle'] { border-radius: 50%; }
+.tpl-icon[class*='icon-decor-circle'] > * { max-width: 40%; max-height: 40%; }

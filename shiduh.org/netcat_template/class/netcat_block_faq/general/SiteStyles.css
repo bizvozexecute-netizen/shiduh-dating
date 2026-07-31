@@ -1,0 +1,11 @@
+& { min-height: 60px; }
+.objects-item { border: 1px solid var(--tpl-color-foreground-accent); padding: 1.1rem; margin-bottom: 0.5rem; }
+.objects-item .item-question { font-weight: 600; padding-left: 2.5rem; padding-right: 2rem; cursor: pointer; position: relative; }
+.objects-item .item-question::before { content: "\002B"; position: absolute; left: 0; font-size: 2rem; line-height: 1rem; color: var(--tpl-color-brand); }
+.objects-item .item-question[aria-expanded="true"]::before { content: "\2013"; }
+.objects-item .item-answer { padding: 1rem 2rem 1rem 2.5rem; }
+
+@nc-container (max-width : 500px) {
+.objects-item .item-question { padding-right: 0; }
+.objects-item .item-answer { padding-right: 0; }
+}

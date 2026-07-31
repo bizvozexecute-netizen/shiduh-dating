@@ -1,0 +1,21 @@
+<!-- FormPrefix --><div class="lk-questionnaire__notes">
+                <div class="lk-questionnaire__notes-title title title--lk">Доступ к анкете</div>
+                <div class="notes lk-questionnaire__notes-el">
+                  <button class="notes__button button button--plus2">
+                    <svg class="button__icon">
+                      <use xlink:href="/images/sprite.svg#plus2"></use>
+                    </svg>
+                    <span class="button__text">Добавить пользователя</span>
+                  </button>
+                  <div class="notes__list"><!-- /FormPrefix -->
+
+<!-- RecordTemplate --><div class="notes__item">
+  <div class="notes__item-date"><?= $f_Created_day;?>.<?= $f_Created_month;?>.<?= $f_Created_year;?></div>
+  <div class="notes__item-text"><?= $nc_core->user->get_by_id($f_ID_User, "Name" ) ;?> </div>
+  <a href="<?= $deleteLink;?>" class="notes__item-delete">Удалить</a>
+</div><!-- /RecordTemplate -->
+
+<!-- FormSuffix --></div>
+                <?= $addForm;?>
+              </div>
+</div>              <!-- /FormSuffix -->

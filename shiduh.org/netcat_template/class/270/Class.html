@@ -1,0 +1,16 @@
+<!-- FormPrefix --><? 
+if($totRows === 0) {
+    echo $addForm;
+}
+?><!-- /FormPrefix -->
+
+<!-- RecordTemplate --><a class="favorite  favorite--active" href="<?=$dropLink?>">
+  <div class="favorite__button">
+    <svg class="favorite__button-icon">
+      <use xlink:href="/images/sprite.svg#lk-heart-2"></use>
+    </svg>
+    <span class="favorite__button-text">В избранном </span>
+  </div>
+</a><!-- /RecordTemplate -->
+
+<!-- FormSuffix --><!-- /FormSuffix -->

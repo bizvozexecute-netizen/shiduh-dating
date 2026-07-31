@@ -1,0 +1,13 @@
+<?= $f_AdminCommon; ?>
+<?php $shops = array(); ?>
+<?php if ($admin_mode && !$cc_settings['YandexMapApiKey']) { ?>
+    <?php nc_print_status("
+    Для работы с JS API Карт и HTTP API Геокодера каждому проекту нужен <a href='https://developer.tech.yandex.ru/' target='_blank'>API ключ</a>. 
+    В случае отсутствия ключа работоспособность карты не гарантируется. 
+    После <a href='https://developer.tech.yandex.ru/' target='_blank'>получения API-ключа</a> внесите его в настройках инфоблока
+    ", "info"); ?>
+<?php } ?>
+<?php if ($cc_settings['mapPosition'] === 'begin'): ?>
+    <div id="map" class="tpl-text-indent-bottom" <?= $styles; ?>></div>
+<?php endif; ?>
+

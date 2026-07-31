@@ -1,0 +1,13 @@
+<?/* Служебная часть */for ($f_RowNum = 0; $f_RowNum < $rowCount; $f_RowNum++) {    if($fetch_row[$f_RowNum] instanceof Iterator) {        extract($fetch_row[$f_RowNum]->to_array(), EXTR_PREFIX_ALL, "f");    } else {        extract($fetch_row[$f_RowNum], EXTR_PREFIX_ALL, "f");    }    foreach($iteration_RecordTemplate[$f_RowNum] as $value) {        extract($value);    }    eval($cc_env["convert2txt"]);    ob_start();/* Конец служебной части */?>
+<div class="faq__question-card">
+  <div class="faq__question-card-wrapper">
+    <div class="faq__question-card-title"><?= $f_card_title; ?></div>
+    <a class="faq__question-card-link" href="<?= $f_link; ?>" title="">More</a>
+    <img class="faq__question-card-hearts js-lazy" data-src="/images/faq/faq__question-card-img-2.png" alt="">
+  </div>
+  <picture>
+    <source data-srcset="/images/faq/faq__question-card-img-1-xs.png 1x, /images/faq/faq__question-card-img-1-xs--2x.png 2x" media="(max-width: 767.98px)">
+    <img class="faq__question-card-img js-lazy" data-src="/images/faq/faq__question-card-img-1.png" alt="">
+  </picture>
+</div>
+<?/* Служебная часть */    echo nc_finishing_RecordTemplate(ob_get_clean(), $inside_admin, $classID, $f_RowID, $parent_message, $cc, $cc_env["Class_Name"], $no_cache_marks);}/* Конец служебной части */?>

@@ -1,0 +1,13 @@
+<!-- FormPrefix --><select class="select__el" name="srchPat[16]" >
+<? $city = [];?>
+<option value="" id="" data-placeholder="true" disabled>-- Choose --</option>
+                    <!-- /FormPrefix -->
+
+<!-- RecordTemplate --><? 
+if(!in_array($f_City, $city)) {
+    $city[] = $f_City;
+?>
+<option value="<?= $f_City;?>" ><?= $f_City;?></option>
+<?}?><!-- /RecordTemplate -->
+
+<!-- FormSuffix --></select><!-- /FormSuffix -->

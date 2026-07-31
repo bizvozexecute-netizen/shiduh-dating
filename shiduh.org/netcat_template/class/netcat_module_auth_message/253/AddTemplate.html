@@ -1,0 +1,40 @@
+<?
+$uid = 119;
+if (!$uid)
+    $uid = $f_UserID ? $f_UserID : $f_ToUser;
+$f_Parent_Message_ID = ($f_Parent_Message_ID ? $f_Parent_Message_ID : $f_RowID);
+$uid = intval($uid);
+$to_user = $db->get_var("SELECT `" . $AUTHORIZE_BY . "` FROM `User` WHERE `User_ID` = '" . $uid . "'");
+
+$reSubject = '';
+
+
+if (!$inside_admin && $to_user && $uid != $current_user['User_ID'] && $nc_core->get_settings('pm_allow', 'auth')) {
+    ?>
+<form class="form form--lk-write" action="<?= $SUB_FOLDER ?>/netcat/add.php" autocomplete="off">
+<input type='hidden' name='cc' value='<?= $cc ?>' />
+            <input type='hidden' name='sub' value='<?= $sub ?>' />
+            <input type='hidden' name='catalogue' value='<?= $catalogue ?>' />
+            <input type='hidden' name='curPos' value='<?= $curPos ?>' />
+            <input type='hidden' name='posting' value='1' />
+            <input type='hidden' name='f_Checked' value='1' />
+            <input type='hidden' name='uid' value='<?= $uid ?>' />
+            <input type='hidden' name='f_ToUser' value='<?= $uid ?>' />
+            <input type='hidden' name='f_Parent_Message_ID' value='<?= $f_Parent_Message_ID ?>' />
+    <?= $nc_core->token->get_input() ?>
+ <input type='hidden' name='f_Subject' class='text' tabindex='1' value='Написать админу' />
+              <div class="form__body">
+                <input class="form__input" type="text" placeholder="Ваше ФИО" required name="f_name">
+                
+                <textarea class="form__textarea" placeholder="Текст сообщения" name="f_Message"></textarea>
+              </div>
+              <div class="form__footer">
+                
+                <div class="form__footer-right">
+                  <button class="form__submit button" type="submit">Отправить</button>
+                  
+                </div>
+              </div>
+            </form>
+
+<? } ?>

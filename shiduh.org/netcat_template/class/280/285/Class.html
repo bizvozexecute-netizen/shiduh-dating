@@ -1,0 +1,107 @@
+<!-- FormPrefix --><section class="lk-shiduch">
+  <div class="lk-shiduch__wrapper">
+    <div class="lk-head lk-shiduch__head">
+      <h1 class="lk-head__title">Предложенные кандидаты</h1>
+    </div>
+    <div class="lk-shiduch__table lk-table lk-table--avatar">
+      <div class="lk-table__head">
+        <div class="lk-table__row">
+          <div class="lk-table__cell lk-table__cell--avatar">Фото</div>
+          <div class="lk-table__cell lk-table__cell--name">ФИО</div>
+          <div class="lk-table__cell lk-table__cell--address">Страна</div>
+          <div class="lk-table__cell lk-table__cell--age">Возраст</div>
+          <div class="lk-table__cell lk-table__cell--shadhans">Шадханы</div>
+        </div>
+      </div>
+      <div class="lk-table__body"><!-- /FormPrefix -->
+
+<!-- RecordTemplate --><?
+if($nc_core->user->get_by_id($f_User_ID, 'Checked')):
+  $now = time(); // текущее время (метка времени)
+  $your_date = strtotime($f_Created_year.'-'.$f_Created_month.'-'.$f_Created_day); // какая-то дата в строке (1 января 2017 года)
+  $datediff = $now - $your_date; // получим разность дат (в секундах)
+
+  $daysSumm = floor($datediff / (60 * 60 * 24));
+  if ($db->get_var("SELECT User_ID FROM Message204 WHERE Message_ID = '$f_Candidate1'") != $current_user['User_ID']):
+?>
+<div class="lk-table__row">
+  <?= nc_objects_list(22, 22, "&idCandidate=$f_Candidate1&nc_ctpl=286" ); ?>
+  <div class="lk-table__cell lk-table__cell--shadhans">
+    <div class="lk-table__cell-key">Шадхан</div>
+    <div class="lk-table__cell-val">
+      <a class="lk-table__cell-shadhan" href="/my/shadhany/shadhan_<?= $f_User_ID;?>.html" title="">
+        <img class="lk-table__cell-shadhan-img js-lazy" style="object-fit:cover;"  data-src="<?= $nc_core->user->get_by_id($f_User_ID, "Photo_avatar" ); ?>" alt="">
+      </a>
+    </div>
+  </div>
+  <div class="lk-table__cell lk-table__cell--manage">
+    <?= nc_objects_list(22, 22, "&idCandidate=$f_Candidate1&nc_ctpl=287" ); ?>
+    <? if($f_User_ID !== $current_user['User_ID']): ?>  
+    <div class="lk-table__cell-inner lk-table__cell-inner--btn-write" >
+        <a class="lk-table__cell-button button button--write" href="<?= nc_auth_messages_url($f_User_ID); ?>">
+          <svg class="button__icon">
+            <use xlink:href="/images/sprite.svg#letter"></use>
+          </svg>
+          <span class="button__text">Написать Шадхану</span>
+        </a>
+    </div>
+    <? endif; ?>
+  </div>
+</div>
+<? endif; ?>
+<? if($db->get_var("SELECT User_ID FROM Message204 WHERE Message_ID = '$f_Candidate2'") != $current_user['User_ID']):?>
+<div class="lk-table__row">
+  <?= nc_objects_list(22, 22, "&idCandidate=$f_Candidate2&nc_ctpl=286" ); ?>
+  <div class="lk-table__cell lk-table__cell--shadhans">
+    <div class="lk-table__cell-key">Шадхан</div>
+    <div class="lk-table__cell-val">
+      <a class="lk-table__cell-shadhan" href="/my/shadhany/shadhan_<?= $f_User_ID;?>.html" title="">
+        <img class="lk-table__cell-shadhan-img js-lazy" style="object-fit:cover;"  data-src="<?= $nc_core->user->get_by_id($f_User_ID, "Photo_avatar" ); ?>" alt="">
+      </a>
+    </div>
+  </div>
+  <div class="lk-table__cell lk-table__cell--manage">
+    <?= nc_objects_list(22, 22, "&idCandidate=$f_Candidate2&nc_ctpl=287" ); ?>
+    <? if($f_User_ID !== $current_user['User_ID']): ?>  
+    <div class="lk-table__cell-inner lk-table__cell-inner--btn-write" >
+        <a class="lk-table__cell-button button button--write" href="<?= nc_auth_messages_url($f_User_ID); ?>">
+          <svg class="button__icon">
+            <use xlink:href="/images/sprite.svg#letter"></use>
+          </svg>
+          <span class="button__text">Написать Шадхану</span>
+        </a>
+    </div>
+    <? endif; ?>
+  </div>
+</div>
+<? endif; ?>
+<!--<div class="lk-table__row">
+  <?= nc_objects_list(22, 22, "&idsCandidate=$f_Candidate1,$f_Candidate2&nc_ctpl=286" ); ?>
+  <div class="lk-table__cell lk-table__cell--shadhans">
+    <div class="lk-table__cell-key">Шадхан</div>
+    <div class="lk-table__cell-val">
+      <a class="lk-table__cell-shadhan" href="/my/shadhany/shadhan_<?= $f_User_ID;?>.html" title="">
+        <img class="lk-table__cell-shadhan-img js-lazy" data-src="<?= $nc_core->user->get_by_id($f_User_ID, "Photo_avatar" ); ?>" alt="">
+      </a>
+    </div>
+  </div>
+  <div class="lk-table__cell lk-table__cell--manage">
+    <?= nc_objects_list(22, 22, "&idsCandidate=$f_Candidate1,$f_Candidate2&nc_ctpl=287" ); ?>
+    <? if($f_User_ID !== $current_user['User_ID']): ?>  
+    <div class="lk-table__cell-inner lk-table__cell-inner--btn-write" >
+        <a class="lk-table__cell-button button button--write" href="<?= nc_auth_messages_url($f_User_ID); ?>">
+          <svg class="button__icon">
+            <use xlink:href="/images/sprite.svg#letter"></use>
+          </svg>
+          <span class="button__text">Написать Шадхану</span>
+        </a>
+    </div>
+    <? endif; ?>
+  </div>
+</div>-->
+    <? endif;?><!-- /RecordTemplate -->
+
+<!-- FormSuffix --></div>
+              </div>
+               </div>
+          </section><!-- /FormSuffix -->

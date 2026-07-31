@@ -1,0 +1,91 @@
+<?/* Служебная часть */for ($f_RowNum = 0; $f_RowNum < $rowCount; $f_RowNum++) {    if($fetch_row[$f_RowNum] instanceof Iterator) {        extract($fetch_row[$f_RowNum]->to_array(), EXTR_PREFIX_ALL, "f");    } else {        extract($fetch_row[$f_RowNum], EXTR_PREFIX_ALL, "f");    }    foreach($iteration_RecordTemplate[$f_RowNum] as $value) {        extract($value);    }    eval($cc_env["convert2txt"]);    ob_start();/* Конец служебной части */?>
+<?
+if($nc_core->user->get_by_id($f_User_ID, 'Checked') && $f_Checked):
+  $now = time(); // текущее время (метка времени)
+  $your_date = strtotime($f_Created_year.'-'.$f_Created_month.'-'.$f_Created_day); // какая-то дата в строке (1 января 2017 года)
+  $datediff = $now - $your_date; // получим разность дат (в секундах)
+
+  $daysSumm = floor($datediff / (60 * 60 * 24));
+  if(get_age($f_Date_of_birth) >= $_GET["age"][0]  && get_age($f_Date_of_birth) <= $_GET["age"][1]):
+?>
+<div class="lk-search-candidate-result__table-row" <? if($daysSumm <= 30): ?>data-new="true"<? endif; ?> >
+  <a href="<?=$fullLink?>"  class="lk-search-candidate-result__table-cell lk-search-candidate-result__table-cell--avatar js-scroll-link">
+    <div class="lk-search-candidate-result__table-cell-name">Фото</div>
+    <div class="lk-search-candidate-result__table-cell-value">
+      <picture class="lk-search-candidate-result__table-cell-picture">
+        <img class="lk-search-candidate-result__table-cell-picture-img js-lazy" data-src="<?= $f_Photo_avatar ? $f_Photo_avatar->resize(45, 45) : ($f_Gender_id == 1 ? '/images/avatar/man.png' : '/images/avatar/woman.png'); ?>" alt="">
+      </picture>
+    </div>
+  </a>  
+  <a href="<?=$fullLink?>"  class="lk-search-candidate-result__table-cell lk-search-candidate-result__table-cell--id js-scroll-link">
+    <div class="lk-search-candidate-result__table-cell-name">ID</div>
+    <div class="lk-search-candidate-result__table-cell-value">
+        <div class="lk-search-candidate-result__table-cell-value-check">
+          <svg class="lk-search-candidate-result__table-cell-value-check-item tooltip <? if($f_Success_docs):?>lk-search-candidate-result__table-cell-value-check-item--checked<? endif; ?>" data-tippy-content="Birth certificate <? if(!$f_Success_docs):?>not<? endif; ?>  confirmed">
+            <use xlink:href="/images/sprite.svg#check"></use>
+          </svg>
+          <svg class="lk-search-candidate-result__table-cell-value-check-item tooltip <? if($f_Success_ravin):?>lk-search-candidate-result__table-cell-value-check-item--checked<? endif; ?>" data-tippy-content="<? if($f_Success_ravin):?>Confirmed<? else: ?>Not confirmed<? endif; ?> a rabbi">
+            <use xlink:href="/images/sprite.svg#check"></use>
+          </svg>
+        </div>  
+        ID <?= $f_Message_ID;?>
+    </div>
+  </a>
+  <a href="<?=$fullLink?>"  class="lk-search-candidate-result__table-cell lk-search-candidate-result__table-cell--country js-scroll-link">
+    <div class="lk-search-candidate-result__table-cell-name">Country</div>
+    <div class="lk-search-candidate-result__table-cell-value"><?= $f_Country_value;?></div>
+  </a>
+  <a href="<?=$fullLink?>"  class="lk-search-candidate-result__table-cell lk-search-candidate-result__table-cell--city js-scroll-link">
+    <div class="lk-search-candidate-result__table-cell-name">City</div>
+    <div class="lk-search-candidate-result__table-cell-value"><?= $f_City;?></div>
+  </a>
+  <a href="<?=$fullLink?>"  class="lk-search-candidate-result__table-cell lk-search-candidate-result__table-cell--age js-scroll-link">
+    <div class="lk-search-candidate-result__table-cell-name">Age</div>
+    <div class="lk-search-candidate-result__table-cell-value"><?= $f_Date_of_birth_year < 2024 && $f_Date_of_birth_year !== '0000' ? get_age($f_Date_of_birth) : ''; ?></div>
+  </a>  
+  <div class="lk-search-candidate-result__table-cell lk-search-candidate-result__table-cell--shadhans">
+
+    <? if($nc_core->user->get_by_id($f_User_ID, "Type_id" ) === 2): ?>  
+    <a class="lk-search-candidate-result__table-shadhan" href="/en/my/shadhany/shadhan_<?= $f_User_ID;?>.html" title="">
+      <img class="lk-search-candidate-result__table-shadhan-img js-lazy" data-src="<?= $nc_core->user->get_by_id($f_User_ID, "Photo_avatar" ); ?>" alt="">
+    </a>
+    <? endif; ?>  
+    <? if($f_Shadhan_1): ?>  
+    <a class="lk-search-candidate-result__table-shadhan" href="/en/my/shadhany/shadhan_<?= $f_Shadhan_1;?>.html" title="">
+      <img class="lk-search-candidate-result__table-shadhan-img js-lazy" data-src="<?= $nc_core->user->get_by_id($f_Shadhan_1, "Photo_avatar" ); ?>" alt="">
+    </a>
+    <? endif; ?>
+    <? if($f_Shadhan_2): ?>  
+    <a class="lk-search-candidate-result__table-shadhan" href="/en/my/shadhany/shadhan_<?= $f_Shadhan_2;?>.html" title="">
+      <img class="lk-search-candidate-result__table-shadhan-img js-lazy" data-src="<?= $nc_core->user->get_by_id($f_Shadhan_2, "Photo_avatar" ); ?>" alt="">
+    </a>
+    <? endif; ?>
+    <? if($f_Shadhan_3): ?>  
+    <a class="lk-search-candidate-result__table-shadhan" href="/en/my/shadhany/shadhan_<?= $f_Shadhan_3;?>.html" title="">
+      <img class="lk-search-candidate-result__table-shadhan-img js-lazy" data-src="<?= $nc_core->user->get_by_id($f_Shadhan_3, "Photo_avatar" ); ?>" alt="">
+    </a>
+    <? endif; ?>
+    <? if($nc_core->user->get_by_id($f_User_ID, "Type_id" ) === 1 && !$f_Shadhan_1 && !$f_Shadhan_2 && !$f_Shadhan_3): ?>  
+    <span>—</span>
+    <? endif; ?>
+  </div>
+  <div class="lk-search-candidate-result__table-cell lk-search-candidate-result__table-cell--manage">
+    <? if($daysSumm <= 5): ?>   
+    <div class="lk-candidates__item-manage-new" style="opacity:1; margin-right:10px;">New</div>
+    <? endif; ?>  
+ 
+    <?= nc_objects_list(73, 77, "&IDCandidate=$f_Message_ID&nc_ctpl=273" ); ?>
+    <? if($f_User_ID !== $current_user['User_ID'] && $current_user['Type_id'] !== 1): ?>  
+    <a class="lk-search-candidate-result__table-write button button--write" href="<?= nc_auth_messages_url($f_User_ID); ?>" title="">
+      <svg class="button__icon">
+        <use xlink:href="/images/sprite.svg#letter"></use>
+      </svg>
+      <span class="button__text">Write</span>
+    </a>
+    <? endif; ?>
+  </div>
+</div>
+
+   <? endif; ?> 
+<? endif; ?>
+<?/* Служебная часть */    echo nc_finishing_RecordTemplate(ob_get_clean(), $inside_admin, $classID, $f_RowID, $parent_message, $cc, $cc_env["Class_Name"], $no_cache_marks);}/* Конец служебной части */?>

@@ -1,0 +1,27 @@
+<?=( $warnText ? "<div class='warnText'>$warnText</div>" : NULL )?>
+<form name=''  class='favorite form form--lk-favorite  lk-search-candidate-result__table-like' enctype='multipart/form-data' method='post' action='<?= $SUB_FOLDER ?><?= $HTTP_ROOT_PATH ?>add.php'>
+<div id='nc_moderate_form'>
+<div class='nc_clear'></div>
+<input name='admin_mode' type='hidden' value='<?= $admin_mode ?>' />
+<?= $nc_core->token->get_input() ?>
+<input name='catalogue' type='hidden' value='<?= $catalogue ?>' />
+<input name='cc' type='hidden' value='<?= $cc ?>' />
+<input name='sub' type='hidden' value='<?= $sub ?>' /><input name='posting' type='hidden' value='1' />
+<input name='curPos' type='hidden' value='<?= $curPos ?>' />
+<input name='f_Parent_Message_ID' type='hidden' value='<?= $f_Parent_Message_ID ?>' />
+<?= nc_form_moderate('add', $admin_mode, 0, $systemTableID, $current_cc, (isset($f_Checked) ? $f_Checked  : null), $f_Priority , $f_Keyword, $f_ncTitle, $f_ncKeywords, $f_ncDescription ) ?>
+</div>
+
+<input class="" name="f_Candidate" type="hidden" value="<?= $IDCandidate;?>" placeholder="" required>
+
+
+
+
+<button class="favorite__button form__submit" type="submit">
+                        <svg class="favorite__button-icon">
+                          <use xlink:href="/images/sprite.svg#lk-heart-2"></use>
+                        </svg>
+                        <span class="favorite__button-text">В избранное</span>
+                      </button>
+
+</form>

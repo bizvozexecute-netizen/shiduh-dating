@@ -1,0 +1,818 @@
+<?=( $warnText ? "<div class='warnText'>$warnText</div>" : NULL )?>
+<form name='adminForm' id='adminForm' class='form form--lk-add-candidate tpl-module-auth-registration-form nc-form' enctype='multipart/form-data' method='post' action='<?= $SUB_FOLDER ?><?= $HTTP_ROOT_PATH ?>add.php'>
+<div id='nc_moderate_form'>
+<div class='nc_clear'></div>
+<input name='admin_mode' type='hidden' value='<?= $admin_mode ?>' />
+<?= $nc_core->token->get_input() ?>
+<input name='catalogue' type='hidden' value='<?= $catalogue ?>' />
+<input name='cc' type='hidden' value='<?= $cc ?>' />
+<input name='sub' type='hidden' value='<?= $sub ?>' /><input name='posting' type='hidden' value='1' />
+<input name='curPos' type='hidden' value='<?= $curPos ?>' />
+<input name='f_Parent_Message_ID' type='hidden' value='<?= $f_Parent_Message_ID ?>' />
+<?= nc_form_moderate('add', $admin_mode, 0, $systemTableID, $current_cc, (isset($f_Checked) ? $f_Checked  : null), $f_Priority , $f_Keyword, $f_ncTitle, $f_ncKeywords, $f_ncDescription ) ?>
+</div>
+
+<div class="form__body">
+      <div class="form__body-section">
+        <div class="form__body-container">
+          <div id="profile_personal_data" class="form__body-title">Personal data</div>
+          <fieldset class="form__fieldset">
+            <div class="form__item tpl-field">
+              <label class="form__item-name" for="personal_name">Full name</label>
+              <input class="form__input tpl-field-input" id="personal_name" name="f_Name" maxlength="255" size="50" type="text" value="<?= $f_Name;?>" placeholder="Your Full Name" required>
+            </div>
+            <div class="form__item tpl-field">
+              <label class="form__item-name" for="personal_jewish_name">Jewish name</label>
+              <input class="form__input tpl-field-input" id="personal_jewish_name" name="f_EN_Jewish_name" maxlength="255" value="<?= $f_EN_Jewish_name;?>" size="50" type="text" placeholder="Enter your name">
+            </div>
+            <div class="form__item tpl-field">
+              <label class="form__item-name" for="personal_gender">Gender</label>
+             
+              <div  id="candidateGenderSelect"  class="select form__select">
+                  <?
+                  $nc_core->db->query("SELECT * FROM `Classificator_Sex`", ARRAY_A );
+                  $arr = $nc_core->db->last_result;
+                  if (!empty($arr)) {?>
+                  <select class="select__el" name="f_Gender" >
+                    <option data-placeholder="true" value="">-- Choose --</option>
+                    <? foreach ($arr as $row) {
+                          echo '<option '.($f_Gender_id === $row['Sex_ID'] ? "selected" : "").' value="'.$row['Sex_ID'].'">'.$row['Value'].'</option>';
+                    }?>
+                  </select>    
+                  <?}?>  
+                  
+              </div>  
+            </div>
+            <div class="form__item tpl-field">
+              <label class="form__item-name" for="personal_date_birth">Day of birth</label>
+              
+              <div class="datepicker ">
+                <input class="datepicker__el" name="f_Date_of_birth" type="text" placeholder="Indicate the date" value="01.01.1990" required>
+              </div>
+              <input id="personal_date_birth_day" type="hidden" name="f_Date_of_birth_day" maxlength="2" size="2" class="form__input-date-day " value="01" placeholder="ДД" />
+              <input id="personal_date_birth_month" type="hidden" name="f_Date_of_birth_month" class="form__input-date-month " value="01" placeholder="ММ" />
+              <input id="personal_date_birth_year" type="hidden" name="f_Date_of_birth_year" class="form__input-date-year " value="1990" placeholder="ГГГГ" />
+              <input id="personal_date_birth_hours" type="hidden" name="f_Date_of_birth_hours" class="" value="00" placeholder="чч" />
+              <input id="personal_date_birth_minutes" type="hidden" name="f_Date_of_birth_minutes" class="" value="00" placeholder="мм" />
+              <input id="personal_date_birth_seconds" type="hidden" name="f_Date_of_birth_seconds" class="" value="00" placeholder="сс" />
+              
+         
+            </div>
+            <div class="form__item tpl-field">
+              <label class="form__item-name" for="personal_place_pbirth">Place of birth</label>
+              <input class="form__input tpl-field-input" name="f_EN_Place_of_birth" maxlength="255" size="50" type="text" id="personal_place_pbirth" value="<?= $f_EN_Place_of_birth; ?>" placeholder="Indicate the place of birth" required>
+            </div>
+            <div class="form__item tpl-field">
+              <label class="form__item-name" for="personal_country">Country of residence</label>
+              <div class="select select--search form__select form__select--country">
+                  <?
+                  $nc_core->db->query("SELECT * FROM `Classificator_Country` ORDER BY Value", ARRAY_A );
+                  $arr = $nc_core->db->last_result;
+                  if (!empty($arr)) {?>
+                  <select class="select__el" name="f_Country" >
+                    <option data-placeholder="true" value="">-- Choose --</option>
+                    <? foreach ($arr as $row) {
+                          echo '<option '.($f_Country_id === $row['Country_ID'] ? "selected" : "").' value="'.$row['Country_ID'].'">'.$row['Value'].'</option>';
+                    }?>
+                  </select>    
+                  <?}?> 
+
+              </div>
+            </div>
+            <div class="form__item tpl-field">
+              <label class="form__item-name" for="personal_height">City of residence</label>
+              <input class="form__input tpl-field-input" name="f_EN_City" maxlength="255" size="50" type="text" id="personal_place_pbirth" value="<?= $f_EN_City; ?>" placeholder="Indicate your city of residenceния" required>
+            </div>
+            <div class="form__item tpl-field">
+              <label class="form__item-name" for="personal_height">Height</label>
+              <input class="form__input tpl-field-input" name="f_Height" min="0" step="any" max="200" maxlength="12" size="12" type="number" id="personal_height" value="<?= $f_Height; ?>"  placeholder="Укажите рост" required>
+            </div>
+            <div class="form__item tpl-field">
+              <label class="form__item-name" for="personal_jewishness">Jewry</label>
+              <div class="select form__select form__select--nation">
+                  <?
+                  $nc_core->db->query("SELECT * FROM `Classificator_Jewishness`", ARRAY_A );
+                  $arr = $nc_core->db->last_result;
+                  if (!empty($arr)) {?>
+                  <select class="select__el" name="f_Jewishness" >
+                    <option data-placeholder="true" value="">-- Choose --</option>
+                    <? foreach ($arr as $row) {
+                          echo '<option '.($f_Jewishness_id === $row['Jewishness_ID'] ? "selected" : "").' value="'.$row['Jewishness_ID'].'">'.$row['Value'].'</option>';
+                    }?>
+                  </select>    
+                  <?}?>    
+                         
+              </div>
+            </div>
+            <div class="form__item tpl-field">
+              <label class="form__item-name" for="personal_jewishness">Origin</label>
+              <div class="select form__select form__select--nation">
+                  <?
+                  $nc_core->db->query("SELECT * FROM `Classificator_Origin` ORDER BY Value", ARRAY_A );
+                  $arr = $nc_core->db->last_result;
+                  if (!empty($arr)) {?>
+                  <select class="select__el" name="f_Origin" >
+                    <option data-placeholder="true" value="">-- Choose --</option>
+                    <? foreach ($arr as $row) {
+                          echo '<option '.($f_Origin_id === $row['Origin_ID'] ? "selected" : "").' value="'.$row['Origin_ID'].'">'.$row['Value'].'</option>';
+                    }?>
+                  </select>    
+                  <?}?>
+                             
+              </div>
+            </div>
+            
+            <div class="form__item tpl-field">
+              <label class="form__item-name" for="personal_jewishness">Происхождение Мамы</label>
+              <div class="select form__select form__select--nation">
+                  <?
+                  $nc_core->db->query("SELECT * FROM `Classificator_Origin` ORDER BY Value", ARRAY_A );
+                  $arr = $nc_core->db->last_result;
+                  if (!empty($arr)) {?>
+                  <select class="select__el" name="f_Mother_Origin" >
+                    <option data-placeholder="true" value="">-- Choose --</option>
+                    <? foreach ($arr as $row) {
+                          echo '<option '.($f_Mother_Origin_id === $row['Origin_ID'] ? "selected" : "").' value="'.$row['Origin_ID'].'">'.$row['Value'].'</option>';
+                    }?>
+                  </select>    
+                  <?}?>
+                             
+              </div>
+            </div>
+            <div class="form__item tpl-field">
+              <label class="form__item-name" for="personal_jewishness">Происхождение Папы</label>
+              <div class="select form__select form__select--nation">
+                  <?
+                  $nc_core->db->query("SELECT * FROM `Classificator_Origin` ORDER BY Value", ARRAY_A );
+                  $arr = $nc_core->db->last_result;
+                  if (!empty($arr)) {?>
+                  <select class="select__el" name="f_Father_Origin" >
+                    <option data-placeholder="true" value="">-- Choose --</option>
+                    <? foreach ($arr as $row) {
+                          echo '<option '.($f_Father_Origin_id === $row['Origin_ID'] ? "selected" : "").' value="'.$row['Origin_ID'].'">'.$row['Value'].'</option>';
+                    }?>
+                  </select>    
+                  <?}?>
+                             
+              </div>
+            </div>
+            
+            
+            <div class="form__item tpl-field">
+              <label class="form__item-name" for="personal__degree_compliance">Religious affiliation</label>
+         
+              <div class="select form__select">
+                  <?
+                  $nc_core->db->query("SELECT * FROM `Classificator_Degree_of_compliance` ORDER BY Value", ARRAY_A );
+                  $arr = $nc_core->db->last_result;
+                  if (!empty($arr)) {?>
+                  <select class="select__el" name="f_Degree_of_compliance[]"  multiple="multiple">
+                    <option data-placeholder="true" value="">-- Choose --</option>
+                    <? foreach ($arr as $row) {
+                          echo '<option '.($f_Degree_of_compliance_id === $row['Degree_of_compliance_ID'] ? "selected" : "").' value="'.$row['Degree_of_compliance_ID'].'">'.$row['Value'].'</option>';
+                    }?>
+                  </select>    
+                  <?}?>  
+                          
+              </div>
+            </div>
+            <div class="form__item tpl-field">
+              <label class="form__item-name" for="personal_confess">Течение соблюдения</label>
+              <div class="select form__select">
+                <?=nc_list_select ("Course_of_compliance", "Course_of_compliance", $f_Course_of_compliance_id,"1","", "<select  class='select__el' name='f_Course_of_compliance'><option data-placeholder='true' value=''>-- Выбрать --</option>", "<option value='\$value_id' \$value_selected>\$value_name</option>")?>    
+              </div>
+            </div>
+            <div class="form__item tpl-field">
+              <label class="form__item-name" for="personal_confess">Religious affiliation</label>
+              <div class="select form__select">
+                  <?
+                  $nc_core->db->query("SELECT * FROM `Classificator_Belonging_denomination` ORDER BY Value", ARRAY_A );
+                  $arr = $nc_core->db->last_result;
+                  if (!empty($arr)) {?>
+                  <select class="select__el" name="f_Belonging_denomination" >
+                    <option data-placeholder="true" value="">-- Choose --</option>
+                    <? foreach ($arr as $row) {
+                          echo '<option '.($f_Belonging_denomination_id === $row['Belonging_denomination_ID'] ? "selected" : "").' value="'.$row['Belonging_denomination_ID'].'">'.$row['Value'].'</option>';
+                    }?>
+                  </select>    
+                  <?}?>   
+             
+              </div>
+            </div>
+            <div class="form__item tpl-field">
+              <label class="form__item-name" for="personal_education">Education</label>
+              <div class="select form__select">
+                  <?
+                  $nc_core->db->query("SELECT * FROM `Classificator_Education` ORDER BY `Education_Priority` ASC", ARRAY_A );
+                  $arr = $nc_core->db->last_result;
+                  if (!empty($arr)) {?>
+                  <select class="select__el" name="f_Education" >
+                    <option data-placeholder="true" value="">-- Choose --</option>
+                    <? foreach ($arr as $row) {
+                          echo '<option '.($f_Education_id === $row['Education_ID'] ? "selected" : "").' value="'.$row['Education_ID'].'">'.$row['Value'].'</option>';
+                    }?>
+                  </select>    
+                  <?}?>   
+                
+              </div>
+            </div>
+            <div class="form__item tpl-field">
+              <label class="form__item-name" for="personal_education_specialization">Speciality</label>
+              
+               <input class="form__input " id="" name="f_EN_Specialization" maxlength="255" value="<?= $f_Specialization;?>" size="50" type="text" placeholder="Indicate your speciality">
+              
+            </div>
+            <div class="form__item tpl-field">
+              <label class="form__item-name" for="personal_activity">What do You do</label>
+              
+              <input class="form__input " id="" name="f_EN_What_does" maxlength="255" value="<?= $f_What_does;?>" size="50" type="text" placeholder="Indicate what you do">
+              
+            </div>
+            
+     
+            <!--<div class="form__item form__item--2col tpl-field">
+              <label class="form__item-name" for="personal_hobby">Хобби</label>
+              <div class="form__item-container">
+                <div class="select form__select">
+                  <?=nc_list_select ("Hobby", "Hobby", $f_Hobby_id,"","", "<select  class='select__el' name='f_Hobby'><option data-placeholder='true' value=''>-- Выбрать --</option>", "<option value='\$value_id' \$value_selected>\$value_name</option>")?>     
+                </div>
+                <input class="form__input tpl-field-input" id="" name="f_Hobby_description" value="<?= $f_Hobby_description;?>" maxlength="255" size="50" type="text" placeholder="Укажите хобби">
+              </div>
+            </div>-->
+            
+            <div class="form__item tpl-field">
+              <label class="form__item-name" for="personal_hobby">Hobby</label>
+              
+               
+                <input class="form__input tpl-field-input" id="" name="f_EN_Hobby_description" value="<?= $f_EN_Hobby_description;?>" maxlength="255" size="50" type="text" placeholder="Indicate hobby">
+              
+            </div>
+            
+            <div class="form__item tpl-field">
+              <label class="form__item-name" for="personal_badhabits_smoking">Bad habits </label>
+              <div class="select form__select">
+                  <?
+                  $nc_core->db->query("SELECT * FROM `Classificator_Bad_habits`", ARRAY_A );
+                  $arr = $nc_core->db->last_result;
+                  if (!empty($arr)) {?>
+                  <select class="select__el" name="f_Bad_habits" >
+                    <option data-placeholder="true" value="">-- Choose --</option>
+                    <? foreach ($arr as $row) {
+                          echo '<option '.($f_Bad_habits_id === $row['Bad_habits_ID'] ? "selected" : "").' value="'.$row['Bad_habits_ID'].'">'.$row['Value'].'</option>';
+                    }?>
+                  </select>    
+                  <?}?>
+              
+              </div>
+            </div>
+            
+            <div class="form__item tpl-field">
+              <label class="form__item-name" for="personal_health">Health status</label>
+              
+               <input class="form__input tpl-field-input" id="personal_hobby" name="f_EN_Health_status" value="<?= $f_EN_Health_status;?>" maxlength="255" size="50" type="text" placeholder="Indicate health status">
+              
+            </div>
+        
+            <div class="form__item tpl-field">
+              <label class="form__item-name" for="personal_marriage">Семейное положение</label>
+              <div class="select form__select">
+                <?=nc_list_select ("Marital_status", "Marital_status", $f_Marital_status_id,"","", "<select  class='select__el' name='f_Marital_status'><option data-placeholder='true' value=''>-- Выбрать --</option>", "<option value='\$value_id' \$value_selected>\$value_name</option>")?>    
+                  
+              </div>
+            </div>
+            <div class="form__item tpl-field">
+              <label class="form__item-name" for="personal_childs">Amount of children</label>
+              <div class="select form__select form__select--childs">
+                  <?
+                  $nc_core->db->query("SELECT * FROM `Classificator_Number_of_children`", ARRAY_A );
+                  $arr = $nc_core->db->last_result;
+                  if (!empty($arr)) {?>
+                  <select class="select__el" name="f_Number_of_children" >
+                    <option data-placeholder="true" value="">-- Choose --</option>
+                    <? foreach ($arr as $row) {
+                          echo '<option '.($f_Number_of_children_id === $row['Number_of_children_ID'] ? "selected" : "").' value="'.$row['Number_of_children_ID'].'">'.$row['Value'].'</option>';
+                    }?>
+                  </select>    
+                  <?}?> 
+              </div>
+            </div>
+            <div class="form__item form__item--child form__item--hidden ">
+              <label class="form__item-name" for="about_childs_age_1">Age of child 1</label>
+              <input class="form__input " name="f_Age_of_children_1" min="0" step="any" max="100" maxlength="12" size="12" type="number" id="personal_childs_age_1" value="<?= $f_Age_of_children_1;?>" placeholder="Indicate age" >
+            </div>
+            <div class="form__item form__item--child form__item--hidden ">
+              <label class="form__item-name" for="about_childs_age_2">Age of child 2</label>
+              <input class="form__input " name="f_Age_of_children_2" min="0" step="any" max="100" maxlength="12" size="12" type="number" id="personal_childs_age_2" value="<?= $f_Age_of_children_2;?>" placeholder="Indicate age" >
+            </div>
+            <div class="form__item form__item--child form__item--hidden ">
+              <label class="form__item-name" for="about_childs_age_3">Age of child 3</label>
+              <input class="form__input " name="f_Age_of_children_3" min="0" step="any" max="100" maxlength="12" size="12" type="number" id="personal_childs_age_3" value="<?= $f_Age_of_children_3;?>" placeholder="Indicate age" >
+            </div>
+            <div class="form__item form__item--child form__item--hidden ">
+              <label class="form__item-name" for="about_childs_age_4">Age of child 4</label>
+              <input class="form__input " name="f_Age_of_children_4" min="0" step="any" max="100" maxlength="12" size="12" type="number" id="personal_childs_age_4" value="<?= $f_Age_of_children_4;?>" placeholder="Indicate age" >
+            </div>
+            <div class="form__item form__item--child form__item--hidden ">
+              <label class="form__item-name" for="about_childs_age_5">Age of child 5</label>
+              <input class="form__input " name="f_Age_of_children_5" min="0" step="any" max="100" maxlength="12" size="12" type="number" id="personal_childs_age_5" value="<?= $f_Age_of_children_5;?>" placeholder="Indicate age" >
+            </div>
+            <div class="form__item form__item--child form__item--hidden ">
+              <label class="form__item-name" for="about_childs_age_6">Age of child 6</label>
+              <input class="form__input " name="f_Age_of_children_6" min="0" step="any" max="100" maxlength="12" size="12" type="number" id="personal_childs_age_6" value="<?= $f_Age_of_children_6;?>" placeholder="Indicate age" >
+            </div>
+            <div class="form__item form__item--child form__item--hidden ">
+              <label class="form__item-name" for="about_childs_age_7">Age of child 7</label>
+              <input class="form__input " name="f_Age_of_children_7" min="0" step="any" max="100" maxlength="12" size="12" type="number" id="personal_childs_age_7" value="<?= $f_Age_of_children_7;?>" placeholder="Indicate age" >
+            </div>
+            <div class="form__item form__item--child form__item--hidden ">
+              <label class="form__item-name" for="about_childs_age_8">Age of child 8</label>
+              <input class="form__input " name="f_Age_of_children_8" min="0" step="any" max="100" maxlength="12" size="12" type="number" id="personal_childs_age_8" value="<?= $f_Age_of_children_8;?>" placeholder="Indicate age" >
+            </div>
+            <div class="form__item form__item--child form__item--hidden ">
+              <label class="form__item-name" for="about_childs_age_9">Age of child 9</label>
+              <input class="form__input " name="f_Age_of_children_9" min="0" step="any" max="100" maxlength="12" size="12" type="number" id="personal_childs_age_9" value="<?= $f_Age_of_children_9;?>" placeholder="Indicate age" >
+            </div>
+            <div class="form__item form__item--child form__item--hidden ">
+              <label class="form__item-name" for="about_childs_age_10">Age of child 10</label>
+              <input class="form__input " name="f_Age_of_children_10" min="0" step="any" max="100" maxlength="12" size="12" type="number" id="personal_childs_age_10" value="<?= $f_Age_of_children_10;?>" placeholder="Indicate age" >
+            </div>
+            
+            <div class="form__item form__item--family-structure ">
+              <div class="form__item-name">Family composition</div>
+              <div class="form__item-checkbox-row">
+                <label class="checkbox form__checkbox form__checkbox--family-structure-father">
+                  <input class="checkbox__input" type="checkbox" name="f_Father" <?= $f_Father ? 'checked' : '';?> >
+                  <div class="checkbox__body">
+                    <span class="checkbox__el">
+                      <svg class="checkbox__el-icon">
+                        <use xlink:href="/images/sprite.svg#checked"></use>
+                      </svg>
+                    </span>
+                    <span class="checkbox__text">Father</span>
+                  </div>
+                </label>
+                <label class="checkbox form__checkbox form__checkbox--family-structure-mother">
+                  <input class="checkbox__input" type="checkbox" name="f_Mother" <?= $f_Mother ? 'checked' : '';?> >
+                  <div class="checkbox__body">
+                    <span class="checkbox__el">
+                      <svg class="checkbox__el-icon">
+                        <use xlink:href="/images/sprite.svg#checked"></use>
+                      </svg>
+                    </span>
+                    <span class="checkbox__text">Mother</span>
+                  </div>
+                </label>
+                <label class="checkbox form__checkbox form__checkbox--family-structure-brother">
+                  <input class="checkbox__input" type="checkbox" name="f_Brother" <?= $f_Brother ? 'checked' : '';?> >
+                  <div class="checkbox__body">
+                    <span class="checkbox__el">
+                      <svg class="checkbox__el-icon">
+                        <use xlink:href="/images/sprite.svg#checked"></use>
+                      </svg>
+                    </span>
+                    <span class="checkbox__text">Brother</span>
+                  </div>
+                </label>
+                <label class="checkbox form__checkbox form__checkbox--family-structure-sister">
+                  <input class="checkbox__input" type="checkbox" name="f_Sister" <?= $f_Sister ? 'checked' : '';?> >
+                  <div class="checkbox__body">
+                    <span class="checkbox__el">
+                      <svg class="checkbox__el-icon">
+                        <use xlink:href="/images/sprite.svg#checked"></use>
+                      </svg>
+                    </span>
+                    <span class="checkbox__text">Sister</span>
+                  </div>
+                </label>
+              </div>
+              <div class="form__item-family-list">
+                <div class="form__item-family-item form__item-family-item--father form__item-family-item--hidden">
+                  <input class="form__input " id="personal_family_structure_father" name="f_Personal_family_structure_father" value="<?= $f_Personal_family_structure_father; ?>" maxlength="255" size="50" type="text" placeholder="Indicate name of Father">
+                </div>
+                <div class="form__item-family-item form__item-family-item--mother form__item-family-item--hidden">
+                  <input class="form__input " id="personal_family_structure_mother" name="f_Personal_family_structure_mother" value="<?= $f_Personal_family_structure_mother; ?>" maxlength="255" size="50" type="text" placeholder="Indicate name of Mother">
+                </div>
+                <div class="form__item-family-item form__item-family-item--brother form__item-family-item--hidden">
+                  <input class="form__input " id="personal_family_structure_brother-1" name="f_Personal_family_structure_brother_1" value="<?= $f_Personal_family_structure_brother_1; ?>" maxlength="255" size="50" type="text" placeholder="Indicate name of Brother">
+                  <div class="form__item-family-item-btn-wrapper">
+                    <button class="form__item-family-item-btn form__item-family-item-btn--remove" type="button">-</button>
+                    <button class="form__item-family-item-btn form__item-family-item-btn--add" type="button">+</button>
+                  </div>
+                </div>
+                <div class="form__item-family-item form__item-family-item--brother form__item-family-item--hidden">
+                  <input class="form__input " id="personal_family_structure_brother-2" name="f_Personal_family_structure_brother_2" value="<?= $f_Personal_family_structure_brother_2; ?>" maxlength="255" size="50" type="text" placeholder="Indicate name of Brother 2">
+                  <div class="form__item-family-item-btn-wrapper">
+                    <button class="form__item-family-item-btn form__item-family-item-btn--remove" type="button">-</button>
+                    <button class="form__item-family-item-btn form__item-family-item-btn--add" type="button">+</button>
+                  </div>
+                </div>
+                <div class="form__item-family-item form__item-family-item--brother form__item-family-item--hidden">
+                  <input class="form__input " id="personal_family_structure_brother-3" name="f_Personal_family_structure_brother_3" value="<?= $f_Personal_family_structure_brother_3; ?>" maxlength="255" size="50" type="text" placeholder="Indicate name of Brother 3">
+                  <div class="form__item-family-item-btn-wrapper">
+                    <button class="form__item-family-item-btn form__item-family-item-btn--remove" type="button">-</button>
+                    <button class="form__item-family-item-btn form__item-family-item-btn--add" type="button">+</button>
+                  </div>
+                </div>
+                <div class="form__item-family-item form__item-family-item--brother form__item-family-item--hidden">
+                  <input class="form__input " id="personal_family_structure_brother-4" name="f_Personal_family_structure_brother_4" value="<?= $f_Personal_family_structure_brother_4; ?>" maxlength="255" size="50" type="text" placeholder="Indicate name of Brother 4">
+                  <div class="form__item-family-item-btn-wrapper">
+                    <button class="form__item-family-item-btn form__item-family-item-btn--remove" type="button">-</button>
+                    <button class="form__item-family-item-btn form__item-family-item-btn--add" type="button">+</button>
+                  </div>
+                </div>
+                <div class="form__item-family-item form__item-family-item--brother form__item-family-item--hidden">
+                  <input class="form__input " id="personal_family_structure_brother-5" name="f_Personal_family_structure_brother_5" value="<?= $f_Personal_family_structure_brother_5; ?>" maxlength="255" size="50" type="text" placeholder="Indicate name of Brother 5">
+                  <div class="form__item-family-item-btn-wrapper">
+                    <button class="form__item-family-item-btn form__item-family-item-btn--remove" type="button">-</button>
+                    <button class="form__item-family-item-btn form__item-family-item-btn--add" type="button">+</button>
+                  </div>
+                </div>
+                <div class="form__item-family-item form__item-family-item--brother form__item-family-item--hidden">
+                  <input class="form__input " id="personal_family_structure_brother-6" name="f_Personal_family_structure_brother_6" value="<?= $f_Personal_family_structure_brother_6; ?>" maxlength="255" size="50" type="text" placeholder="Indicate name of Brother 6">
+                  <div class="form__item-family-item-btn-wrapper">
+                    <button class="form__item-family-item-btn form__item-family-item-btn--remove" type="button">-</button>
+                    <button class="form__item-family-item-btn form__item-family-item-btn--add" type="button">+</button>
+                  </div>
+                </div>
+                <div class="form__item-family-item form__item-family-item--brother form__item-family-item--hidden">
+                  <input class="form__input " id="personal_family_structure_brother-7" name="f_Personal_family_structure_brother_7" value="<?= $f_Personal_family_structure_brother_7; ?>" maxlength="255" size="50" type="text" placeholder="Indicate name of Brother 7">
+                  <div class="form__item-family-item-btn-wrapper">
+                    <button class="form__item-family-item-btn form__item-family-item-btn--remove" type="button">-</button>
+                    <button class="form__item-family-item-btn form__item-family-item-btn--add" type="button">+</button>
+                  </div>
+                </div>
+                <div class="form__item-family-item form__item-family-item--brother form__item-family-item--hidden">
+                  <input class="form__input " id="personal_family_structure_brother-8" name="f_Personal_family_structure_brother_8" value="<?= $f_Personal_family_structure_brother_8; ?>" maxlength="255" size="50" type="text" placeholder="Indicate name of Brother 8">
+                  <div class="form__item-family-item-btn-wrapper">
+                    <button class="form__item-family-item-btn form__item-family-item-btn--remove" type="button">-</button>
+                    <button class="form__item-family-item-btn form__item-family-item-btn--add" type="button">+</button>
+                  </div>
+                </div>
+                <div class="form__item-family-item form__item-family-item--brother form__item-family-item--hidden">
+                  <input class="form__input " id="personal_family_structure_brother-9" name="f_Personal_family_structure_brother_9" value="<?= $f_Personal_family_structure_brother_9; ?>" maxlength="255" size="50" type="text" placeholder="Indicate name of Brother 9">
+                  <div class="form__item-family-item-btn-wrapper">
+                    <button class="form__item-family-item-btn form__item-family-item-btn--remove" type="button">-</button>
+                    <button class="form__item-family-item-btn form__item-family-item-btn--add" type="button">+</button>
+                  </div>
+                </div>
+                <div class="form__item-family-item form__item-family-item--brother form__item-family-item--hidden">
+                  <input class="form__input " id="personal_family_structure_brother-10" name="f_Personal_family_structure_brother_10" value="<?= $f_Personal_family_structure_brother_10; ?>" maxlength="255" size="50" type="text" placeholder="Indicate name of Brother 10">
+                  <div class="form__item-family-item-btn-wrapper">
+                    <button class="form__item-family-item-btn form__item-family-item-btn--remove" type="button">-</button>
+                    <button class="form__item-family-item-btn form__item-family-item-btn--add" type="button">+</button>
+                  </div>
+                </div>
+                <div class="form__item-family-item form__item-family-item--sister form__item-family-item--hidden">
+                  <input class="form__input " id="personal_family_structure_sister-1" name="f_Personal_family_structure_sister_1" value="<?= $f_Personal_family_structure_sister_1; ?>" maxlength="255" size="50" type="text" placeholder="Indicate name of Sister">
+                  <div class="form__item-family-item-btn-wrapper">
+                    <button class="form__item-family-item-btn form__item-family-item-btn--remove" type="button">-</button>
+                    <button class="form__item-family-item-btn form__item-family-item-btn--add" type="button">+</button>
+                  </div>
+                </div>
+                <div class="form__item-family-item form__item-family-item--sister form__item-family-item--hidden">
+                  <input class="form__input " id="personal_family_structure_sister-2" name="f_Personal_family_structure_sister_2" value="<?= $f_Personal_family_structure_sister_2; ?>" maxlength="255" size="50" type="text" placeholder="Indicate name of Sister 2">
+                  <div class="form__item-family-item-btn-wrapper">
+                    <button class="form__item-family-item-btn form__item-family-item-btn--remove" type="button">-</button>
+                    <button class="form__item-family-item-btn form__item-family-item-btn--add" type="button">+</button>
+                  </div>
+                </div>
+                <div class="form__item-family-item form__item-family-item--sister form__item-family-item--hidden">
+                  <input class="form__input " id="personal_family_structure_sister-3" name="f_Personal_family_structure_sister_3" value="<?= $f_Personal_family_structure_sister_3; ?>" maxlength="255" size="50" type="text" placeholder="Indicate name of Sister 3">
+                  <div class="form__item-family-item-btn-wrapper">
+                    <button class="form__item-family-item-btn form__item-family-item-btn--remove" type="button">-</button>
+                    <button class="form__item-family-item-btn form__item-family-item-btn--add" type="button">+</button>
+                  </div>
+                </div>
+                <div class="form__item-family-item form__item-family-item--sister form__item-family-item--hidden">
+                  <input class="form__input " id="personal_family_structure_sister-4" name="f_Personal_family_structure_sister_4" value="<?= $f_Personal_family_structure_sister_4; ?>" maxlength="255" size="50" type="text" placeholder="Indicate name of Sister 4">
+                  <div class="form__item-family-item-btn-wrapper">
+                    <button class="form__item-family-item-btn form__item-family-item-btn--remove" type="button">-</button>
+                    <button class="form__item-family-item-btn form__item-family-item-btn--add" type="button">+</button>
+                  </div>
+                </div>
+                <div class="form__item-family-item form__item-family-item--sister form__item-family-item--hidden">
+                  <input class="form__input " id="personal_family_structure_sister-5" name="f_Personal_family_structure_sister_5" value="<?= $f_Personal_family_structure_sister_5; ?>" maxlength="255" size="50" type="text" placeholder="Indicate name of Sister 5">
+                  <div class="form__item-family-item-btn-wrapper">
+                    <button class="form__item-family-item-btn form__item-family-item-btn--remove" type="button">-</button>
+                    <button class="form__item-family-item-btn form__item-family-item-btn--add" type="button">+</button>
+                  </div>
+                </div>
+                <div class="form__item-family-item form__item-family-item--sister form__item-family-item--hidden">
+                  <input class="form__input " id="personal_family_structure_sister-6" name="f_Personal_family_structure_sister_6" value="<?= $f_Personal_family_structure_sister_6; ?>" maxlength="255" size="50" type="text" placeholder="Indicate name of Sister 6">
+                  <div class="form__item-family-item-btn-wrapper">
+                    <button class="form__item-family-item-btn form__item-family-item-btn--remove" type="button">-</button>
+                    <button class="form__item-family-item-btn form__item-family-item-btn--add" type="button">+</button>
+                  </div>
+                </div>
+                <div class="form__item-family-item form__item-family-item--sister form__item-family-item--hidden">
+                  <input class="form__input " id="personal_family_structure_sister-7" name="f_Personal_family_structure_sister_7" value="<?= $f_Personal_family_structure_sister_7; ?>" maxlength="255" size="50" type="text" placeholder="Indicate name of Sister 7">
+                  <div class="form__item-family-item-btn-wrapper">
+                    <button class="form__item-family-item-btn form__item-family-item-btn--remove" type="button">-</button>
+                    <button class="form__item-family-item-btn form__item-family-item-btn--add" type="button">+</button>
+                  </div>
+                </div>
+                <div class="form__item-family-item form__item-family-item--sister form__item-family-item--hidden">
+                  <input class="form__input " id="personal_family_structure_sister-8" name="f_Personal_family_structure_sister_8" value="<?= $f_Personal_family_structure_sister_8; ?>" maxlength="255" size="50" type="text" placeholder="Indicate name of Sister 8">
+                  <div class="form__item-family-item-btn-wrapper">
+                    <button class="form__item-family-item-btn form__item-family-item-btn--remove" type="button">-</button>
+                    <button class="form__item-family-item-btn form__item-family-item-btn--add" type="button">+</button>
+                  </div>
+                </div>
+                <div class="form__item-family-item form__item-family-item--sister form__item-family-item--hidden">
+                  <input class="form__input " id="personal_family_structure_sister-9" name="f_Personal_family_structure_sister_9" value="<?= $f_Personal_family_structure_sister_9; ?>" maxlength="255" size="50" type="text" placeholder="Indicate name of Sister 9">
+                  <div class="form__item-family-item-btn-wrapper">
+                    <button class="form__item-family-item-btn form__item-family-item-btn--remove" type="button">-</button>
+                    <button class="form__item-family-item-btn form__item-family-item-btn--add" type="button">+</button>
+                  </div>
+                </div>
+                <div class="form__item-family-item form__item-family-item--sister form__item-family-item--hidden">
+                  <input class="form__input " id="personal_family_structure_sister-10" name="f_Personal_family_structure_sister_10" value="<?= $f_Personal_family_structure_sister_10; ?>" maxlength="255" size="50" type="text" placeholder="Indicate name of Sister 10">
+                  <div class="form__item-family-item-btn-wrapper">
+                    <button class="form__item-family-item-btn form__item-family-item-btn--remove" type="button">-</button>
+                    <button class="form__item-family-item-btn form__item-family-item-btn--add" type="button">+</button>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="form__item tpl-field">
+              <label class="form__item-name" for="personal_removal">Are you ready to move</label>
+              <div class="select form__select form__select--removal">
+                  <?
+                  $nc_core->db->query("SELECT * FROM `Classificator_Are_you_ready_to_move`", ARRAY_A );
+                  $arr = $nc_core->db->last_result;
+                  if (!empty($arr)) {?>
+                  <select class="select__el" name="f_Are_you_ready_to_move" >
+                    <option data-placeholder="true" value="">-- Choose --</option>
+                    <? foreach ($arr as $row) {
+                          echo '<option '.($f_Are_you_ready_to_move_id === $row['Are_you_ready_to_move_ID'] ? "selected" : "").' value="'.$row['Are_you_ready_to_move_ID'].'">'.$row['Value'].'</option>';
+                    }?>
+                  </select>    
+                  <?}?> 
+            
+              </div>
+            </div>
+            <div class="form__item tpl-field">
+              <label class="form__item-name" for="personal__degree_compliance">Страна переезда</label>
+              <div class="select form__select  select--search ">
+                <?= nc_multilist_field('Country_of_relocation', 'class="select__el"', 'select', ($class_id ? $class_id : $classID), false, nc_array_to_string($f_Country_of_relocation_id, $arfloor)); ?>                      
+              </div>
+            </div>
+            
+            <div class="form__item form__item--add-photos tpl-field">
+              <div class="form__item-name" for="personal_removal">Photo for the aplication form</div>
+              <?= $f_Photo_questionnaire->form() ?>
+              <!--<div class="form__item form__item--add-photos">
+                <div class="upload upload--image form__upload-img">
+                  <input class="upload__input" id="personal_photo_gallery-1" name="f_Photo_questionnaire_file[]" multiple type="file" accept="image/png, image/jpg, image/jpeg">
+                  <label class="upload__body" for="personal_photo_gallery-1">
+                    <img class="upload__preview" src="#" alt="">
+                    <button class="upload__clear" type="button">Очистить</button>
+                  </label>
+                </div>
+              </div>-->
+            </div>
+            
+            
+            
+            <div class="form__item form__item--upload tpl-field">
+              <div class="upload upload--default form__upload">
+                <input class="upload__input" id="nc-upload-input-479" value="<?= $f_Photo_avatar;?>" data-name="<?= $f_Photo_avatar_name;?>" name="f_Photo_avatar" type="file" accept="image/png, image/jpg, image/jpeg, .pdf">
+                <label class="upload__body" for="nc-upload-input-479">
+            
+                  <div class="upload__preview"></div>
+                  <div class="upload__text">
+                    <div class="upload__text-title">Photo for avatar</div>
+                    <div class="upload__text-description upload__text-description--unselected">png. jpeg. pdf. (до 5 mb)</div>
+                    <div class="upload__text-description upload__text-description--selected">You can change the photo for the avatar</div>
+                  </div>
+                  <div class="upload__button">Review</div>
+                  
+                </label>
+              </div>
+            </div>
+            
+            <div class="form__item form__item--upload tpl-field">
+              <div class="upload upload--default form__upload">
+                <input class="upload__input" id="nc-upload-input-480" value="<?= $f_Birthcertificates;?>" data-name="<?= $f_Birthcertificates_name;?>" name="f_Birthcertificates" type="file" accept="image/png, image/jpg, image/jpeg, .pdf">
+                <label class="upload__body" for="nc-upload-input-480">
+                  <div class="upload__preview"></div>
+                  <div class="upload__text">
+                    <div class="upload__text-title">Birth certificate</div>
+                    <div class="upload__text-description upload__text-description--unselected">png. jpeg. pdf. (до 5 mb)</div>
+                    <div class="upload__text-description upload__text-description--selected">You can change your birth certificate</div>
+                  </div>
+                  <div class="upload__button">Review</div>
+                </label>
+              </div>
+            </div>
+            <div class="form__item form__item--upload tpl-field">
+              <div class="upload upload--default form__upload">
+                <input class="upload__input" id="nc-upload-input-481" value="<?= $f_Another_document_Jewishness;?>" data-name="<?= $f_Another_document_Jewishness_name;?>" name="f_Another_document_Jewishness" type="file" accept="image/png, image/jpg, image/jpeg, .pdf">
+                <label class="upload__body" for="nc-upload-input-481">
+                  <div class="upload__preview"></div>
+                  <div class="upload__text">
+                    <div class="upload__text-title">Another document confirming Jewry</div>
+                    <div class="upload__text-description upload__text-description--unselected">png. jpeg. pdf. (до 5 mb)</div>
+                    <div class="upload__text-description upload__text-description--selected">You can change the document</div>
+                  </div>
+                  <div class="upload__button">Review</div>
+                </label>
+              </div>
+            </div>
+            <div class="form__item tpl-field">
+              <label class="form__item-name" for="f_Phone">Phone</label>
+              <input class="form__input tpl-field-input" name="f_Phone" maxlength="255" size="50" type="tel" id="f_Phone" data-value="<?= $f_Phone;?>" placeholder="+7" required>
+            </div>
+            <div class="form__item tpl-field">
+              <label class="form__item-name" for="">Email</label>
+              <input class="form__input tpl-field-input" name="f_Email" maxlength="255" size="50" type="email" id="f_Email" value="<?= $f_Email;?>" placeholder="Indicate email" required>
+            </div>
+            <div class="form__item tpl-field">
+              <label class="form__item-name" for="">Ваш раввин</label>
+              <input class="form__input tpl-field-input" name="f_Your_ravin" maxlength="255" size="50" type="text" id="" value="<?= $f_Your_ravin;?>" placeholder="Укажите вашего раввина" >
+            </div>
+            <div class="form__item tpl-field">
+              <label class="form__item-name" for="">Контактные данные раввина</label>
+              <input class="form__input tpl-field-input" name="f_Your_ravin_contact" maxlength="255" size="50" type="text" id="" value="<?= $f_Your_ravin_contact;?>" placeholder="Укажите контактные данные " >
+            </div>
+            <div class="form__item tpl-field">
+              <label class="form__item-name" for="">Ваша синагога</label>
+              <input class="form__input tpl-field-input" name="f_Your_sinagoga" maxlength="255" size="50" type="text" id="" value="<?= $f_Your_sinagoga;?>" placeholder="Укажите вашу синагогу" >
+            </div>
+            
+          </fieldset>
+        </div>
+      </div>
+      <div class="form__body-section">
+        <div class="form__body-container">
+          <div id="profile_preferences" class="form__body-title">Preferences</div>
+          <fieldset class="form__fieldset">
+            <div class="form__item tpl-field">
+              <label class="form__item-name" for="preferences_gender">Gender</label>
+              <div id="preferencesGenderSelect" class="select form__select">
+                  <?
+                  $nc_core->db->query("SELECT * FROM `Classificator_Search_gender`", ARRAY_A );
+                  $arr = $nc_core->db->last_result;
+                  if (!empty($arr)) {?>
+                  <select class="select__el" name="f_Search_gender" >
+                    <option data-placeholder="true" value="">-- Choose --</option>
+                    <? foreach ($arr as $row) {
+                          echo '<option '.($f_Search_gender_id === $row['Search_gender_ID'] ? "selected" : "").' value="'.$row['Search_gender_ID'].'">'.$row['Value'].'</option>';
+                    }?>
+                  </select>    
+                  <?}?> 
+               
+              </div>
+            </div>
+            <div class="form__item tpl-field">
+              <label class="form__item-name" for="">Height</label>
+              <div class="form__item-range">
+                <input class="form__input tpl-field-input" name="f_Search_height_start" min="0" step="any" max="200" maxlength="12" size="12" type="number" id="preferences_height_start" value="<?= $f_Search_height_start;?>" placeholder="FROM">
+                <span class="form__item-range-separator">—</span>
+                <input class="form__input tpl-field-input" name="f_Search_height_end" min="0" step="any" max="200" maxlength="12" size="12" type="number" id="preferences_height_end" value="<?= $f_Search_height_end;?>" placeholder="UNTIL">
+              </div>
+            </div>
+            <div class="form__item tpl-field">
+              <label class="form__item-name" for="">Age</label>
+              <div class="form__item-range">
+                <input class="form__input tpl-field-input" name="f_Search_age_start" min="0" step="any" max="200" maxlength="12" size="12" type="number" id="preferences_age_start" value="<?= $f_Search_age_start;?>" placeholder="FROM">
+                <span class="form__item-range-separator">—</span>
+                <input class="form__input tpl-field-input" name="f_Search_age_end" min="0" step="any" max="200" maxlength="12" size="12" type="number" id="preferences_age_end" value="<?= $f_Search_age_end;?>" placeholder="UNTIL">
+              </div>
+            </div>
+            
+           
+            <div class="form__item tpl-field">
+              <label class="form__item-name" for="preferences_place_pbirth">Place of birth</label>
+              <input class="form__input tpl-field-input" name="f_Search_place_of_birth" maxlength="255" size="50" type="text" id="preferences_place_pbirth" value="<?= $f_Search_place_of_birth;?>" placeholder="Indicate the place of birth" >
+            </div>
+            <div class="form__item tpl-field">
+              <label class="form__item-name" for="preferences_country">Country of residence</label>
+              <div class="select select--search form__select">
+                  <?
+                  $nc_core->db->query("SELECT * FROM `Classificator_Country`  ORDER BY Value", ARRAY_A );
+                  $arr = $nc_core->db->last_result;
+             
+                  if (!empty($arr)) {?>
+                  <select class="select__el select__el--check" name="f_Search_country[]" multiple="multiple">
+                    <option value="" id="" data-placeholder="true" disabled>-- выбрать --</option>
+                    <? foreach ($arr as $row) {
+                          echo '<option '.(in_array($row['Country_ID'], $f_Search_country_id) ? "selected" : "").' value="'.$row['Country_ID'].'">'.$row['Value'].'</option>';
+                    }?>
+                  </select>    
+                  <?}?>   
+              </div>
+            </div>
+            
+            <div class="form__item tpl-field">
+              <label class="form__item-name" for="preferences_confess">Religious affiliation</label>
+              <div class="select form__select">
+                  <?
+                  $nc_core->db->query("SELECT * FROM `Classificator_Belonging_denomination`", ARRAY_A );
+                  $arr = $nc_core->db->last_result;
+             
+                  if (!empty($arr)) {?>
+                  <select class="select__el" name="f_Search_belonging_denomination[]" multiple="multiple">
+                    <option data-placeholder="true" value="">-- Choose --</option>
+                    <? foreach ($arr as $row) {
+                          echo '<option '.(in_array($row['Belonging_denomination_ID'], $f_Search_belonging_denomination_id) ? "selected" : "").' value="'.$row['Belonging_denomination_ID'].'">'.$row['Value'].'</option>';
+                    }?>
+                  </select>    
+                  <?}?>
+                  
+              </div>
+            </div>
+            <div class="form__item tpl-field">
+              <label class="form__item-name" for="preferences_education">Education</label>
+                  
+              <div class="select form__select">
+                  <?
+                  $nc_core->db->query("SELECT * FROM `Classificator_Education`", ARRAY_A );
+                  $arr = $nc_core->db->last_result;
+             
+                  if (!empty($arr)) {?>
+                  <select class="select__el" name="f_Search_education[]" multiple="multiple">
+                    <option data-placeholder="true" value="">-- Choose --</option>
+                    <? foreach ($arr as $row) {
+                          echo '<option '.(in_array($row['Education_ID'], $f_Search_education_id) ? "selected" : "").' value="'.$row['Education_ID'].'">'.$row['Value'].'</option>';
+                    }?>
+                  </select>    
+                  <?}?> 
+              </div>
+            </div>
+            <div class="form__item tpl-field">
+              <label class="form__item-name" for="preferences_marriage">Have you been previously married</label>
+              <div class="select form__select">
+                  <?
+                  $nc_core->db->query("SELECT * FROM `Classificator_Was_previously_married`", ARRAY_A );
+                  $arr = $nc_core->db->last_result;
+             
+                  if (!empty($arr)) {?>
+                  <select class="select__el" name="f_Search_was_previously_married[]" multiple="multiple">
+                    <option data-placeholder="true" value="">-- Choose --</option>
+                    <? foreach ($arr as $row) {
+                          echo '<option '.(in_array($row['Was_previously_married_ID'], $f_Search_was_previously_married_id) ? "selected" : "").' value="'.$row['Was_previously_married_ID'].'">'.$row['Value'].'</option>';
+                    }?>
+                  </select>    
+                  <?}?>
+                  
+              </div>
+            </div>
+            <div class="form__item tpl-field">
+              <label class="form__item-name" for="preferences_childs">Amount of children</label>
+              <div class="select form__select">
+                  <?
+                  $nc_core->db->query("SELECT * FROM `Classificator_Number_of_children`", ARRAY_A );
+                  $arr = $nc_core->db->last_result;
+             
+                  if (!empty($arr)) {?>
+                  <select class="select__el" name="f_Search_number_of_children[]" multiple="multiple">
+                    <option data-placeholder="true" value="">-- Choose --</option>
+                    <? foreach ($arr as $row) {
+                          echo '<option '.(in_array($row['Number_of_children_ID'], $f_Search_number_of_children_id) ? "selected" : "").' value="'.$row['Number_of_children_ID'].'">'.$row['Value'].'</option>';
+                    }?>
+                  </select>    
+                  <?}?>
+              
+              </div>
+            </div>
+            <div class="form__item tpl-field">
+              <label class="form__item-name" for="preferences_removal">Are you ready to move</label>
+              <div class="select form__select form__select--removal">
+                  <?
+                  $nc_core->db->query("SELECT * FROM `Classificator_Are_you_ready_to_move`", ARRAY_A );
+                  $arr = $nc_core->db->last_result;
+             
+                  if (!empty($arr)) {?>
+                  <select class="select__el" name="f_Search_are_you_ready_to_move[]" multiple="multiple">
+                    <option data-placeholder="true" value="">-- Choose --</option>
+                    <? foreach ($arr as $row) {
+                          echo '<option '.(in_array($row['Are_you_ready_to_move_ID'], $f_Search_are_you_ready_to_move_id) ? "selected" : "").' value="'.$row['Are_you_ready_to_move_ID'].'">'.$row['Value'].'</option>';
+                    }?>
+                  </select>    
+                  <?}?>
+            
+              </div>
+            </div>
+        
+            <div class="form__item form__item--2col tpl-field">
+              <label class="form__item-name" for="">A note for shadhan </label>
+              <textarea class="form__textarea" name="f_Search_for_shadhan"  placeholder="Enter the text of the note"><?= $f_Search_for_shadhan;?></textarea>
+             
+            </div>
+          </fieldset>
+        </div>
+      </div>
+      
+      
+      
+      
+      
+    </div>
+    <div class="form__footer">
+      <button class="form__submit button button--fill" type="submit">Save changes</button>
+       <a class="form__reset" href="">Cancel</a>
+    </div>
+
+
+</form>

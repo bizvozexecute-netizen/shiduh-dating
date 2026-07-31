@@ -1,0 +1,44 @@
+<?
+echo $f_AdminCommon;
+echo $query_from;
+if (!$AUTH_USER_ID) {
+    echo "Ошибка доступа";
+    exit;
+}
+
+
+if (!$group_id) {?>
+   <section class="lk-messages">
+            <div class="lk-messages__wrapper">
+              <form class="lk-messages__body-form form form--lk-messages">
+                <div class="lk-head lk-messages__head">
+                  <h1 class="lk-head__title">Сообщения</h1>
+                </div>
+                <div class="lk-messages__bar">
+                  <a class="lk-messages__bar-link lk-messages__bar-link--message <?=(isset($outbox) ? "" : "lk-messages__bar-link--active")?>" href="./" title="">
+                    <svg class="lk-messages__bar-link-icon">
+                      <use xlink:href="/images/sprite.svg#letter"></use>
+                    </svg> Входящие </a>
+                  <a class="lk-messages__bar-link lk-messages__bar-link--send <?=(isset($outbox) ? "lk-messages__bar-link--active" : "")?>" href="?outbox" title="">
+                    <svg class="lk-messages__bar-link-icon">
+                      <use xlink:href="/images/sprite.svg#send"></use>
+                    </svg> Исходящие </a>
+                  <button class="lk-messages__bar-delete form__submit" style="display:none;" type="submit">
+                    <svg class="lk-messages__bar-delete-icon">
+                      <use xlink:href="/images/sprite.svg#delete"></use>
+                    </svg> Удалить </button>
+                </div>
+                <div class="lk-messages__body"><?
+} else {?>
+ 
+<? } ?>
+<?
+
+if ($totRows) {
+    ?><?
+} else {
+    ?>Нет сообщений<?
+}
+if (!$group_id && $totRows) { ?>
+
+<? } ?>

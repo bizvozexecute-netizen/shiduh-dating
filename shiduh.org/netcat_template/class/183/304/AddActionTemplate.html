@@ -1,0 +1,35 @@
+<?
+if($f_Checked) {
+    //отправка сообщения шадханам об добавлении кандидата
+    $candidateDate = date("Y-m-d H:i:s");
+    $candidateUserID = 1;
+    
+    $candidateTheme = 'Добавлена новая статья на сайте One Soul';    
+    $candidateMessage = 'Уважаемый пользователь! <br>
+На сайте One Soul появилась новая интересная статья.<br>
+Возможно, Вам будет интересно с ней <a href="https://shiduh.org/my/blog/">ознакомиться</a> <br>
+С уважением,<br>
+Команда One Soul';
+
+    $nc_core->db->query("SELECT * FROM User WHERE Type = 2 AND User_ID != 1 AND User_ID != 119", ARRAY_A );
+    $arr = $nc_core->db->last_result;
+    
+    foreach ($arr as $row) {
+        $shadhanID = $row['User_ID'];
+        sendEmail($shadhanID, $candidateTheme, $candidateMessage); 
+        $nc_core->db->query("INSERT INTO `Message6` 
+                        (`Checked`, `ToUser`, `Subject`, `Message`, `User_ID`, `Subdivision_ID`, `Sub_Class_ID`, `Created`, `Status`) 
+                        VALUES 
+                        ('1', '$shadhanID', '$candidateTheme', '$candidateMessage', '$candidateUserID', '28', '29', '$candidateDate', '0') "); 
+    }    
+
+}
+if($inside_admin) {
+    ob_end_clean();
+    header('Location: '.$goBackLink.'&inside_admin=1');
+    exit;
+} else { 
+	echo ($IsChecked ? NETCAT_MODERATION_MSG_OBJADD : NETCAT_MODERATION_MSG_OBJADDMOD);
+	echo "<br /><br />".$goBack;
+}
+?>

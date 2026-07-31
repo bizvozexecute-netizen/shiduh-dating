@@ -1,0 +1,16 @@
+<?= $f_AdminCommon; ?>
+<?php
+$logo_url = $cc_settings['Image'];
+$logo_url = $logo_url ? $logo_url['path'] : null;
+?>
+<a href="<?= $nc_core->SUB_FOLDER; ?>/">
+    <?php if (!$logo_url) { ?>
+        <nobr>
+            <?= nc_get_svg_for_embedding(nc_core()->DOCUMENT_ROOT . nc_core()->HTTP_TEMPLATE_PATH . "icon/material_design_icons/home.svg"); ?>
+            &nbsp;<?= $current_catalogue['Catalogue_Name']; ?>
+        </nobr>
+    <?php } else { ?>
+        <img src="<?= $logo_url; ?>" alt="<?= $current_catalogue['Catalogue_Name']; ?>">
+    <?php } ?>
+</a>
+

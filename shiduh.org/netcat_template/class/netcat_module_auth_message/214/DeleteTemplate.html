@@ -1,0 +1,18 @@
+<? $f_delete_true = $admin_mode
+  ? $admin_url_prefix."message.php?".$nc_core->token->get_url()."&amp;catalogue=".$catalogue."&sub=".$sub."&cc=".$cc."&message=".$message."&delete=1&posting=1&curPos=".$curPos."&admin_mode=1".$system_env['AdminParameters']
+  : nc_object_path($current_cc['Class_ID'], $message, 'drop', 'html', false, array('nc_token' => $nc_core->token->get()));?>
+
+<section class="lk-messages">
+            <div class="lk-messages__wrapper">
+              
+            <div class="lk-head lk-messages__head">
+              <h1 class="lk-head__title"><?= sprintf(NETCAT_MODERATION_WARN_COMMITDELETION, $message) ?></h1>
+            </div>
+            <a class="form__submit button button--plus" href='<?= $f_delete_true ?>'><span class="button__text"><?= NETCAT_MODERATION_COMMON_KILLONE ?></span></a> 
+            
+             <div class="" style="margin-top: 40px;">
+                <a class="lk-questionnaire__goback-link" href="<?= $goBackLink.$system_env['AdminParameters'] ?>" title=""><?= NETCAT_MODERATION_BACKTOSECTION ?></a>
+              </div>            
+              
+            </div>
+          </section>

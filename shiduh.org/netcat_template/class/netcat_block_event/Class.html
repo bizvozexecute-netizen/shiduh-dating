@@ -1,0 +1,44 @@
+<!-- FormPrefix --><?= $f_AdminCommon; ?>
+<section class="template-timetable <?= $cc_settings['no_separator'] === 'on' ? 'no-separator' : ''; ?>"><!-- /FormPrefix -->
+
+<!-- RecordTemplate --><?= $f_AdminButtons; ?>
+    <div class="timetable-object tpl-text-default">
+        <?php if ($admin_mode || $f_TimeInterval): ?>
+            <div class="timetable-time tpl-text-header6">
+                <?= nc_edit_inline('TimeInterval', $f_RowID, $cc_env['Sub_Class_ID']); ?>
+            </div>
+        <?php endif; ?>
+        <div class="timetable-info">
+            <h3 class="timetable-header tpl-text-header4">
+                <?= nc_edit_inline('Title', $f_RowID, $cc_env['Sub_Class_ID']); ?>
+            </h3>
+            <?php if ($f_SpeakerName || $f_SpeakerCaption || $f_SpeakerImage): ?>
+                <div class="timetable-person">
+                    <?php if ($f_SpeakerImage): ?>
+                        <div class="timetable-image">
+                            <?= $f_SpeakerImage->resize(50, 50, nc_ImageTransform::RESIZE_TO_BEST_FIT_WITH_CROP)->as_img(); ?>
+                        </div>
+                    <?php endif; ?>
+                    <?php if ($f_SpeakerName && $f_SpeakerCaption): ?>
+                        <div class="timetable-about tpl-text-default">
+                            <strong><?= nc_edit_inline('SpeakerName', $f_RowID, $cc_env['Sub_Class_ID']); ?>,</strong>
+                            <?= nc_edit_inline('SpeakerCaption', $f_RowID, $cc_env['Sub_Class_ID']); ?>
+                        </div>
+                    <?php elseif ($f_SpeakerName): ?>
+                        <div class="timetable-about tpl-text-default">
+                            <strong><?= nc_edit_inline('SpeakerName', $f_RowID, $cc_env['Sub_Class_ID']); ?></strong>
+                        </div>
+                    <?php elseif ($f_SpeakerCaption): ?>
+                        <div class="timetable-about tpl-text-default">
+                            <?= nc_edit_inline('SpeakerCaption', $f_RowID,$cc_env['Sub_Class_ID']); ?>
+                        </div>
+                    <?php endif; ?>
+                </div>
+            <?php endif; ?>
+            <?php if ($f_Text): ?>
+                <div class="timetable-desc tpl-text-default"><?= nc_edit_inline('Text', $f_RowID, $cc_env['Sub_Class_ID']); ?></div>
+            <?php endif; ?>
+        </div>
+    </div><!-- /RecordTemplate -->
+
+<!-- FormSuffix --></section><!-- /FormSuffix -->

@@ -1,0 +1,40 @@
+<?php
+$arfloor['element'] = '%ELEMENT';
+$arfloor['divider'] = ', ';
+$arfloor['suffix']  = '';
+
+$idUser = $current_user['User_ID'];
+
+if($_GET["search"]) {
+   $ignore_all = 1;
+   $query_limit = 0; 
+} 
+if($action !== 'full') {
+   $query_where .= " (a.User_ID = $idUser or a.Shadhan_1 = $idUser or a.Shadhan_2 = $idUser or a.Shadhan_3 = $idUser)";
+   
+   if($_GET["gender"]) {
+    $gender = $_GET["gender"]; 
+    $query_where .= " AND Gender = $gender";
+  }
+  
+  if($_GET["id_candidate"]) {
+    $id_candidate = $_GET["id_candidate"]; 
+    $query_where .= " AND Message_ID = $id_candidate";
+  }
+  
+  if($_GET["name"]) {
+    $name = $_GET["name"]; 
+    $query_where .= " AND Name LIKE '%$name%'";
+  }
+
+}
+if($_GET["country"]) {
+  $ids = implode(',', $_GET["country"]); 
+  $query_where .= " AND Country IN (".$ids.") ";
+}
+
+
+
+//$ignore_user = 1;
+
+//$query_where .= "a.Shadhan_1 = $idUser or a.Shadhan_2 = $idUser or a.Shadhan_3 = $idUser";

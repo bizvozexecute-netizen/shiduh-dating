@@ -1,0 +1,8 @@
+<?= $f_AdminCommon; ?>
+<?php if ($cc_settings['mapCode'] && $cc_settings['mapPosition'] === 'begin'): ?>
+    <div class="contacts-map contacts-object"><?= $cc_settings['mapCode']; ?></div>
+<?php endif; ?>
+
+<?php if ($admin_mode && !$cc_settings['mapCode'] && $cc_settings['mapPosition'] === 'begin'): ?>
+    <?= $nc_core->ui->alert->info('Не указан код карты. Укажите код в настройках инфоблока или выберите другой шаблон'); ?>
+<?php endif; ?>

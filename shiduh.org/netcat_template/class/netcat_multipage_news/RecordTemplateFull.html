@@ -1,0 +1,20 @@
+<?= $f_AdminCommon; ?>
+<div class="object-full">
+    <h1><?= nc_edit_inline('Name', $message, $cc_env['Sub_Class_ID']); ?></h1>
+    <?php if ($admin_mode): ?>
+        <div class="tpl-text-alt-paragraph"><?= nc_edit_inline('Date', $message, $cc_env['Sub_Class_ID']); ?></div>
+    <?php else: ?>
+        <div class="tpl-text-alt-paragraph">
+            <span title="<?= date('d.m.Y H:i', strtotime($f_Date)); ?>">
+                <?= $f_Date_day . ' ' . $months_number_to_text[(int)$f_Date_month] . ' ' . $f_Date_hours . ':' . $f_Date_minutes; ?>
+            </span>
+        </div>
+    <?php endif; ?>
+    <?= $f_AdminButtons; ?>
+    <div class="full-image">
+        <div class="image">
+            <?= $f_Image->resize(1200, 740, nc_ImageTransform::RESIZE_TO_BEST_FIT)->as_img(); ?>
+        </div>
+    </div>
+    <div class="object-text tpl-text-default-paragraph"><?= nc_edit_inline('Text', $message, $cc_env['Sub_Class_ID']); ?></div>
+</div>

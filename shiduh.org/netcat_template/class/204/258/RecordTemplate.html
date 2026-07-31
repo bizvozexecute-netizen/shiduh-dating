@@ -1,0 +1,114 @@
+<?/* Служебная часть */for ($f_RowNum = 0; $f_RowNum < $rowCount; $f_RowNum++) {    if($fetch_row[$f_RowNum] instanceof Iterator) {        extract($fetch_row[$f_RowNum]->to_array(), EXTR_PREFIX_ALL, "f");    } else {        extract($fetch_row[$f_RowNum], EXTR_PREFIX_ALL, "f");    }    foreach($iteration_RecordTemplate[$f_RowNum] as $value) {        extract($value);    }    eval($cc_env["convert2txt"]);    ob_start();/* Конец служебной части */?>
+<?
+if($nc_core->user->get_by_id($f_User_ID, 'Checked') && $f_Checked):
+  $now = time(); // текущее время (метка времени)
+  $your_date = strtotime($f_Created_year.'-'.$f_Created_month.'-'.$f_Created_day); // какая-то дата в строке (1 января 2017 года)
+  $datediff = $now - $your_date; // получим разность дат (в секундах)
+
+  $daysSumm = floor($datediff / (60 * 60 * 24));
+  
+  if( get_age($f_Date_of_birth) >= $_GET["age"][0]  && get_age($f_Date_of_birth) <= $_GET["age"][1]):
+?>
+
+<div class="lk-candidates__item lk-sort-item <?= $daysSumm <= 30 ? 'lk-candidates__item--new': '';?>" data-name="<?= $f_Name;?> " data-new="<?= $daysSumm <= 30 ? 'true': 'false';?>">
+  <div class="lk-candidates__item-avatar">
+   <? if($daysSumm <= 30): ?>   
+   <div class="lk-candidates__item-avatar-new">New</div>
+   <? endif; ?>
+   
+    <picture class="lk-candidates__item-avatar-picture">
+      <img class="lk-candidates__item-avatar-img js-lazy" data-src="<?= $f_Photo_avatar ? $f_Photo_avatar : ($f_Gender_id == 1 ? '/images/avatar/man.png' : '/images/avatar/woman.png'); ?>" alt="">
+    </picture>
+    
+  </div>
+  <div class="lk-candidates__item-info">
+    <div class="lk-candidates__item-key">ФИО  </div>
+    <div class="lk-candidates__item-info-name"><?= $f_Name;?> </div>
+    <a class="lk-candidates__item-info-link js-scroll-link" href="<?=$fullLink?>" title="">Подробнее</a>
+  </div>
+  <div class="lk-candidates__item-id">
+    <div class="lk-candidates__item-key">ID</div>
+    <div class="lk-candidates__item-id-value"><?=$f_Message_ID;?></div>
+  </div>  
+  <div class="lk-candidates__item-address">
+    <div class="lk-candidates__item-key">Страна</div>
+    <div class="lk-candidates__item-address-value"><?= $f_Country;?></div>
+  </div>
+  <div class="lk-candidates__item-age">
+    <div class="lk-candidates__item-key">Возраст</div>
+    <div class="lk-candidates__item-age-value"><?= $f_Date_of_birth_year < 2024 && $f_Date_of_birth_year !== '0000' ? get_age($f_Date_of_birth) : ''; ?> <?= num2word(get_age($f_Date_of_birth), array('год', 'года', 'лет'));?></div>
+  </div>
+  <div class="lk-candidates__item-manage">
+    <a class="lk-candidates__more button js-scroll-link" href="<?=$fullLink?>" title="">Подробнее</a>
+    <? if($daysSumm <= 5): ?>   
+    <div class="lk-candidates__item-manage-new">New</div>
+    <? endif; ?>
+    <? if($f_User_ID !== $current_user['User_ID']): ?>
+    <a href="<?= nc_auth_messages_url($f_User_ID); ?>" class="lk-candidates__item-manage-write button button--write">
+      <svg class="button__icon">
+        <use xlink:href="/images/sprite.svg#letter"></use>
+      </svg>
+      <span class="button__text">Написать</span>
+    </a>
+    <? endif; ?>
+    <? if($f_User_ID === $current_user['User_ID']): ?>
+    <a href="/en/my/edit-anket/?object=<?= $f_Message_ID;?>" class="lk-candidates__item-manage-write-short button button--write-short">
+      <svg class="button__icon">
+        <use xlink:href="/images/sprite.svg#write"></use>
+      </svg>
+    </a>
+    <? endif; ?>
+  </div>
+</div>
+  <? endif; ?> 
+  <?  if(!$_GET["age"][0] && !$_GET["age"][1] && $f_Date_of_birth_year !== '2024'):
+?>
+<!--<div class="lk-candidates__item <?= $daysSumm <= 30 ? 'lk-candidates__item--new': '';?>">
+  <a href="<?=$fullLink?>" class="lk-candidates__item-avatar">
+   <? if($daysSumm <= 30): ?>   
+   <div class="lk-candidates__item-avatar-new">New</div>
+   <? endif; ?>
+   <? if($f_Photo_avatar):?>
+    <picture class="lk-candidates__item-avatar-picture">
+      <img class="lk-candidates__item-avatar-img js-lazy" data-src="<?= $f_Photo_avatar;?>" alt="">
+    </picture>
+    <? endif;?>
+  </a>
+  <div class="lk-candidates__item-info">
+    <div class="lk-candidates__item-key">ФИО </div>
+    <div class="lk-candidates__item-info-name"><?= $f_Name;?> </div>
+    <a class="lk-candidates__item-info-link" href="<?=$fullLink?>" title="">Подробнее</a>
+  </div>
+  <div class="lk-candidates__item-address">
+    <div class="lk-candidates__item-key">Страна</div>
+    <div class="lk-candidates__item-address-value"><?= $f_Country;?></div>
+  </div>
+  <div class="lk-candidates__item-age">
+    <div class="lk-candidates__item-key">Возраст</div>
+    <div class="lk-candidates__item-age-value"><?= $f_Date_of_birth_year < 2024 && $f_Date_of_birth_year !== '0000' ? get_age($f_Date_of_birth) : ''; ?> <?= num2word(get_age($f_Date_of_birth), array('год', 'года', 'лет'));?></div>
+  </div>
+  <div class="lk-candidates__item-manage">
+    <a class="lk-candidates__more button" href="<?=$fullLink?>" title="">Подробнее</a>
+    <? if($daysSumm <= 30): ?>   
+    <div class="lk-candidates__item-manage-new">New</div>
+    <? endif; ?>
+    <? if($f_User_ID !== $current_user['User_ID']): ?>
+    <a href="<?= nc_auth_messages_url($f_User_ID); ?>" class="lk-candidates__item-manage-write button button--write">
+      <svg class="button__icon">
+        <use xlink:href="/images/sprite.svg#letter"></use>
+      </svg>
+      <span class="button__text">Написать</span>
+    </a>
+    <? endif; ?>
+    <? if($f_User_ID === $current_user['User_ID']): ?>
+    <a href="/my/edit-anket/?object=<?= $f_Message_ID;?>" class="lk-candidates__item-manage-write-short button button--write-short">
+      <svg class="button__icon">
+        <use xlink:href="/images/sprite.svg#write"></use>
+      </svg>
+    </a>
+    <? endif; ?>
+  </div>
+</div>-->
+  <? endif; ?> 
+<? endif;?>
+<?/* Служебная часть */    echo nc_finishing_RecordTemplate(ob_get_clean(), $inside_admin, $classID, $f_RowID, $parent_message, $cc, $cc_env["Class_Name"], $no_cache_marks);}/* Конец служебной части */?>

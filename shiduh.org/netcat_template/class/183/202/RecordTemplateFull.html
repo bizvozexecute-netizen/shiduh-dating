@@ -1,0 +1,59 @@
+<?
+$arrayMonth = array("января", "февраля", "марта", "апреля", "мая", "июня", "июля", "августа", "сентября", "октября", "ноября", "декабря");
+?>
+
+
+<section class="lk-blog-inner">
+  <div class="lk-blog-inner__wrapper">
+    <div class="lk-head lk-blog-inner__head">
+   
+      <h1 class="lk-head__title">
+        <?= $f_newsTitle; ?>
+        <? if($current_user['User_ID'] == 119 || $current_user['User_ID'] == 1 || $current_user['User_ID'] == 43 ) {?>
+        <a href="<?= $editLink; ?>" class="lk-questionnaire__head-write button button--write-short">
+          <svg class="button__icon">
+            <use xlink:href="/images/sprite.svg#write"></use>
+          </svg>
+        </a>
+        <?}?> 
+      </h1>
+      <div class="lk-blog-inner__head-row">
+         <div class="avatar lk-blog-inner__head-avatar">
+          <picture class="avatar__picture">
+            <img class="avatar__img js-lazy" data-src="<?= $f_autor_ID ? nc_objects_list(11, 18, "&nc_ctpl=249&ItemID=$f_autor_ID" ) : $nc_core->user->get_by_id($f_User_ID, "Photo_avatar" ); ?>" alt="">
+          </picture>
+          <div class="avatar__body">
+            <div class="avatar__date"><?= $f_newsDate_day; ?> <?= $arrayMonth[(int)$f_newsDate_month - 1] ?> <?= $f_newsDate_year; ?> г.</div>
+            <a class="avatar__autor" href="/my/blog/?<?= $f_autor_ID ? 'autor='.$f_autor_ID : 'user='.$f_User_ID;?>" title=""><?=listQuery("SELECT * FROM Message200 WHERE Message_ID=$f_autor_ID", '$data[name]') ?: $nc_core->user->get_by_id($f_User_ID, "Name" );?></a>
+          </div>
+        </div>     
+        <? if($current_user['User_ID'] == 119 || $current_user['User_ID'] == 1 || $current_user['User_ID'] == 43 ) {?>
+        <div class="form form--lk-delete-blog-article lk-blog-inner__head-delete" action="">
+          <div class="form__item">
+            <a href="<?= $dropLink; ?>" class="form__item-delete form__submit">
+              <svg class="form__item-delete-icon">
+                <use xlink:href="/images/sprite.svg#delete"></use>
+              </svg>
+              <span class="form__item-delete-text">Удалить статью</span>
+            </a>
+          </div>
+        </div>
+        <?}?> 
+      </div>
+      
+    </div>
+    <div class="lk-blog-inner__body">
+      <div class="lk-blog-inner__content content">
+        <?= $f_text;?>
+      </div>
+      <div class="lk-blog-inner__right">
+        <picture class="lk-blog-inner__banner">
+          <img class="lk-blog-inner__banner-img js-lazy" data-src="<?= $f_newsImage;?>" alt="">
+        </picture>
+      </div>
+    </div>
+    <div class="lk-blog-inner__go-back">
+      <a class="lk-blog-inner__go-back-link" href="/my/blog/" title="">Вернуться назад</a>
+    </div>
+  </div>
+</section>

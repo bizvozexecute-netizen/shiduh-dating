@@ -1,0 +1,34 @@
+<?/* Служебная часть */for ($f_RowNum = 0; $f_RowNum < $rowCount; $f_RowNum++) {    if($fetch_row[$f_RowNum] instanceof Iterator) {        extract($fetch_row[$f_RowNum]->to_array(), EXTR_PREFIX_ALL, "f");    } else {        extract($fetch_row[$f_RowNum], EXTR_PREFIX_ALL, "f");    }    foreach($iteration_RecordTemplate[$f_RowNum] as $value) {        extract($value);    }    eval($cc_env["convert2txt"]);    ob_start();/* Конец служебной части */?>
+<div class='object-item' <?= $styles; ?>>
+    <?= $f_AdminButtons; ?>
+    <?php if ($f_Image): ?>
+        <a href="<?= $fullLink; ?>" class='item-image'>
+            <div class="image">
+                <?= $f_Image->as_img(array('alt' => $f_Name)); ?>
+            </div>
+        </a>
+    <?php endif; ?>
+    <div class="item-padding">
+        <?php if ($admin_mode || $f_Category): ?>
+            <div class="item-category tpl-text-default-small-paragraph">
+                <?= nc_edit_inline('Category', $f_RowID, $cc_env['Sub_Class_ID']); ?>
+            </div>
+        <?php endif; ?>
+        <div class='item-info tpl-text-header4'>
+            <a href="<?= $fullLink; ?>" class="item-name">
+                <?= nc_edit_inline('Name', $f_RowID, $cc_env['Sub_Class_ID']); ?>
+            </a>
+        </div>
+        <div class='item-info tpl-text-header6'>
+        <span class="item-price">
+            <?= nc_edit_inline('Price', $f_RowID, $cc_env['Sub_Class_ID']); ?>
+        </span>
+        </div>
+        <?php if ($admin_mode || $f_Description): ?>
+            <div class="item-announce tpl-text-default-paragraph">
+                <?= nc_edit_inline('Description', $f_RowID, $cc_env['Sub_Class_ID']); ?>
+            </div>
+        <?php endif; ?>
+    </div>
+</div>
+<?/* Служебная часть */    echo nc_finishing_RecordTemplate(ob_get_clean(), $inside_admin, $classID, $f_RowID, $parent_message, $cc, $cc_env["Class_Name"], $no_cache_marks);}/* Конец служебной части */?>

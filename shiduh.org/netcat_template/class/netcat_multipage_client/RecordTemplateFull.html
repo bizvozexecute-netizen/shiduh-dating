@@ -1,0 +1,36 @@
+<?= $f_AdminButtons; ?>
+<article class="client-full">
+    <div class="client-info">
+        <div class="client-logo">
+            <?php if ($f_Image): ?>
+                <?= $f_Image->as_img(array('alt' => $f_Name)); ?>
+            <?php endif; ?>
+        </div>
+        <div class="client-name">
+            <?php if ($admin_mode || $f_Category): ?>
+                <div class="client-category"><?= nc_edit_inline('Category', $f_RowID, $cc); ?></div>
+            <?php endif; ?>
+            <h1 class="client-title"><?= nc_edit_inline('Name', $f_RowID, $cc); ?></h1>
+        </div>
+    </div>
+    <div class="client-info">
+        <div class="client-details <?= ($f_Description || $f_URL) ? "details-border" : ""; ?>">
+            <?php if ($admin_mode || $f_Description || $f_URL): ?>
+                <div class="details-title tpl-text-header6">О компании</div>
+                <div class="details-text tpl-text-default-paragraph">
+                    <?= nc_edit_inline('Description', $f_RowID, $cc); ?>
+                </div>
+                <div class="client-link">
+                    <?php if ($admin_mode): ?>
+                        <?= nc_edit_inline('URL', $f_RowID, $cc); ?>
+                    <?php elseif ($f_URL): ?>
+                        <a href="<?= $f_URL; ?>" target="_blank">Сайт компании</a>
+                    <?php endif; ?>
+                </div>
+            <?php endif; ?>
+        </div>
+        <div class="client-description tpl-text-default">
+            <?= nc_edit_inline('Text', $f_RowID, $cc); ?>
+        </div>
+    </div>
+</article>

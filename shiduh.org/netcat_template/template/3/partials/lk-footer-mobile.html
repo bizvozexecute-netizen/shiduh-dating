@@ -1,0 +1,16 @@
+<section class="lk-footer-mobile">
+  <div class="lk-footer-mobile__wrapper">
+    <div class="lk-footer-mobile__left">
+      <div class="lk-footer-mobile__copyright">© One soul, <?php echo date("Y"); ?> г.</div>
+      <a class="lk-footer-mobile__agreement" href="/policy/" title="">Пользовательское соглашение</a>
+    </div>
+    <? if($current_user['User_ID'] != 119): ?>
+    <a class="lk-footer-mobile__write" href="/my/message/add_soobscheniya.html?uid=119">
+      <svg class="lk-footer-mobile__write-icon">
+        <use xlink:href="/images/sprite.svg#lk-edit"></use>
+      </svg>
+      <span class="lk-footer-mobile__write-text">Написать админу</span>
+    </a>
+    <? endif; ?>
+  </div>
+</section>

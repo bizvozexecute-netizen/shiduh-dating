@@ -1,0 +1,15 @@
+<!-- FormPrefix --><? 
+$count = 0;
+$totRows;
+?><!-- /FormPrefix -->
+
+<!-- RecordTemplate --><? 
+if ($db->get_var("SELECT User_ID FROM Message204 WHERE Message_ID = '$f_Candidate1'") != $current_user['User_ID'] && $nc_core->user->get_by_id($f_User_ID, 'Checked')):
+++$count;
+endif;
+if ($db->get_var("SELECT User_ID FROM Message204 WHERE Message_ID = '$f_Candidate2'") != $current_user['User_ID']  && $nc_core->user->get_by_id($f_User_ID, 'Checked')):
+++$count;
+endif;
+?><!-- /RecordTemplate -->
+
+<!-- FormSuffix --><?= $count;?><!-- /FormSuffix -->

@@ -1,0 +1,108 @@
+<section class="lk-create-article">
+  <div class="lk-create-article__wrapper">
+    <div class="lk-head lk-create-article__head">
+      <h1 class="lk-head__title"> Добавление статьи </h1>
+    </div>
+    <div class="lk-create-article__body">
+      <div div class="nc_form">
+        <?=( $warnText ? "<div class='warnText'>$warnText</div>" : NULL )?>
+        <form name='adminForm' id='adminForm' class='nc-form  lk-create-article__form ' enctype='multipart/form-data' method='post' action='<?= $SUB_FOLDER ?><?= $HTTP_ROOT_PATH ?>add.php'>
+        <div id='nc_moderate_form' style="display:none;">
+        <div class='nc_clear'></div>
+        <input name='admin_mode' type='hidden' value='<?= $admin_mode ?>' />
+        <?= $nc_core->token->get_input() ?>
+        <input name='catalogue' type='hidden' value='<?= $catalogue ?>' />
+        <input name='cc' type='hidden' value='<?= $cc ?>' />
+        <input name='sub' type='hidden' value='<?= $sub ?>' /><input name='posting' type='hidden' value='1' />
+        <input name='curPos' type='hidden' value='<?= $curPos ?>' />
+        <input name='f_Parent_Message_ID' type='hidden' value='<?= $f_Parent_Message_ID ?>' />
+        <?= nc_form_moderate('add', $admin_mode, 0, $systemTableID, $current_cc, (isset($f_Checked) ? $f_Checked  : null), $f_Priority , $f_Keyword, $f_ncTitle, $f_ncKeywords, $f_ncDescription ) ?>
+        </div>
+        
+        <div class='nc-field nc-field-type-boolean'><?= nc_bool_field('mainNews', "", ($class_id ? $class_id : $classID ), 1) ?></div>
+        
+        <div class="nc-field nc-field-type-string form__item form__item--2col">
+            <span class="nc-field-caption form__item-name" style="" id="nc_capfld_427">Заголовок (*):</span>
+            <input required name="f_newsTitle" type="text" maxlength="255" size="50" value="" class="form__input">
+        </div>
+        
+        <div class="nc-field nc-field-type-datetime form__item" style="font-size: 0px;">
+            <span class="nc-field-caption form__item-name" style="" id="nc_capfld_429">Дата (*):</span>
+            <input required type="hidden" name="f_newsDate_day" maxlength="2" size="2" value="" placeholder="ДД">-<input required type="hidden" name="f_newsDate_month" maxlength="2" size="2" value="" placeholder="ММ">-<input required type="hidden" name="f_newsDate_year" maxlength="4" size="4" value="" placeholder="ГГГГ"> 
+
+               <input type="hidden" name="f_newsDate_hours" maxlength="2" size="2" value="" placeholder="чч">:
+               <input type="hidden" name="f_newsDate_minutes" maxlength="2" size="2" value="" placeholder="мм">:
+               <input type="hidden" name="f_newsDate_seconds" maxlength="2" size="2" value="" placeholder="сс">
+        </div>
+        
+        <div class='nc-field nc-field-type-select'><?= nc_list_field('events', "required", ($class_id ? $class_id : $classID), 1) ?></div>
+        
+        <div class='nc-field nc-field-type-file'><?= nc_file_field('newsImage', "size='50' required", ($class_id ? $class_id : $classID), 1) ?></div>   
+        
+        <div class="form__item form__item--2col">
+          <span class="nc-field-caption form__item-name" style="" id="">Выбрать автора:</span>
+          <div class="select form__select form__select--removal">
+          <?
+          $nc_core->db->query("SELECT * FROM Message200 WHERE Subdivision_ID = 11", ARRAY_A );
+          $arr = $nc_core->db->last_result;
+
+          if (!empty($arr)) {?>
+          <select class="select__el" name="f_autor_ID" >
+            <option data-placeholder="true" value="0">-- Выбрать --</option>
+            <? foreach ($arr as $row) {
+                  echo '<option value="'.$row['Message_ID'].'">'.$row['name'].'</option>';
+            }?>
+          </select>    
+          <?}?>
+          </div>
+        </div>
+   
+        
+        <div class="form__item form__item--2col">
+          <span class="nc-field-caption form__item-name" style="" id="">Краткий анонс:</span>
+          <textarea name='f_newsSubTitle' id='f_newsSubTitle' tabindex='2'><?= ($action != 'full' ? htmlspecialchars($f_Message) : NULL) ?></textarea>
+        </div>
+
+        <div class="form__item form__item--2col">
+          <span class="nc-field-caption form__item-name" style="" id="">Описание:</span>
+          <textarea name='f_text' id='f_text' tabindex='2'><?= ($action != 'full' ? htmlspecialchars($f_Message) : NULL) ?></textarea>
+        </div>
+        <script src="/ckeditor/ckeditor.js"></script>
+              <script>
+                CKEDITOR.replace( 'f_newsSubTitle' );
+                CKEDITOR.replace( 'f_text' );
+              </script>
+              
+     
+
+        
+
+        <div class="nc-field nc-field-type-multifile"><div class="nc-field-caption ">Фотогалерея:</div><div class="nc-upload nc-upload-multifile" data-field-name="newsFiles" data-max-files="0"><div class="nc-upload-new-files" style="display: none"></div><div class="nc-upload-files"></div><input type="hidden" name="settings_newsFiles[use_name]" value=""><input type="hidden" name="settings_newsFiles[path]" value=""><input type="hidden" name="settings_newsFiles[use_preview]" value="0"><input type="hidden" name="settings_newsFiles[preview_width]" value="0"><input type="hidden" name="settings_newsFiles[preview_height]" value="0"><input type="hidden" name="settings_newsFiles[preview_mode]" value="0"><input type="hidden" name="settings_newsFiles[resize_width]" value="0"><input type="hidden" name="settings_newsFiles[resize_height]" value="0"><input type="hidden" name="settings_newsFiles[resize_mode]" value="0"><input type="hidden" name="settings_newsFiles[crop_x0]" value="0"><input type="hidden" name="settings_newsFiles[crop_y0]" value="0"><input type="hidden" name="settings_newsFiles[crop_x1]" value="0"><input type="hidden" name="settings_newsFiles[crop_y1]" value="0"><input type="hidden" name="settings_newsFiles[crop_mode]" value="0"><input type="hidden" name="settings_newsFiles[crop_width]" value="0"><input type="hidden" name="settings_newsFiles[crop_height]" value="0"><input type="hidden" name="settings_newsFiles[crop_ignore_width]" value="0"><input type="hidden" name="settings_newsFiles[crop_ignore_height]" value="0"><input type="hidden" name="settings_newsFiles[preview_crop_x0]" value="0"><input type="hidden" name="settings_newsFiles[preview_crop_y0]" value="0"><input type="hidden" name="settings_newsFiles[preview_crop_x1]" value="0"><input type="hidden" name="settings_newsFiles[preview_crop_y1]" value="0"><input type="hidden" name="settings_newsFiles[preview_crop_mode]" value="0"><input type="hidden" name="settings_newsFiles[preview_crop_width]" value="0"><input type="hidden" name="settings_newsFiles[preview_crop_height]" value="0"><input type="hidden" name="settings_newsFiles[preview_crop_ignore_width]" value="0"><input type="hidden" name="settings_newsFiles[preview_crop_ignore_height]" value="0"><input type="hidden" name="settings_newsFiles[min]" value="0"><input type="hidden" name="settings_newsFiles[max]" value="0"><input type="hidden" name="settings_newsFiles_hash" value="fc000f9426e4da0c13c4ea7e34cc08dc"><input class="nc-upload-input" type="file" name="f_newsFiles_file[]" multiple="" id="addPhotosInput"><script>window.$nc && $nc(document).trigger('apply-upload');</script></div></div>
+        
+        
+                  
+       <div class="form__footer"><button type="submit"  class="form__submit button button--fill">Добавить</button></div>
+      
+        
+        </form>
+<script>
+const form = document.querySelector('#adminForm'); // #addForm
+  if (form) {
+    form.addEventListener('submit', (e) => {
+      e.preventDefault();
+
+      if (!CKEDITOR.instances['f_newsSubTitle'].getData() || !CKEDITOR.instances['f_text'].getData()) {
+        e.stopImmediatePropagation(); // останавливает form.js
+        return;
+      }
+
+      document.querySelector('#f_newsSubTitle').value = CKEDITOR.instances['f_newsSubTitle'].getData();
+      document.querySelector('#f_text').value = CKEDITOR.instances['f_text'].getData();
+    });
+  }
+</script>   
+        
+      </div>
+    </div>
+  </div>
+</section>

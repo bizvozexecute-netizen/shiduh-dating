@@ -1,0 +1,21 @@
+<?php
+$idUser = $current_user['User_ID'];
+$nc_core->db->query("SELECT Message_ID FROM Message204 WHERE User_ID = $idUser or Shadhan_1 = $idUser or Shadhan_2 = $idUser or Shadhan_3 = $idUser");
+$arr = $nc_core->db->last_result;
+$idsArr = [];
+if (!empty($arr)) {
+    foreach ($arr as $row) {
+        // выводятся значения из 11 столбца
+        $idsArr[] = $row->Message_ID;
+    }
+    
+    $ids = implode(',', $idsArr); 
+    if($action !== 'full') {
+       $query_where .= " a.Candidate1 IN (".$ids.") OR a.Candidate2 IN (".$ids.") ";
+    }
+} else {
+   $ignore_all = 1;
+   $query_limit = 0; 
+}
+
+?>

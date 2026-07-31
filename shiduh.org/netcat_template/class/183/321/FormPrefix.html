@@ -1,0 +1,33 @@
+<div class="breadcrumbs ">
+        <div class="breadcrumbs__wrapper wrapper">
+          <a class="breadcrumbs__item" href="/" title="">
+            <svg class="breadcrumbs__item-icon">
+              <use xlink:href="/images/sprite.svg#home"></use>
+            </svg> Главная </a>
+          <a class="breadcrumbs__item" href="/events/" style="pointer-events: auto;" title="">Хупот</a>
+        </div>
+      </div>
+      <section class="news">
+        <div class="news__wrapper wrapper">
+          <div class="page-head news__page-head">
+            <div class="page-head__title">Хупот</div>
+           
+            <div style="display:none;" class="page-head__selects"  <?= $_GET['autor'] || $_GET['user'] ? "style='display:none;'" : ""; ?> >
+              
+              <div class="select page-head__select page-head__select--year">
+                <select class="select__el">
+                  <option value="/news/?<?= $_GET['srchPat'][12] ? '&srchPat[12]='.$_GET['srchPat'][12] : ''; ?>">Все</option>  
+                  <option <?= $_GET['srchPat'][2] == '2024' ? 'selected' : ''; ?> value="/news/?srchPat[2]=2024&srchPat[8]=2024<?= $_GET['srchPat'][12] ? '&srchPat[12]='.$_GET['srchPat'][12] : ''; ?>">2024 г.</option>
+                  <option <?= $_GET['srchPat'][2] == '2023' ? 'selected' : ''; ?> value="/news/?srchPat[2]=2023&srchPat[8]=2023<?= $_GET['srchPat'][12] ? '&srchPat[12]='.$_GET['srchPat'][12] : ''; ?>">2023 г.</option>
+                  <option <?= $_GET['srchPat'][2] == '2022' ? 'selected' : ''; ?> value="/news/?srchPat[2]=2022&srchPat[8]=2022<?= $_GET['srchPat'][12] ? '&srchPat[12]='.$_GET['srchPat'][12] : ''; ?>">2022 г.</option>
+                  <option <?= $_GET['srchPat'][2] == '2021' ? 'selected' : ''; ?> value="/news/?srchPat[2]=2021&srchPat[8]=2021<?= $_GET['srchPat'][12] ? '&srchPat[12]='.$_GET['srchPat'][12] : ''; ?>">2021 г.</option>
+                  <option <?= $_GET['srchPat'][2] == '2020' ? 'selected' : ''; ?> value="/news/?srchPat[2]=2020&srchPat[8]=2020<?= $_GET['srchPat'][12] ? '&srchPat[12]='.$_GET['srchPat'][12] : ''; ?>">2020 г.</option>
+                  <option <?= $_GET['srchPat'][2] == '2019' ? 'selected' : ''; ?> value="/news/?srchPat[2]=2019&srchPat[8]=2019<?= $_GET['srchPat'][12] ? '&srchPat[12]='.$_GET['srchPat'][12] : ''; ?>">2019 г.</option>
+                  <option <?= $_GET['srchPat'][2] == '2018' ? 'selected' : ''; ?> value="/news/?srchPat[2]=2018&srchPat[8]=2018<?= $_GET['srchPat'][12] ? '&srchPat[12]='.$_GET['srchPat'][12] : ''; ?>">2018 г.</option>
+                  <option <?= $_GET['srchPat'][2] == '2017' ? 'selected' : ''; ?> value="/news/?srchPat[2]=2017&srchPat[8]=2017<?= $_GET['srchPat'][12] ? '&srchPat[12]='.$_GET['srchPat'][12] : ''; ?>">2017 г.</option>
+                </select>
+                </div>
+            </div>
+          </div>
+          <div class="news__body pagination-list" data-init-num="9" data-open-num="12">
+            <div class="news__grid">

@@ -1,0 +1,167 @@
+.nc-infoblock-object .nc-infoblock-insert {
+    display: none;
+}
+
+ul {
+    margin: 0;
+    padding: 0;
+}
+
+ul > li {
+    list-style: none;
+}
+
+a {
+    text-decoration: none;
+    color: var(--tpl-color-foreground-main);
+    display: block;
+}
+
+a:hover {
+    color: var(--tpl-color-foreground-accent);
+}
+
+.menu-item {
+    break-inside: avoid;
+}
+
+.menu-item-link {
+    display: flex;
+    align-items: baseline;
+    flex-wrap: nowrap;
+    max-width: 100%;
+}
+
+.menu-item-active > span, .menu-item-active > a {
+    color: var(--tpl-color-brand);
+}
+
+/* Иконка */
+
+/* Выравнивание иконки по baseline текста */
+.menu-item-icon-wrapper {
+    display: inline-flex;
+    align-items: center;
+}
+
+.menu-item-icon-aligner {
+    display: inline-block;
+    width: 0;
+    overflow: hidden;
+    visibility: hidden;
+}
+
+.menu-item-icon {
+    height: 1em;
+    width: 1em;
+    margin-top: 0;
+    margin-bottom: 0;
+    margin-right: var(--menu-name-after-icon--item-icon-spacing);
+    padding: 0;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.menu-item-icon[class*='menu-item-icon-decor-'] {
+    border: 1px solid var(--menu-name-after-icon--item-icon-decor-color);
+}
+
+.menu-item-icon[class*='menu-item-icon-decor-'][class*='-fill'] {
+    background-color: var(--menu-name-after-icon--item-icon-decor-color);
+}
+
+.menu-item-icon[class*='menu-item-icon-decor-'] > * {
+    width: 50%;
+    max-height: 50%;
+}
+
+.menu-item-icon[class*='menu-item-icon-decor-circle'] {
+    border-radius: 50%;
+}
+
+.menu-item-icon[class*='menu-item-icon-decor-circle'] > * {
+    width: 40%;
+    max-height: 40%;
+}
+
+.menu-item-icon svg, .menu-item-icon img {
+    display: block;
+    width: 100%;
+    max-height: 100%;
+}
+
+.menu-item-icon img {
+    object-fit: contain;
+}
+
+.menu-item-icon-color-from-palette svg,
+.menu-item-icon-color-from-palette svg path {
+    fill: var(--menu-name-after-icon--item-icon-color, unset);
+}
+
+/* Текст */
+
+.menu-item-text {
+    flex: 1;
+    text-align: left;
+}
+
+/* Индикатор подменю */
+
+.menu-item-symbol {
+    margin-left: 0.2em;
+    /* прячем стрелки до инициализации nc_visibility_dropdown, чтобы не было видно
+       поворота стрелок (возможно исходно неправильного) */
+    visibility: hidden;
+    height: 1em;
+    width: 1em;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    align-self: center;
+}
+
+.menu-item-symbol svg {
+    height: 0.9em;
+    width: 0.9em;
+}
+
+.menu-item-symbol svg path {
+    fill: var(--tpl-color-foreground-main);
+}
+
+/* Классы, добавляющиеся после инициализации миксинов видимости — теперь мы можем показать
+   индикаторы (уже знаем направления стрелок) */
+.tpl-dropdown-to-top .menu-item-symbol,
+.tpl-dropdown-to-right .menu-item-symbol,
+.tpl-dropdown-to-bottom .menu-item-symbol,
+.tpl-accordion-trigger .menu-item-symbol {
+    visibility: visible;
+}
+
+/* Поворачивающиеся индикаторы — шеврон, треугольник. (Исходная стрелка направлена вниз.) */
+.tpl-dropdown-to-right > .menu-item-link > .menu-item-symbol-rotate svg {
+    transform: rotate(270deg);
+}
+
+.tpl-dropdown-to-top > .menu-item-link > .menu-item-symbol-rotate svg,
+.tpl-accordion-trigger-opened > .menu-item-link > .menu-item-symbol-rotate svg {
+    transform: rotate(180deg);
+}
+
+.tpl-accordion-trigger .menu-item-symbol-rotate svg {
+    transition: transform 0.3s;
+}
+
+/* Альтернативные индикаторы (плюс/минус)  */
+.menu-item-symbol-alternate svg:nth-child(2),
+.tpl-accordion-trigger-opened > .menu-item-link > .menu-item-symbol-alternate svg:nth-child(1) {
+    display: none;
+}
+
+.tpl-accordion-trigger-opened > .menu-item-link > .menu-item-symbol-alternate svg:nth-child(2) {
+    display: inline;
+}

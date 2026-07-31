@@ -1,0 +1,3 @@
+#map { width: 100%; min-height: 600px; padding: 0; }
+.tpl-text-indent-top { margin-top: var(--tpl-indent-top); }
+.tpl-text-indent-bottom { margin-bottom: var(--tpl-indent-bottom); }

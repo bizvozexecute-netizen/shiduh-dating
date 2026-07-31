@@ -1,0 +1,1199 @@
+<!-- Header --><!DOCTYPE html>
+<html lang="en">
+
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    
+    <meta name="format-detection" content="telephone=no">
+    <!-- fonts preload -->
+    <!-- <link rel="preload" href="" as="font" type="font/woff2" crossorigin> -->
+    <!-- favicon -->
+    <link rel="shortcut icon" href="/fav.svg">	
+    <meta name="msapplication-TileColor" content="#da532c">
+    <meta name="theme-color" content="#fff">
+    
+    <title><?=( ($title = $nc_core->page->get_title()) ? $title : strip_tags(s_browse_path($aBrowsePathTitle)))?></title>
+    <?=( ($description=$nc_core->page->get_description()) ? "<meta name=\"description\" content=\"".$description."\">" : NULL )?>
+    <?=( ($keywords=$nc_core->page->get_keywords()) ? "<meta name=\"keywords\" content=\"".$keywords."\">" : NULL )?>
+    
+    <!-- styles -->
+    <link rel="stylesheet" href="/css/libs-3.css">
+    <link rel="stylesheet" href="/css/styles-85.css">
+    <!-- scripts -->
+    <script id="json-data">
+      [
+          <?= nc_objects_list(8, 16, "&show_random=1"); ?>
+      ]
+    </script>
+    <style>
+    .cke_notifications_area {
+        display:none!important;
+    }
+    </style>
+    <script src="https://captcha-api.yandex.ru/captcha.js?render=onload&onload=onloadFunction" defer></script>
+    <script src="/js/scripts-60.js" defer></script>
+    <!--[if lte IE 10]><script src="http://phpbbex.com/oldies/oldies.js" charset="utf-8"></script><![endif]-->
+    
+    <!-- Yandex.Metrika counter --> <script type="text/javascript" > (function(m,e,t,r,i,k,a){m[i]=m[i]||function(){(m[i].a=m[i].a||[]).push(arguments)}; m[i].l=1*new Date(); for (var j = 0; j < document.scripts.length; j++) {if (document.scripts[j].src === r) { return; }} k=e.createElement(t),a=e.getElementsByTagName(t)[0],k.async=1,k.src=r,a.parentNode.insertBefore(k,a)}) (window, document, "script", "https://cdn.jsdelivr.net/npm/yandex-metrica-watch/tag.js", "ym"); ym(97434179, "init", { clickmap:true, trackLinks:true, accurateTrackBounce:true, webvisor:true, trackHash:true, ecommerce:"dataLayer" }); </script> <!-- /Yandex.Metrika counter -->
+    
+  </head>
+
+  <body class="page">
+  
+    <? if($current_user['User_ID']): ?>
+    <div id="user-check"></div>
+    <? endif;?>
+   
+    <? if($parent_sub_tree[1][Subdivision_ID] != 41 && $sub != 41 || $sub == 44 || $sub == 4): ?>
+    <header class="header">
+      <div class="header__wrapper wrapper">
+        <div class="header__left">
+          <button class="header__burger" data-hystmodal=".modal--menu">
+            <svg class="header__burger-icon">
+              <use xlink:href="/images/sprite.svg#burger"></use>
+            </svg>
+          </button>
+          <a class="header__logo" href="/en/" title="">
+            <img class="header__logo-icon js-lazy" data-src="/images/header/logo.svg" alt="">
+          </a>
+          <!--<div class="header__logo-2" href="/" title="">
+            <img
+              class="header__logo-2-icon js-lazy"
+              data-src="/images/header/socium.svg"
+              alt=""
+            />
+          </div>-->
+        </div>
+        <nav class="header__nav">
+          <a class="header__nav-link link" href="/en/news/" title="">WikiJew</a>
+          <a class="header__nav-link link" href="/en/quest/" title="">Questions and answers</a>
+          <a class="header__nav-link link" href="/en/confirm/" title="">Confirmation of Jewishness</a>
+          <a class="header__nav-link link" href="/en/recomendation/" title="">Нас рекомендуют</a>
+        </nav>
+        <div class="header__right">
+          <div class="header__lang">
+            <button class="header__lang-select"> En <svg class="header__lang-select-icon">
+                <use xlink:href="/images/sprite.svg#angle"></use>
+              </svg>
+            </button>
+            <div class="header__lang-list">
+              <a class="header__lang-item" href="/" title="">Ru</a>
+     
+            </div>
+          </div>
+          
+          <? if(!$AUTH_USER_ID): ?>
+          <button class="header__button-mobile button button--ghost button--round" data-hystmodal=".modal--lk">
+            <svg class="button__icon">
+              <use xlink:href="/images/sprite.svg#user"></use>
+            </svg>
+          </button>
+          <button class="header__button header__button--login button button--ghost"  data-hystmodal=".modal--lk">
+            <svg class="button__icon">
+              <use xlink:href="/images/sprite.svg#user"></use>
+            </svg> Login </button>
+          <a class="header__button header__button--registration button" href="/en/my/registration/">Registration</a>
+          <? else: ?>
+          <a class="header__button-mobile button button--ghost button--round" href="/en/my/">
+            <svg class="button__icon">
+              <use xlink:href="/images/sprite.svg#user"></use>
+            </svg>
+          </a>
+          <a class="header__button header__button--login button button--ghost"  href="/en/my/">
+            <svg class="button__icon">
+              <use xlink:href="/images/sprite.svg#user"></use>
+            </svg> Cabinet </a>
+          <a class="header__button header__button--registration button" href='/netcat/modules/auth/?logoff=1
+              &REQUESTED_FROM=<?= $REQUEST_URI?>
+              &REQUESTED_BY=<?= $REQUEST_METHOD?>'>
+              Exit
+          </a>  
+          <? endif; ?>
+          
+          
+        </div>
+      </div>
+    </header>
+    <? endif; ?>
+    <div class="page__content">
+    
+<? if($sub == 4): ?>
+<div class="breadcrumbs ">
+        <div class="breadcrumbs__wrapper wrapper">
+          <a class="breadcrumbs__item" href="/en/" title="">
+            <svg class="breadcrumbs__item-icon">
+              <use xlink:href="/images/sprite.svg#home"></use>
+            </svg> Main </a>
+          <a class="breadcrumbs__item" href="" title="">Password Recovery</a>
+        </div>
+      </div>
+      <section class="reset-password">
+        <div class="reset-password__wrapper wrapper">
+          <div class="page-head reset-password__page-head">
+            <div class="page-head__title">Password Recovery</div>
+            <div class="page-head__hint">Only shadkhans have access to the questionnaire database</div>
+          </div>
+          <div class="reset-password__body">
+            <div class="reset-password__main">
+<? endif; ?>
+
+<? if($sub == 31): ?>
+<section class="hero">
+  <div class="hero__wrapper wrapper">
+    <div class="hero__content-container appearance-container">
+      <div class="hero__content appearance">
+        <h1 class="hero__title">
+          <span class="hero__title-span">Jewish dating   </span> <br> through shadkhans from different<br> parts of the world
+        </h1>
+        <div class="hero__text">We help you not only to find your soulmates <br class="br br--sm br--md br--lg"> but  also advise you in your future life together. </div>
+        <div class="hero__buttons">
+          <a href="/en/my/registration/" class="hero__button button--registration button">
+            <div class="button__icon-wrapper">
+              <svg class="button__icon">
+                <use xlink:href="/images/sprite.svg#user-plus"></use>
+              </svg>
+            </div> Registration
+          </a>
+          <a href="/en/about/" class="hero__button hero__button--more button button--ghost">More</a>
+        </div>
+        <div class="hero__socials">
+          <div class="hero__socials-text"> we are in <br class="br br--md br--lg"> social networks </div>
+          <div class="hero__socials-list">
+            <a class="round-icon hero__socials-item round-icon--youtube" href="https://youtube.com/@OneSoulJew" title="" target="_blank">
+              <svg class="round-icon__icon">
+                <use xlink:href="/images/sprite.svg#youtube"></use>
+              </svg>
+            </a>
+            <a class="round-icon hero__socials-item round-icon--insta" href="https://instagram.com/one.soul.jew" title="" target="_blank">
+              <svg class="round-icon__icon">
+                <use xlink:href="/images/sprite.svg#instagram"></use>
+              </svg>
+            </a>
+            <a class="round-icon hero__socials-item round-icon--insta" href="https://t.me/shiduh_org" title="" target="_blank">
+              <svg class="round-icon__icon">
+                <use xlink:href="/images/sprite.svg#tme"></use>
+              </svg>
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="hero__banner">
+      <div class="hero__round-img-container hero__parallax">
+        <picture class="hero__round-img-picture appearance-container" data-depth="0.35">
+          <source data-srcset="/images/hero/hero__banner-xs.png 1x, images/hero/hero__banner-xs--2x.png 2x" media="(max-width: 767.98px)">
+          <source data-srcset="/images/hero/hero__banner-sm.png 1x, images/hero/hero__banner-sm--2x.png 2x" media="(max-width: 1279.98px)">
+          <source data-srcset="/images/hero/hero__banner-md.png" media="(max-width: 1709.98px)">
+          <img class="hero__round-img js-lazy appearance" data-src="/images/hero/hero__banner.png" alt="">
+        </picture>
+      </div>
+      <div class="hero__img-container hero__img-container--small hero__parallax">
+        <picture class="appearance-container" data-depth="0.5">
+
+          <source data-srcset="/images/hero/hero__img-1-md.png" media="(max-width: 1709.98px)">
+          <img class="hero__img js-lazy appearance" data-src="/images/hero/hero__img-1.png" alt="">
+        </picture>
+      </div>
+      <div class="hero__img-container hero__img-container--medium hero__parallax">
+        <picture class="appearance-container" data-depth="0.5">
+          <source data-srcset="/images/hero/hero__img-2-xs.png 1x, images/hero/hero__img-2-xs--2x.png 2x" media="(max-width: 767.98px)">
+          <source data-srcset="/images/hero/hero__img-2-sm.png 1x, images/hero/hero__img-2-sm--2x.png 2x" media="(max-width: 1279.98px)">
+          <source data-srcset="/images/hero/hero__img-2-md.png" media="(max-width: 1709.98px)">
+          <img class="hero__img js-lazy appearance" data-src="/images/hero/hero__img-2.png" alt="">
+        </picture>
+      </div>
+      <div class="hero__img-container hero__img-container--large hero__parallax">
+        <picture class="appearance-container" data-depth="0.5">
+          <source data-srcset="/images/hero/hero__img-3-xs.png 1x, images/hero/hero__img-3-xs--2x.png 2x" media="(max-width: 767.98px)">
+          <source data-srcset="/images/hero/hero__img-3-sm.png 1x, images/hero/hero__img-3-sm--2x.png 2x" media="(max-width: 1279.98px)">
+          <source data-srcset="/images/hero/hero__img-3-md.png" media="(max-width: 1709.98px)">
+          <img class="hero__img js-lazy appearance" data-src="/images/hero/hero__img-3.png" alt="">
+        </picture>
+      </div>
+      <div class="hero__card-container hero__card-container--paper hero__parallax">
+        <div class="hero__card-wrapper appearance-container" data-depth="0.5">
+          <div class="hero__card appearance">
+            <div class="hero__card-icon-wrapper">
+              <svg class="hero__card-icon">
+                <use xlink:href="/images/sprite.svg#paper"></use>
+              </svg>
+            </div>
+            <div class="hero__card-title">1000+</div>
+            <div class="hero__card-text">Questionare</div>
+          </div>
+        </div>
+      </div>
+      <div class="hero__card-container hero__card-container--star hero__parallax">
+        <div class="hero__card-wrapper appearance-container" data-depth="0.5">
+          <div class="hero__card appearance">
+            <div class="hero__card-icon-wrapper">
+              <svg class="hero__card-icon">
+                <use xlink:href="/images/sprite.svg#star"></use>
+              </svg>
+            </div>
+            <div class="hero__card-title">100+</div>
+            <div class="hero__card-text">Shadchans </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <a  href="/en/news/" class="hero__card-question-container hero__parallax">
+      <div class="appearance-container" data-depth="0.5">
+        <div class="hero__card-question-wrapper hero__card-question appearance js-recomendation">
+          <div class="hero__card-question-icon-wrapper">
+            <svg class="hero__card-question-icon">
+              <use xlink:href="/images/sprite.svg#question"></use>
+            </svg>
+          </div>
+          <div class="hero__card-question-title js-recomendation__text"></div>
+          <div class="hero__card-question-link js-recomendation__link" title="">More</div>
+        </div>
+      </div>
+    </a>
+    
+  </div>
+</section>
+<section class="advantages">
+  <div class="advantages__wrapper wrapper">
+    <div class="advantages__head">
+      <h2 class="advantages__title title appearance-container">
+        <span class="appearance">advantages   <br> of the system</span>
+      </h2>
+      <div class="advantages__description appearance-container">
+        <span class="appearance"> The main sole purpose of the platform is to help Jewish young people find their  soul mates destined them from the heaven. </span>
+      </div>
+      <div class="advantages__animation">
+        <svg class="advantages__animation-icon">
+          <use xlink:href="/images/sprite.svg#hearts"></use>
+        </svg>
+        <svg class="advantages__animation-text">
+          <use xlink:href="/images/sprite.svg#round-text"></use>
+        </svg>
+      </div>
+    </div>
+
+    <div class="tabs">
+      <div class="advantages__tabs swiper tabs__nav">
+        <div class="swiper-wrapper">
+          <button class="advantages__tabs-button swiper-slide tabs__nav-item">For candidates</button>
+          <button class="advantages__tabs-button swiper-slide tabs__nav-item">For shadchans</button>
+        </div>
+      </div>
+      <div class="advantages__swiper swiper tabs__content">
+        <div class="swiper-wrapper">
+          <div class="advantages__swiper-slide swiper-slide tabs__content-item">
+            <div class="advantages__list">
+              <div class="advantages__item-container appearance-container">
+                <div class="advantages__item appearance advantages__item--3users">
+                  <div class="advantages__item-icon-wrapper">
+                    <div class="advantages__item-icon-animation">
+                      <div class="advantages__item-icon-animation-container">
+                        <svg class="advantages__item-icon">
+                          <use xlink:href="/images/sprite.svg#3users"></use>
+                        </svg>
+                        <div class="advantages__item-count">01.</div>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="advantages__item-text">Direct access to dosen Russan-speaking Shadchans around the world</div>
+                </div>
+              </div>
+              <div class="advantages__item-container appearance-container">
+                <div class="advantages__item appearance advantages__item--location">
+                  <div class="advantages__item-icon-wrapper">
+                    <div class="advantages__item-icon-animation">
+                      <div class="advantages__item-icon-animation-container">
+                        <svg class="advantages__item-icon">
+                          <use xlink:href="/images/sprite.svg#location"></use>
+                        </svg>
+                        <div class="advantages__item-count">02.</div>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="advantages__item-text">Expanding the geography <br> of the search of soul mate</div>
+                </div>
+              </div>
+              <div class="advantages__item-container appearance-container">
+                <div class="advantages__item appearance advantages__item--shield">
+                  <div class="advantages__item-icon-wrapper">
+                    <div class="advantages__item-icon-animation">
+                      <div class="advantages__item-icon-animation-container">
+                        <svg class="advantages__item-icon">
+                          <use xlink:href="/images/sprite.svg#shield"></use>
+                        </svg>
+                        <div class="advantages__item-count">03.</div>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="advantages__item-text">Confidentiality of personal data</div>
+                </div>
+              </div>
+              <div class="advantages__item-container appearance-container">
+                <div class="advantages__item appearance advantages__item--edit">
+                  <div class="advantages__item-icon-wrapper">
+                    <div class="advantages__item-icon-animation">
+                      <div class="advantages__item-icon-animation-container">
+                        <svg class="advantages__item-icon">
+                          <use xlink:href="/images/sprite.svg#edit"></use>
+                        </svg>
+                        <div class="advantages__item-count">04.</div>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="advantages__item-text">Changing in personal data are immediately visible to all shadchans</div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="advantages__swiper-slide swiper-slide tabs__content-item">
+            <div class="advantages__list">
+              <div class="advantages__item-container appearance-container">
+                <div class="advantages__item appearance advantages__item--folder">
+                  <div class="advantages__item-icon-wrapper">
+                    <div class="advantages__item-icon-animation">
+                      <div class="advantages__item-icon-animation-container">
+                        <svg class="advantages__item-icon">
+                          <use xlink:href="/images/sprite.svg#folder"></use>
+                        </svg>
+                        <div class="advantages__item-count">01.</div>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="advantages__item-text">Centralized storage of candidate data coming from different sources</div>
+                </div>
+              </div>
+              <div class="advantages__item-container appearance-container">
+                <div class="advantages__item appearance advantages__item--document">
+                  <div class="advantages__item-icon-wrapper">
+                    <div class="advantages__item-icon-animation">
+                      <div class="advantages__item-icon-animation-container">
+                        <svg class="advantages__item-icon">
+                          <use xlink:href="/images/sprite.svg#document"></use>
+                        </svg>
+                        <div class="advantages__item-count">02.</div>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="advantages__item-text">The ability to  add profiles and adit data in the profile for both shadchans and candidate</div>
+                </div>
+              </div>
+              <div class="advantages__item-container appearance-container">
+                <div class="advantages__item appearance advantages__item--check-user">
+                  <div class="advantages__item-icon-wrapper">
+                    <div class="advantages__item-icon-animation">
+                      <div class="advantages__item-icon-animation-container">
+                        <svg class="advantages__item-icon">
+                          <use xlink:href="/images/sprite.svg#check-user"></use>
+                        </svg>
+                        <div class="advantages__item-count">03.</div>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="advantages__item-text">The opportunity always to be aware of the latest changes    in candidate data</div>
+                </div>
+              </div>
+              <div class="advantages__item-container appearance-container">
+                <div class="advantages__item appearance advantages__item--2users">
+                  <div class="advantages__item-icon-wrapper">
+                    <div class="advantages__item-icon-animation">
+                      <div class="advantages__item-icon-animation-container">
+                        <svg class="advantages__item-icon">
+                          <use xlink:href="/images/sprite.svg#2users"></use>
+                        </svg>
+                        <div class="advantages__item-count">04.</div>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="advantages__item-text">System of communications with other shadchans</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+
+  </div>
+</section>
+<section class="main-faq">
+  <div class="main-faq__container">
+    <div class="main-faq__wrapper wrapper">
+      <h2 class="main-faq__title title appearance-container">
+        <span class="appearance">Frequently  asked questions</span>
+      </h2>
+      <ul class="main-faq__accordion">
+        <?= nc_objects_list(37, 35, "&recNum=3&nc_ctpl=227" ); ?>  
+      </ul>
+      <a href="/en/quest/" class="main-faq__more more">View all</a>
+    </div>
+  </div>
+</section>
+<section class="main-news">
+  <div class="main-news__wrapper wrapper">
+    <h2 class="main-news__title title appearance-container">
+      <span class="appearance">WikiJew</span>
+    </h2>
+    <div class="main-news__grid">
+      <?= nc_objects_list(36, 34, "&recNum=8&nc_ctpl=225" ); ?>
+    </div>
+    <div class="main-news__swiper swiper">
+      <div class="swiper-wrapper">
+        <?= nc_objects_list(36, 34, "&recNum=8&nc_ctpl=226" ); ?>
+      </div>
+    </div>
+    <a href="/en/news/" class="main-news__more more more--border">View all</a>
+  </div>
+</section>
+<section class="mission ">
+  <div class="mission__head">
+    <div class="wrapper">
+      <h2 class="mission__title title appearance-container">
+        <span class="appearance"> The main  <br class="br br--xs"> sole purpose  <br> of this platform, </span>
+      </h2>
+      <div class="mission__subtitle appearance-container">
+        <span class="appearance"> is to help Jewish young people find their  soul mates destined them from the heaven </span>
+      </div>
+      <svg class="mission__ellipse">
+        <use xlink:href="/images/sprite.svg#ellipse"></use>
+      </svg>
+    </div>
+  </div>
+  <div class="mission__swiper-container">
+    <div class="wrapper">
+      <div class="mission__swiper swiper">
+        <div class="mission__swiper-wrapper swiper-wrapper">
+          <?= nc_objects_list(8, 8 ); ?>
+        </div>
+        <div class="swiper-navigation mission__swiper-nav">
+          <button class="swiper-navigation__button swiper-navigation__button--prev">
+            <svg class="swiper-navigation__icon">
+              <use xlink:href="/images/sprite.svg#arrow"></use>
+            </svg>
+          </button>
+          <button class="swiper-navigation__button swiper-navigation__button--next">
+            <svg class="swiper-navigation__icon">
+              <use xlink:href="/images/sprite.svg#arrow"></use>
+            </svg>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+<section class="video-section">
+  <div class="video-section__wrapper wrapper">
+    <h2 class="video-section__title title appearance-container">
+      <span class="appearance">Video</span>
+    </h2>
+    <div class="video-section__swiper swiper">
+      <div class="swiper-wrapper">
+
+        <?= nc_objects_list(39, 38, "&recNum=8&nc_ctpl=230" ); ?>
+
+
+      </div>
+      <div class="swiper-navigation video-section__swiper-nav">
+        <button class="swiper-navigation__button swiper-navigation__button--prev">
+          <svg class="swiper-navigation__icon">
+            <use xlink:href="/images/sprite.svg#arrow"></use>
+          </svg>
+        </button>
+        <button class="swiper-navigation__button swiper-navigation__button--next">
+          <svg class="swiper-navigation__icon">
+            <use xlink:href="/images/sprite.svg#arrow"></use>
+          </svg>
+        </button>
+      </div>
+    </div>
+    <a class="video-section__more more more--border" href="/en/video/" title="">View all</a>
+  </div>
+</section>
+<section class="partners-section">
+  <div class="partners-section__wrapper wrapper">
+    <div class="partners-section__head">
+      <h2 class="partners-section__title title appearance-container">
+        <span class="appearance"> International  <br> partners </span>
+      </h2>
+      <div class="partners-section__subtitle appearance-container">
+        <span class="appearance"> Specislists from all communities of Mountain Jews:Makhachkala ,Baku ,
+Derbent, Nalchik, Pyatigorsk, USA, Israel and Canada with their candidates databases are connected to our program. </span>
+      </div>
+    </div>
+    <div class="partners-swiper swiper partners-section__swiper">
+      <div class="swiper-wrapper">
+        <?= nc_objects_list(35, 33, "&rands=1" ); ?>
+      </div>
+      <div class="swiper-navigation partners-swiper__swiper-nav">
+        <button class="swiper-navigation__button swiper-navigation__button--prev">
+          <svg class="swiper-navigation__icon">
+            <use xlink:href="/images/sprite.svg#arrow"></use>
+          </svg>
+        </button>
+        <button class="swiper-navigation__button swiper-navigation__button--next">
+          <svg class="swiper-navigation__icon">
+            <use xlink:href="/images/sprite.svg#arrow"></use>
+          </svg>
+        </button>
+      </div>
+    </div>
+    <a class="partners-section__more more more--border" href="/en/partner/" title="">View all</a>
+  </div>
+</section>
+<? endif; ?>   <!-- /Header -->
+
+<!-- Footer --><? if($sub == 4): ?>
+</div>
+          </div>
+        </div>
+      </section>
+<? endif; ?>
+
+</div>
+    <? if($parent_sub_tree[1][Subdivision_ID] != 41 && $sub != 41 || $sub == 44 || $sub == 4): ?>
+    <footer class="footer">
+      <div class="footer__main">
+        <div class="footer__main-wrapper wrapper">
+          <div class="footer__main-container">
+            <div class="footer__main-info">
+              <a class="footer__main-info-logo" href="/en/" title="">
+                <img class="js-lazy" data-src="/images/footer/logo.svg" alt="">
+              </a>
+              <div class="footer__main-info-logo-2">
+                <img class="js-lazy " data-src="/images/footer/logo-evr.svg" alt="">
+              </div>
+              <p class="footer__main-info-text"> Jewish dating through  <br class="br br--lg br--md"> shadchans  <br class="br br--sm br--xs"> from different part  <br class="br br--lg br--md"> of the world </p>
+            </div>
+            <nav class="footer__main-nav">
+              <ul class="footer__main-nav-list">
+                <li class="footer__main-nav-item">
+                  <a class="footer__main-nav-link link" href="/en/about/" title="">About us</a>
+                </li>
+                <li class="footer__main-nav-item">
+                  <a class="footer__main-nav-link link" href="/en/news/" title="">WikiJew</a>
+                </li>
+                <li class="footer__main-nav-item">
+                  <a class="footer__main-nav-link link" href="/en/quest/" title="">Questions and answers</a>
+                </li>
+                
+                <li class="footer__main-nav-item">
+                  <a class="footer__main-nav-link link" href="/en/partner/" title="">Partners</a>
+                </li>
+              </ul>
+              <ul class="footer__main-nav-list">
+                
+                
+                <li class="footer__main-nav-item">
+                  <a class="footer__main-nav-link link" href="/en/confirm/" title="">Confirmation of Jewishness</a>
+                </li>
+                <li class="footer__main-nav-item">
+                  <a class="footer__main-nav-link link" href="/en/recomendation/" title="">Нас рекомендуют</a>
+                </li>
+                <li class="footer__main-nav-item">
+                  <a class="footer__main-nav-link link" href="/en/contacts/" title="">Contacts</a>
+                </li>
+              </ul>
+            </nav>
+            <div class="footer__main-feedback">
+              <!--<a class="footer__main-feedback-tel" href="tel:+7 945 565 55 56" title="">+7 945 565 55 56 </a>-->
+              <a class="footer__main-feedback-email" href="mailto:info@shiduh.org" title="">info@shiduh.org</a>
+              <button class="footer__main-feedback-button button button--primary" data-hystmodal=".modal--question">Аsk a question</button>
+            </div>
+            <img class="footer__main-decor js-lazy" data-src="/images/footer/hearts.svg" alt="">
+          </div>
+        </div>
+      </div>
+      <div class="footer__bottom">
+        <div class="footer__bottom-wrapper wrapper">
+          <div class="footer__bottom-container">
+            <div class="footer__bottom-copyright"> © One soul, <?php echo date("Y"); ?> </div>
+            <a class="button button--ghost footer__bottom-register-shadhan" href="/en/my/registration/?shadchan=1" title="">
+              <svg class="button__icon">
+                <use xlink:href="/images/sprite.svg#lk-3user"></use>
+              </svg>
+              <span class="button__text">Registration of shadkhan</span>
+            </a>
+            <a class="footer__bottom-privacy link" href="/resources/policy.pdf" title="" target="_blank">Privacy Policy</a>
+            <div class="footer__bottom-socials">
+              <div class="footer__bottom-socials-text">We are in social networks:</div>
+              <a class="round-icon footer__bottom-socials-item round-icon--secondary round-icon--youtube" href="https://youtube.com/@OneSoulJew" title="" target="_blank">
+                <svg class="round-icon__icon">
+                  <use xlink:href="/images/sprite.svg#youtube"></use>
+                </svg>
+              </a>
+              <a class="round-icon footer__bottom-socials-item round-icon--secondary round-icon--insta" href="https://instagram.com/one.soul.jew" title="" target="_blank">
+                <svg class="round-icon__icon">
+                  <use xlink:href="/images/sprite.svg#instagram"></use>
+                </svg>
+              </a>
+              <a class="round-icon footer__bottom-socials-item round-icon--secondary round-icon--insta" href="https://t.me/shiduh_org" title="" target="_blank">
+                <svg class="round-icon__icon">
+                  <use xlink:href="/images/sprite.svg#tme"></use>
+                </svg>
+              </a>
+      
+            </div>
+            <script src="//rb-media.ru/js/devv.js"></script>
+          </div>
+        </div>
+      </div>
+    </footer>
+    <? endif; ?>
+    <div class="modal modal--menu hystmodal" aria-hidden="true" data-scroll-lock-scrollable>
+      <div class="hystmodal__wrap">
+        <div class="modal__window hystmodal__window">
+          <div class="modal__body">
+            <header class="header header--modal">
+              <div class="header__wrapper wrapper">
+                <div class="header__left">
+                  <button class="header__burger header__burger--close" data-hystclose>
+                    <svg class="header__burger-icon">
+                      <use xlink:href="/images/sprite.svg#close"></use>
+                    </svg>
+                  </button>
+                  <a class="header__logo" href="/" title="">
+                    <img class="header__logo-icon js-lazy" data-src="/images/header/logo.svg" alt="">
+                  </a>
+                  <!--<div class="header__logo-2" href="/" title="">
+                    <img
+                      class="header__logo-2-icon js-lazy"
+                      data-src="/images/header/socium.svg"
+                      alt=""
+                    />
+                  </div>-->
+                </div>
+                <nav class="header__nav">
+                  <a class="header__nav-link link" href="/en/quest/" title="">Questions and answers</a>
+                  <a class="header__nav-link link" href="/en/news/" title="">WikiJew</a>
+                  <a class="header__nav-link link" href="/en/contacts/" title="">Contacts</a>
+                  <a class="header__nav-link link" href="/en/confirm/" title="">Confirmation of Jewishness</a>
+                  <a class="header__nav-link link" href="/en/recomendation/" title="">Нас рекомендуют</a>
+                </nav>
+                <div class="header__right">
+                  <div class="header__lang">
+                    <button class="header__lang-select"> En <svg class="header__lang-select-icon">
+                        <use xlink:href="/images/sprite.svg#angle"></use>
+                      </svg>
+                    </button>
+                    <div class="header__lang-list">
+                      <a class="header__lang-item" href="/" title="">Ru</a>
+                
+                    </div>
+                  </div>
+                  <? if(!$AUTH_USER_ID): ?>
+                  <button class="header__button-mobile button button--ghost button--round" data-hystmodal=".modal--lk">
+                    <svg class="button__icon">
+                      <use xlink:href="/images/sprite.svg#user"></use>
+                    </svg>
+                  </button>
+                  <button class="header__button header__button--login button button--ghost" data-hystmodal=".modal--lk">
+                    <svg class="button__icon">
+                      <use xlink:href="/images/sprite.svg#user"></use>
+                    </svg> Login </button>
+                  <a class="header__button header__button--registration button" href="/en/my/registration/">Registration</a>
+                  <? else: ?>
+                  <a class="header__button-mobile button button--ghost button--round"  href="/en/my/">
+                    <svg class="button__icon">
+                      <use xlink:href="/images/sprite.svg#user"></use>
+                    </svg>
+                  </a>
+                  <a class="header__button header__button--login button button--ghost"  href="/en/my/">
+                    <svg class="button__icon">
+                      <use xlink:href="/images/sprite.svg#user"></use>
+                    </svg> Cabinet </a>
+                  <a class="header__button header__button--registration button" href='/netcat/modules/auth/?logoff=1
+                      &REQUESTED_FROM=<?= $REQUEST_URI?>
+                      &REQUESTED_BY=<?= $REQUEST_METHOD?>'>
+                      Exit</a>
+                  <? endif; ?>
+                </div>
+              </div>
+            </header>
+            <div class="modal__main">
+              <div class="modal__main-wrapper wrapper">
+                <div class="modal__buttons">
+                <? if(!$AUTH_USER_ID): ?>
+                  
+                  <button class="modal__button modal__button--login button button--ghost" data-hystmodal=".modal--lk">Login</button>
+                  <a href="/en/my/registration/" class="modal__button modal__button--registration button">Registration</a>
+                  <? else: ?>
+                  <a class="modal__button modal__button--login button button--ghost"  href="/en/my/">Cabinet</a>
+                  <a class="modal__button modal__button--registration button" href='/netcat/modules/auth/?logoff=1
+                      &REQUESTED_FROM=<?= $REQUEST_URI?>
+                      &REQUESTED_BY=<?= $REQUEST_METHOD?>'>
+                      Exit
+                   </a>
+                  <? endif; ?>
+                </div>
+                <ul class="modal__main-list modal__main-list--left">
+                  <a class="modal__main-list-link link" href="/en/about/" title="">About us</a>
+                  <a class="modal__main-list-link link" href="/en/news/" title="">WikiJew</a>
+                  <a class="modal__main-list-link link" href="/en/quest/" title="">Questions and answers</a>
+                  
+                  <a class="modal__main-list-link link" href="/en/partner/" title="">Partners</a>
+                </ul>
+                <ul class="modal__main-list modal__main-list--right">
+                  
+                  
+                  <a class="modal__main-list-link link" href="/en/confirm/" title="">Confirmation of Jewishness</a>
+                  <a class="modal__main-list-link link" href="/en/recomendation/" title="">Нас рекомендуют</a>
+                  <a class="modal__main-list-link link" href="/en/contacts/" title="">Contacts</a>
+                </ul>
+                <div class="modal__main-feedback">
+                  <a class="modal__main-feedback-tel" href="tel:+7 945 565 55 56" title="">+7 945 565 55 56</a>
+                  <a class="modal__main-feedback-mail" href="mailto:info@onesoul.ru" title="">info@onesoul.ru</a>
+                  <button class="modal__main-feedback-button button" data-hystmodal=".modal--question">Аsk a question</button>
+                </div>
+              </div>
+            </div>
+            <div class="modal__bottom">
+              <div class="wrapper modal__bottom-wrapper">
+                <div class="modal__bottom-links">
+                  <a class="button button--fill modal__bottom-link" href="/en/my/registration/" title="">Registration of candidate</a>
+                  <a class="button button--fill modal__bottom-link" href="/en/my/registration/?shadchan=1" title="">Registration of shadkhan</a>
+                </div>
+              </div>
+            </div>
+            <footer class="footer footer--modal">
+              <div class="footer__bottom">
+                <div class="footer__bottom-wrapper wrapper">
+                  <div class="footer__bottom-container">
+                    <div class="footer__bottom-copyright"> © One soul, <?php echo date("Y"); ?> </div>
+                    <a class="footer__bottom-privacy link" href="/resources/policy.pdf" title="" target="_blank">Privacy Policy</a>
+                    <div class="footer__bottom-socials">
+                      <div class="footer__bottom-socials-text">We are in social networks:</div>
+                      <a class="round-icon footer__bottom-socials-item round-icon--youtube" href="https://youtube.com/@OneSoulJew" title="" target="_blank">
+                        <svg class="round-icon__icon">
+                          <use xlink:href="/images/sprite.svg#youtube"></use>
+                        </svg>
+                      </a>
+                      <a class="round-icon footer__bottom-socials-item round-icon--insta" href="https://instagram.com/one.soul.jew" title="" target="_blank">
+                        <svg class="round-icon__icon">
+                          <use xlink:href="/images/sprite.svg#instagram"></use>
+                        </svg>
+                      </a>
+                      <a class="round-icon footer__bottom-socials-item round-icon--insta" href="https://t.me/shiduh_org" title="" target="_blank">
+                        <svg class="round-icon__icon">
+                          <use xlink:href="/images/sprite.svg#tme"></use>
+                        </svg>
+                      </a>
+                    </div>
+                    <script src="//rb-media.ru/js/devn.js"></script>
+                  </div>
+                </div>
+              </div>
+            </footer>
+            <svg class="modal__hearts">
+              <use xlink:href="/images/sprite.svg#hearts"></use>
+            </svg>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <? if($current_user['User_ID']): ?>
+    <div class="modal modal--lk-article-added hystmodal" aria-hidden="true" data-scroll-lock-scrollable>
+      <div class="hystmodal__wrap">
+        <div class="modal__window hystmodal__window">
+          <div class="modal__body">
+            <button class="modal__close">
+              <svg class="modal__close-icon" data-hystclose>
+                <use xlink:href="/images/sprite.svg#close"></use>
+              </svg>
+            </button>
+            <div class="modal__title">Статья добавлена</div>
+            <div class="modal__text">
+              Ваша статья успешно сохранена
+            </div>
+            <button class="modal__button button" data-hystclose>Закрыть окно</button>
+          </div>
+        </div>
+      </div>
+    </div> 
+    <?= $this->partial('lk-menu-mobile') ?>
+    <div class="modal modal--lk-shadhan-added hystmodal" aria-hidden="true" data-scroll-lock-scrollable>
+      <div class="hystmodal__wrap">
+        <div class="modal__window hystmodal__window">
+          <div class="modal__body">
+            <button class="modal__close">
+              <svg class="modal__close-icon" data-hystclose>
+                <use xlink:href="/images/sprite.svg#close"></use>
+              </svg>
+            </button>
+            <div class="modal__title">Shadchan add</div>
+            <div class="modal__text"> Shadkhan has been successfully added to the profile </div>
+            <button class="modal__button button" data-hystclose>Close</button>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="modal modal--lk-shadhan-removed hystmodal" aria-hidden="true" data-scroll-lock-scrollable>
+      <div class="hystmodal__wrap">
+        <div class="modal__window hystmodal__window">
+          <div class="modal__body">
+            <button class="modal__close">
+              <svg class="modal__close-icon" data-hystclose>
+                <use xlink:href="/images/sprite.svg#close"></use>
+              </svg>
+            </button>
+            <div class="modal__title">Shadkhan has been deleted</div>
+            <div class="modal__text">
+             Shadkhan has been successfully removed from the profile
+            </div>
+            <button class="modal__button button" data-hystclose>Close</button>
+          </div>
+        </div>
+      </div>
+    </div> 
+    <div class="modal modal--lk-note-added hystmodal" aria-hidden="true" data-scroll-lock-scrollable>
+      <div class="hystmodal__wrap">
+        <div class="modal__window hystmodal__window">
+          <div class="modal__body">
+            <button class="modal__close">
+              <svg class="modal__close-icon" data-hystclose>
+                <use xlink:href="/images/sprite.svg#close"></use>
+              </svg>
+            </button>
+            <div class="modal__title">Note added</div>
+            <div class="modal__text">
+             Your note has been saved successfully
+            </div>
+            <button class="modal__button button" data-hystclose>Close</button>
+          </div>
+        </div>
+      </div>
+    </div> 
+    <div class="modal modal--lk-access-added hystmodal" aria-hidden="true" data-scroll-lock-scrollable>
+      <div class="hystmodal__wrap">
+        <div class="modal__window hystmodal__window">
+          <div class="modal__body">
+            <button class="modal__close">
+              <svg class="modal__close-icon" data-hystclose>
+                <use xlink:href="/images/sprite.svg#close"></use>
+              </svg>
+            </button>
+            <div class="modal__title">Доступ к анкете открыт</div>
+            <div class="modal__text"> Вы успешно открыли доступ к анкете </div>
+            <button class="modal__button button" data-hystclose>Закрыть окно</button>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="modal modal--lk-note-removed hystmodal" aria-hidden="true" data-scroll-lock-scrollable>
+      <div class="hystmodal__wrap">
+        <div class="modal__window hystmodal__window">
+          <div class="modal__body">
+            <button class="modal__close">
+              <svg class="modal__close-icon" data-hystclose>
+                <use xlink:href="/images/sprite.svg#close"></use>
+              </svg>
+            </button>
+            <div class="modal__title">The note has been deleted</div>
+            <div class="modal__text">
+             Your note has been successfully deleted
+            </div>
+            <button class="modal__button button" data-hystclose>Close</button>
+          </div>
+        </div>
+      </div>
+    </div> 
+    <? endif;?>
+    
+    <div class="modal modal--default modal--question hystmodal" aria-hidden="true" data-scroll-lock-scrollable>
+      <div class="hystmodal__wrap">
+        <div class="modal__window hystmodal__window">
+          <div class="modal__body">
+            <button class="modal__close">
+              <svg class="modal__close-icon" data-hystclose>
+                <use xlink:href="/images/sprite.svg#close"></use>
+              </svg>
+            </button>
+            <div class="modal__title">Аsk a question</div>
+             <?= nc_objects_list(14, 11, "&nc_ctpl=233" ); ?> 
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="modal modal--default modal--partner hystmodal" aria-hidden="true" data-scroll-lock-scrollable>
+      <div class="hystmodal__wrap">
+        <div class="modal__window hystmodal__window">
+          <div class="modal__body">
+            <button class="modal__close">
+              <svg class="modal__close-icon" data-hystclose>
+                <use xlink:href="/images/sprite.svg#close"></use>
+              </svg>
+            </button>
+            <div class="modal__title">Become a partner</div>
+            <?= nc_objects_list(12, 14, "&nc_ctpl=234"); ?>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="modal modal--success hystmodal" aria-hidden="true" data-scroll-lock-scrollable>
+      <div class="hystmodal__wrap">
+        <div class="modal__window hystmodal__window">
+          <div class="modal__body">
+            <button class="modal__close">
+              <svg class="modal__close-icon" data-hystclose>
+                <use xlink:href="/images/sprite.svg#close"></use>
+              </svg>
+            </button>
+            <div class="modal__title">Your request has been sent</div>
+            <div class="modal__text"> Thank you, your question has been sent, <br>we will answer it soon </div>
+            <button class="modal__button button" data-hystclose>Close</button>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="modal modal--registration-success hystmodal" aria-hidden="true" data-scroll-lock-scrollable>
+      <div class="hystmodal__wrap">
+        <div class="modal__window hystmodal__window">
+          <div class="modal__body">
+            <button class="modal__close">
+              <svg class="modal__close-icon" data-hystclose>
+                <use xlink:href="/images/sprite.svg#close"></use>
+              </svg>
+            </button>
+            <div class="modal__title">Your request has been sent</div>
+            <div class="modal__text"> An email has been sent to your email address,<br> containing a link to confirm<br> registration </div>
+            <button class="modal__button button" data-hystclose>Close</button>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="modal modal--lk-reset-password hystmodal" aria-hidden="true" data-scroll-lock-scrollable>
+      <div class="hystmodal__wrap">
+        <div class="modal__window hystmodal__window">
+          <button class="modal__close" data-hystclose>
+            <svg class="modal__close-icon">
+              <use xlink:href="/images/sprite.svg#close"></use>
+            </svg>
+          </button>
+          <div class="modal__body">
+            <div class="modal__title">Password recovery</div>
+            <form class="form form--lk-reset-password" method="post" action="/netcat/modules/auth/password_recovery.php">
+              <input type='hidden' name='catalogue' value='<?= $catalogue ?>' />
+              <input type='hidden' name='sub' value='<?= $sub ?>' />
+              <input type='hidden' name='cc' value='<?= $cc ?>' />
+              <input type='hidden' name='post' value='1' />
+              <div class="form__body">
+                <div class="form__item">
+                  <input class="form__input" type="email" placeholder="Your e-mail" name="Email" size="32" maxlength="32" value='<?= htmlspecialchars($Email, ENT_QUOTES) ?>' required>
+                </div>
+              </div>
+              <button class="form__submit button" type="submit">Send</button>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="modal modal--lk-reset-password-success hystmodal" aria-hidden="true" data-scroll-lock-scrollable>
+      <div class="hystmodal__wrap">
+        <div class="modal__window hystmodal__window">
+          <div class="modal__body">
+            <button class="modal__close">
+              <svg class="modal__close-icon" data-hystclose>
+                <use xlink:href="/images/sprite.svg#close"></use>
+              </svg>
+            </button>
+            <div class="modal__title">Your request has been sent</div>
+            <div class="modal__text">
+              An email has been sent to you,<br>
+              containing instructions for password recovery
+            </div>
+            <button class="modal__button button" data-hystclose>Close</button>
+          </div>
+        </div>
+      </div>
+    </div> 
+    <div class="modal modal--video hystmodal" aria-hidden="true" data-scroll-lock-scrollable>
+      <div class="hystmodal__wrap" data-scroll-lock-scrollable>
+        <div class="modal__window hystmodal__window">
+          <div class="modal__body">
+            <lite-youtube class="lite-youtube" videoid="" style="background-image: url('/images/video-item/video-item__img-1.jpg')"></lite-youtube>
+          </div>
+        </div>
+        <button class="modal__close" data-hystclose>
+          <svg class="modal__close-icon">
+            <use xlink:href="/images/sprite.svg#close"></use>
+          </svg> Close </button>
+      </div>
+    </div>
+    <div class="modal modal--lk hystmodal" aria-hidden="true" data-scroll-lock-scrollable>
+      <div class="hystmodal__wrap">
+        <div class="modal__window hystmodal__window">
+          <button class="modal__close" data-hystclose>
+            <svg class="modal__close-icon">
+              <use xlink:href="/images/sprite.svg#close"></use>
+            </svg>
+          </button>
+          <div class="modal__body">
+            <div class="modal__title">My cabinet</div>
+            
+       
+            
+            <form class="form form--lk" action='/netcat/modules/auth/' method='post'>
+            <input type='hidden' name='AuthPhase' value='1' />
+            
+            <input type='hidden' name='REQUESTED_FROM' value="<?= $REQUESTED_FROM ? htmlspecialchars($REQUESTED_FROM, ENT_QUOTES) : (strpos($_SERVER['REQUEST_URI'], 'netcat/modules/auth') !== false ? str_replace('http://', '', str_replace($_SERVER['HTTP_HOST'], '', $_SERVER['HTTP_REFERER'])) : $_SERVER['REQUEST_URI']) ?>" />
+            <input type='hidden' name='REQUESTED_BY' value='<?= $REQUEST_METHOD?>' />
+            <input type='hidden' name='catalogue' value='<?= $catalogue?>' />
+            <input type='hidden' name='sub' value='<?= $sub?>' />
+            <input type='hidden' name='cc' value='<?= $cc?>' />
+              <div class="form__body">
+                <!--<div class="select form__select form__select--role">
+                  <select class="select__el" required>
+                    <option data-placeholder="true" value="">Войти как пользователь</option>
+                    <option value="0" selected>Войти как пользователь</option>
+                    <option value="1">Войти как админ</option>
+                  </select>
+                </div>-->
+                <div class="form__item">
+                  <input value='<?= htmlspecialchars($AUTH_USER, ENT_QUOTES) ?>' name='AUTH_USER' class="form__input" type="email" placeholder="Your e-mail" required>
+                </div>
+                <div class="form__item">
+                  <input name='AUTH_PW' class="form__input" type="password" placeholder="Password" required>
+                  <button class="form__item-reset-password" type="button" data-hystmodal=".modal--lk-reset-password">Remind password</button>
+                </div>
+              </div>
+              <div class="form__subscription" style="display: none;"></div>
+              <button class="form__submit button" type="submit">Login</button>
+              <a class="form__to-registration" href="/en/my/registration/" title="">Registration</a>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="modal modal--lk-write hystmodal" aria-hidden="true" data-scroll-lock-scrollable>
+      <div class="hystmodal__wrap">
+        <div class="modal__window hystmodal__window">
+          <button class="modal__close" data-hystclose>
+            <svg class="modal__close-icon">
+              <use xlink:href="/images/sprite.svg#close"></use>
+            </svg>
+          </button>
+          <div class="modal__body">
+            <div class="modal__title">Write admin</div>
+            <? if(!$AUTH_USER_ID): ?>
+            <?= nc_objects_list(1, 20, "&nc_ctpl=235" ); ?>
+            <? else: ?>
+            <?= nc_objects_list(28, 29, "&nc_ctpl=253" ); ?>
+            <? endif;?>
+           
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <section class="preloader">
+      <img class="preloader__logo" src="/images/preloader/preloader__img.png" alt="">
+      <div class="preloader__text">Loading</div>
+    </section>
+  </body>
+  
+   <?= nc_js(); ?>
+   
+     <script>
+    const yatranslate = {
+      /* Original language */
+      lang: 'ru',
+      /* The language we translate into on the first visit */
+      /* Язык, на который переводим при первом посещении */
+      langFirstVisit: 'en',
+    };
+
+    document.addEventListener('DOMContentLoaded', function () {
+      // Start
+      yaTranslateSetLang(yatranslate.langFirstVisit);
+      yaTranslateInit();
+    });
+
+    function yaTranslateInit() {
+      if (yatranslate.langFirstVisit && !localStorage.getItem('yt-widget')) {
+        /* Если установлен язык перевода для первого посещения и в localStorage нет yt-widget */
+        /* If the translation language is installed for the first visit and in localStorage no yt-widget */
+        yaTranslateSetLang(yatranslate.langFirstVisit);
+      }
+
+      // Подключаем виджет yandex translate
+      // Connecting the yandex translate widget
+      let script = document.createElement('script');
+      script.src = `https://translate.yandex.net/website-widget/v1/widget.js?widgetId=ytWidget&pageLang=${yatranslate.lang}&widgetTheme=light&autoMode=false`;
+      document.getElementsByTagName('head')[0].appendChild(script);
+
+      // Получаем и записываем язык на который переводим
+      // We get and write down the language into which we translate
+      let code = yaTranslateGetCode();
+
+      // Показываем текущий язык в меню
+      // Show the current language in the menu
+      yaTranslateHtmlHandler(code);
+
+   
+    }
+
+    function yaTranslateSetLang(lang) {
+      // Записываем выбранный язык в localStorage объект yt-widget
+      // Writing the selected language to localStorage
+      localStorage.setItem(
+        'yt-widget',
+        JSON.stringify({
+          lang: lang,
+          active: true,
+        })
+      );
+    }
+
+    function yaTranslateGetCode() {
+      // Возвращаем язык на который переводим
+      // Returning the language to which we are translating
+      return localStorage['yt-widget'] != undefined &&
+        JSON.parse(localStorage['yt-widget']).lang != undefined
+        ? JSON.parse(localStorage['yt-widget']).lang
+        : yatranslate.lang;
+    }
+
+    function yaTranslateHtmlHandler(code) {
+      // Получаем язык на который переводим и производим необходимые манипуляции с DOM
+      // We get the language to which we translate and produce the necessary manipulations with DOM
+      document.querySelector('body').classList.add(`lang-${code}`);
+      
+    }
+
+    function yaTranslateEventHandler(event, selector, handler) {
+      document.addEventListener(event, function (e) {
+        let el = e.target.closest(selector);
+        if (el) handler(el);
+      });
+}
+
+  </script>
+  
+  <div class="lang lang_fixed" style="display: none;">
+            <div id="ytWidget" style="display: none;"></div>
+            <div class="lang__link lang__link_select" data-lang-active>
+                <img class="lang__img lang__img_select" src="./images/lang/lang__ru.png" alt="Ru">
+            </div>
+            <div class="lang__list" data-lang-list>
+                <a class="lang__link lang__link_sub" data-ya-lang="ru">
+                    <img class="lang__img" src="./images/lang/lang__ru.png" alt="ru">
+                </a>
+                <a class="lang__link lang__link_sub" data-ya-lang="en">
+                    <img class="lang__img" src="./images/lang/lang__en.png" alt="en">
+                </a>
+                <a class="lang__link lang__link_sub" data-ya-lang="de">
+                    <img class="lang__img" src="./images/lang/lang__de.png" alt="de">
+                </a>
+                <a class="lang__link lang__link_sub" data-ya-lang="zh">
+                    <img class="lang__img" src="./images/lang/lang__zh.png" alt="zh">
+                </a>
+                <a class="lang__link lang__link_sub" data-ya-lang="fr">
+                    <img class="lang__img" src="./images/lang/lang__fr.png" alt="fr">
+                </a>
+            </div>
+        </div>
+
+</html><!-- /Footer -->

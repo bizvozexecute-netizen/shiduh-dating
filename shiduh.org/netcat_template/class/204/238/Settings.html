@@ -1,0 +1,122 @@
+<?php
+$arfloor['element'] = '%ELEMENT';
+$arfloor['divider'] = ', ';
+$arfloor['suffix']  = '';
+
+if(!count($_GET["srchPat"]) && $action !== 'full') {
+   $ignore_all = 1;
+   $query_limit = 0; 
+}
+
+if($current_user['Type_id'] === 1) {
+  $idUser = $current_user['User_ID'];  
+  $query_where .= " a.User_ID != $idUser ";
+}
+
+if($_GET["id_candidate"]) {
+  $id_candidate1 = $_GET["id_candidate"]; 
+  if($query_where) {
+      $query_where .= " AND Message_ID = $id_candidate1";
+  } else {
+      $query_where = " Message_ID = $id_candidate1";
+  }
+}
+
+if($_GET["name"]) {
+  $name = $_GET["name"]; 
+  if($query_where) {
+      $query_where .= " AND Name LIKE '%$name%'";
+  } else {
+      $query_where = "  Name LIKE '%$name%'";
+  }
+
+}
+
+if($_GET["country"]) {
+  $ids = implode(',', $_GET["country"]); 
+  if($query_where) {
+      $query_where .= " AND Country IN (".$ids.") ";
+  } else {
+      $query_where = " Country IN (".$ids.") ";
+  }
+}
+
+if($_GET["Jewishness"]) {
+  $ids = implode(',', $_GET["Jewishness"]); 
+  if($query_where) {
+      $query_where .= " AND Jewishness IN (".$ids.") ";
+  } else {
+      $query_where = " Jewishness IN (".$ids.") ";
+  }
+}
+
+if($_GET["Origin"]) {
+  $ids = implode(',', $_GET["Origin"]); 
+  if($query_where) {
+      $query_where .= " AND Origin IN (".$ids.") ";
+  } else {
+      $query_where = " Origin IN (".$ids.") ";
+  }
+}
+
+if($_GET["Mother_Origin"]) {
+  $ids = implode(',', $_GET["Mother_Origin"]); 
+  if($query_where) {
+      $query_where .= " AND Mother_Origin IN (".$ids.") ";
+  } else {
+      $query_where = " Mother_Origin IN (".$ids.") ";
+  }
+}
+
+if($_GET["Father_Origin"]) {
+  $ids = implode(',', $_GET["Father_Origin"]); 
+  if($query_where) {
+      $query_where .= " AND Father_Origin IN (".$ids.") ";
+  } else {
+      $query_where = " Father_Origin IN (".$ids.") ";
+  }
+}
+
+
+
+if($_GET["Course_of_compliance"]) {
+  $ids = implode(',', $_GET["Course_of_compliance"]); 
+  if($query_where) {
+      $query_where .= " AND Course_of_compliance IN (".$ids.") ";
+  } else {
+      $query_where = " Course_of_compliance IN (".$ids.") ";
+  }
+}
+
+if($_GET["Education"]) {
+  $ids = implode(',', $_GET["Education"]); 
+  if($query_where) {
+      $query_where .= " AND Education IN (".$ids.") ";
+  } else {
+      $query_where = " Education IN (".$ids.") ";
+  }
+}
+
+if($_GET["Marital_status"]) {
+  $ids = implode(',', $_GET["Marital_status"]); 
+  if($query_where) {
+      $query_where .= " AND Marital_status IN (".$ids.") ";
+  } else {
+      $query_where = " Marital_status IN (".$ids.") ";
+  }
+}
+
+if($_GET["Number_of_children"]) {
+  $ids = implode(',', $_GET["Number_of_children"]); 
+  if($query_where) {
+      $query_where .= " AND Number_of_children IN (".$ids.") ";
+  } else {
+      $query_where = " Number_of_children IN (".$ids.") ";
+  }
+}
+
+if($query_where) {
+    $query_where .= " AND (Country != '' AND Place_of_birth != '' AND Height != '' AND Jewishness != '' AND Origin != '' AND Education != '' AND Specialization != '' AND Marital_status != '' AND Phone != '')";
+} else {
+    $query_where = "  Country != '' AND Place_of_birth != '' AND Height != '' AND Jewishness != '' AND Origin != '' AND Education != '' AND Specialization != '' AND Marital_status != '' AND Phone != ''";
+}

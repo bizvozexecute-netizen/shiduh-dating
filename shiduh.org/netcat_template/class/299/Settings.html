@@ -1,0 +1,6 @@
+<?php
+$idUser = $current_user['User_ID'];
+if($Shiduch) {
+    $query_where .= "a.Shiduch = $Shiduch AND a.User_ID = $idUser";
+}
+?>

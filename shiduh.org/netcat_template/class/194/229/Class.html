@@ -1,0 +1,126 @@
+<!-- FormPrefix --><div class="breadcrumbs ">
+        <div class="breadcrumbs__wrapper wrapper">
+          <a class="breadcrumbs__item" href="/en/" title="">
+            <svg class="breadcrumbs__item-icon">
+              <use xlink:href="/images/sprite.svg#home"></use>
+            </svg> Home </a>
+          <a class="breadcrumbs__item" href="" title="">Video</a>
+        </div>
+      </div>
+      <section class="video">
+        <div class="video__wrapper wrapper">
+          <div class="page-head video__page-head">
+            <div class="page-head__title">Video</div>
+            <div class="page-head__selects">
+              <div class="select page-head__select page-head__select--category">
+                <select class="select__el">
+                  <option value="/video/?<?= $_GET['srchPat'][2] ? '&srchPat[2]='.$_GET['srchPat'][2].'&srchPat[8]='.$_GET['srchPat'][2] : ''; ?>">All events</option>
+                  <option <?= $_GET['srchPat'][12] == '2' ? 'selected' : ''; ?> value="/video/?srchPat[12]=2<?= $_GET['srchPat'][2] ? '&srchPat[2]='.$_GET['srchPat'][2].'&srchPat[8]='.$_GET['srchPat'][2] : ''; ?>">Хупы</option>
+                  <option <?= $_GET['srchPat'][12] == '3' ? 'selected' : ''; ?> value="/video/?srchPat[12]=3<?= $_GET['srchPat'][2] ? '&srchPat[2]='.$_GET['srchPat'][2].'&srchPat[8]='.$_GET['srchPat'][2] : ''; ?>">Обучающее</option>
+                  <option <?= $_GET['srchPat'][12] == '1' ? 'selected' : ''; ?> value="/video/?srchPat[12]=1<?= $_GET['srchPat'][2] ? '&srchPat[2]='.$_GET['srchPat'][2].'&srchPat[8]='.$_GET['srchPat'][2] : ''; ?>">Мероприятия</option>
+                </select>
+              </div>
+              <div class="select page-head__select page-head__select--year">
+                <select class="select__el">
+                  <option value="/video/?<?= $_GET['srchPat'][12] ? '&srchPat[12]='.$_GET['srchPat'][12] : ''; ?>">All</option>  
+                  <option <?= $_GET['srchPat'][2] == '2024' ? 'selected' : ''; ?> value="/video/?srchPat[2]=2023&srchPat[8]=2023<?= $_GET['srchPat'][12] ? '&srchPat[12]='.$_GET['srchPat'][12] : ''; ?>">2024 y.</option>
+                  <option <?= $_GET['srchPat'][2] == '2023' ? 'selected' : ''; ?> value="/video/?srchPat[2]=2023&srchPat[8]=2023<?= $_GET['srchPat'][12] ? '&srchPat[12]='.$_GET['srchPat'][12] : ''; ?>">2023 y.</option>
+                  <option <?= $_GET['srchPat'][2] == '2022' ? 'selected' : ''; ?> value="/video/?srchPat[2]=2022&srchPat[8]=2022<?= $_GET['srchPat'][12] ? '&srchPat[12]='.$_GET['srchPat'][12] : ''; ?>">2022 y.</option>
+                  <option <?= $_GET['srchPat'][2] == '2021' ? 'selected' : ''; ?> value="/video/?srchPat[2]=2021&srchPat[8]=2021<?= $_GET['srchPat'][12] ? '&srchPat[12]='.$_GET['srchPat'][12] : ''; ?>">2021 y.</option>
+                  <option <?= $_GET['srchPat'][2] == '2020' ? 'selected' : ''; ?> value="/video/?srchPat[2]=2020&srchPat[8]=2020<?= $_GET['srchPat'][12] ? '&srchPat[12]='.$_GET['srchPat'][12] : ''; ?>">2020 y.</option>
+                  <option <?= $_GET['srchPat'][2] == '2019' ? 'selected' : ''; ?> value="/video/?srchPat[2]=2019&srchPat[8]=2019<?= $_GET['srchPat'][12] ? '&srchPat[12]='.$_GET['srchPat'][12] : ''; ?>">2019 y.</option>
+                  <option <?= $_GET['srchPat'][2] == '2018' ? 'selected' : ''; ?> value="/video/?srchPat[2]=2018&srchPat[8]=2018<?= $_GET['srchPat'][12] ? '&srchPat[12]='.$_GET['srchPat'][12] : ''; ?>">2018 y.</option>
+                  <option <?= $_GET['srchPat'][2] == '2017' ? 'selected' : ''; ?> value="/video/?srchPat[2]=2017&srchPat[8]=2017<?= $_GET['srchPat'][12] ? '&srchPat[12]='.$_GET['srchPat'][12] : ''; ?>">2017 y.</option>
+                </select>
+              </div>
+            </div>
+          </div>
+          <div class="video__body pagination-list" data-init-num="7" data-open-num="9">
+            <div class="video__grid">
+      <!-- /FormPrefix -->
+
+<!-- RecordTemplate --><?
+$arrayMonth = array("january", "february", "march", "april", "may", "june", "july", "august", "september", "october", "november", "december");
+?>
+<div class="video-item appearance-container video__item pagination-list__item" data-videoid="<?= $f_videoID; ?>">
+  <div class="video-item__wrapper">
+    <div class="video-item__banner-wrapper">
+      <img class="video-item__banner js-lazy" data-src="<?= $f_RowID == $begRow ? $f_newsImage->resize(1580, 877) : $f_newsImage->resize(505, 280) ?>" alt="">
+      <button class="video-item__play">play</button>
+    </div>
+    <div class="video-item__date"><?= $f_newsDate_day; ?> <?= $arrayMonth[(int)$f_newsDate_month - 1] ?> <?= $f_newsDate_year; ?> y.</div>
+    <div class="video-item__title"><?= $f_newsTitle; ?></div>
+  </div>
+</div><!-- /RecordTemplate -->
+
+<!-- FormSuffix --></div>
+            <button class="video__load-btn button button--ghost button--repeat pagination-list__more">
+              <svg class="button__icon">
+                <use xlink:href="/images/sprite.svg#repeat"></use>
+              </svg> Show more </button>
+            <div class="pagination video__pagination pagination-list__pagination">
+              <button class="pagination__button pagination__button--prev pagination__button--disabled">
+                <svg class="pagination__button-icon">
+                  <use xlink:href="/images/sprite.svg#arrow"></use>
+                </svg>
+                <span class="pagination__button-text">Back</span>
+              </button>
+              <div class="pagination__list">
+                <div class="pagination__list-prev">
+                  <button class="pagination__link pagination__link--first">1</button>
+                  <!-- <div class="pagination__sep">. . .</div> -->
+                </div>
+                <div class="pagination__list-inner">
+                  <button class="pagination__link pagination__link--active">2</button>
+                  <button class="pagination__link">3</button>
+                  <!-- <a class="pagination__link" href="" title="">4</a> -->
+                </div>
+                <div class="pagination__list-next">
+                  <div class="pagination__sep">. . .</div>
+                  <button class="pagination__link pagination__link--last">17</button>
+                </div>
+              </div>
+              <button class="pagination__button pagination__button--next">
+                <span class="pagination__button-text">Next</span>
+                <svg class="pagination__button-icon">
+                  <use xlink:href="/images/sprite.svg#arrow"></use>
+                </svg>
+              </button>
+            </div>
+          </div>
+        </div>
+      </section>
+      <section class="partners-section">
+        <div class="partners-section__wrapper wrapper">
+          <div class="partners-section__head">
+            <h2 class="partners-section__title title appearance-container">
+              <span class="appearance"> International  <br> partners </span>
+            </h2>
+            <div class="partners-section__subtitle appearance-container">
+              <span class="appearance"> Specislists from all communities of Mountain Jews:Makhachkala ,Baku ,
+Derbent, Nalchik, Pyatigorsk, USA, Israel and Canada with their candidates databases are connected to our program. </span>
+            </div>
+          </div>
+          <div class="partners-swiper swiper partners-section__swiper">
+            <div class="swiper-wrapper">
+              
+              <?= nc_objects_list(35, 33, "&rands=1" ); ?>
+              
+              
+            </div>
+            <div class="swiper-navigation partners-swiper__swiper-nav">
+              <button class="swiper-navigation__button swiper-navigation__button--prev">
+                <svg class="swiper-navigation__icon">
+                  <use xlink:href="/images/sprite.svg#arrow"></use>
+                </svg>
+              </button>
+              <button class="swiper-navigation__button swiper-navigation__button--next">
+                <svg class="swiper-navigation__icon">
+                  <use xlink:href="/images/sprite.svg#arrow"></use>
+                </svg>
+              </button>
+            </div>
+          </div>
+          <a class="partners-section__more more more--border" href="/en/partner/" title="">View all</a>
+        </div>
+      </section><!-- /FormSuffix -->

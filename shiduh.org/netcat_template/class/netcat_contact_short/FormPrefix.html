@@ -1,0 +1,13 @@
+<?= $f_AdminCommon; ?>
+<?php
+$styles = array();
+if ($cc_settings['iconColor'] !== 'inherit') {
+    $styles[] = "--tpl-object-item--icon-color: var(--tpl-color-" . $cc_settings['iconColor'] . ")";
+}
+if ($cc_settings['iconDecor'] !== 'none' && $cc_settings['iconDecorColor'] !== 'inherit') {
+    $styles[] = "--tpl-object-item--icon-decor-color: var(--tpl-color-" . $cc_settings['iconDecorColor'] . ")";
+}
+$styles[] = "--tpl-object-item--icon-space-text: " . str_replace(",", ".", ($cc_settings['textSpace'] / 100)) . "em";
+
+$styles = " style='" . implode("; ", $styles) . "'";
+?>

@@ -1,0 +1,14 @@
+<?
+//require $nc_parent_field_path; 
+
+$userCurrentID = $current_user['User_ID'];
+if($current_user['PermissionGroup_ID'] == 2) {
+    if($current_user['Type'] == 'Шадхан') {
+        $query_where .= "a.User_ID = $userCurrentID";
+    } else {
+        header('Location: https://'.$_SERVER['HTTP_HOST'].'');
+        exit();
+    }
+}
+
+?>

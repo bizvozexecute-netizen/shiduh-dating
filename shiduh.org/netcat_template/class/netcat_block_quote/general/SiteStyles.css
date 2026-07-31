@@ -1,0 +1,125 @@
+& {min-height:60px}
+
+.quotes-object {
+    display: flex;
+    align-items: flex-start;
+}
+
+.quotes-object.image-left {
+    flex-direction: row;
+}
+
+.quotes-object.image-right {
+    flex-direction: row-reverse;
+}
+
+.quotes-object.image-top {
+    flex-direction: column;
+}
+
+.quotes-object.image-bottom {
+    flex-direction: column-reverse;
+}
+
+@nc-container (max-width: 600px) {
+	.quotes-object .image-left,
+	.quotes-object .image-top{
+    	flex-direction: column;
+    	align-items: center;
+	}
+}
+
+@nc-container (max-width: 600px) {
+	.quotes-object,
+	.quotes-object .image-right,
+	.quotes-object .image-bottom{
+    	flex-direction: column-reverse;
+    	align-items: center;
+	}
+}
+
+.quotes-author {
+    display: flex;
+
+}
+
+@nc-container (max-width: 600px) {
+	.quotes-object .quotes-author,
+	.image-left .quotes-author,
+	.image-right .quotes-author {
+    	flex-direction: column;
+    	align-items: center;
+    	justify-content: center;
+    	text-align: center;
+    	width: 160px;
+	}
+    .quotes-object .quotes-text { margin: 8px 0; }
+}
+
+.image-top .quotes-author,
+.image-bottom .quotes-author {
+    flex-direction: row;
+    align-items: center;
+    justify-content: flex-start;
+    text-align: left;
+}
+
+.quotes-author .quotes-icon {
+    max-width: 100%;
+    min-width: 80px;
+    min-height: 80px;
+    margin: 8px 16px;
+    border-radius: 50%;
+    overflow: hidden;
+}
+
+.literal-quotes .quotes-author{
+	margin-left: 70px
+}
+
+.quotes-name {
+    padding-top: 5px;
+}
+
+.quotes-name .author {
+    line-height: 1.2;
+    font-weight: bold;
+    padding-bottom: 5px;
+}
+
+.quotes-name .caption {
+    line-height: 1rem;
+}
+
+.quotes-text {
+    font-weight: 300;
+    line-height: 1.55;
+}
+
+.image-left .quotes-text,
+.image-right .quotes-text {
+    margin-top: 8px;
+    margin-bottom: 8px;
+    margin-left: 60px;
+    margin-right: 60px;
+}
+
+.image-top .quotes-text,
+.image-bottom .quotes-text {
+    margin-top: 8px;
+    margin-bottom: 8px;
+}
+.quotes-text.show-quotes {
+    position: relative;
+    margin-left: 80px;
+}
+.quotes-text.show-quotes:before {
+    content: "“";
+    position: absolute;
+    left: -80px;
+    top: -18px;
+    font-family: var(--tpl-font-family-accent);
+    font-size: 150px;
+    line-height: 1;
+    color: var(--tpl-color-foreground-accent-lighter, #cccccc);
+}

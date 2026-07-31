@@ -1,0 +1,671 @@
+<? if($sub == 4): ?>
+</div>
+          </div>
+        </div>
+      </section>
+<? endif; ?>
+
+</div>
+    <? if($parent_sub_tree[1][Subdivision_ID] != 1 && $sub != 1 || $sub == 5 || $sub == 4): ?>
+    <footer class="footer">
+      <div class="footer__main">
+        <div class="footer__main-wrapper wrapper">
+          <div class="footer__main-container">
+            <div class="footer__main-info">
+              <a class="footer__main-info-logo" href="/" title="">
+                <img class="js-lazy" data-src="/images/footer/logo.svg" alt="">
+              </a>
+              <div class="footer__main-info-logo-2">
+                <img class="js-lazy " data-src="/images/footer/logo-evr.svg" alt="">
+              </div>
+              <p class="footer__main-info-text"> Еврейские знакомства через <br class="br br--lg br--md"> шадханов <br class="br br--sm br--xs"> с разных концов <br class="br br--lg br--md"> земного шара </p>
+            </div>
+            <nav class="footer__main-nav">
+              <ul class="footer__main-nav-list">
+                <li class="footer__main-nav-item">
+                  <a class="footer__main-nav-link link" href="/about/" title="">О нас</a>
+                </li>
+                <li class="footer__main-nav-item">
+                  <a class="footer__main-nav-link link" href="/news/" title="">WikiJew</a>
+                </li>
+                <li class="footer__main-nav-item">
+                  <a class="footer__main-nav-link link"  href="/events/"  title="">Мероприятия</a>
+                </li>
+                <li class="footer__main-nav-item">
+                  <a class="footer__main-nav-link link"  href="/hupot/"  title="">Хупот</a>
+                </li>
+                <li class="footer__main-nav-item">
+                  <a class="footer__main-nav-link link" href="/quest/" title="">Вопросы и ответы</a>
+                </li>
+                
+                
+              </ul>
+              <ul class="footer__main-nav-list">
+                
+                <li class="footer__main-nav-item">
+                  <a class="footer__main-nav-link link" href="/partner/" title="">Партнеры</a>
+                </li>
+                <li class="footer__main-nav-item">
+                  <a class="footer__main-nav-link link footer__main-nav-link--nowrap" href="/confirm/" title="">Подтверждение еврейства</a>
+                </li>
+                <li class="footer__main-nav-item">
+                  <a class="footer__main-nav-link link" href="/recomendation/" title="">Нас рекомендуют</a>
+                </li>
+                <li class="footer__main-nav-item">
+                  <a class="footer__main-nav-link link" href="/contacts/" title="">Контакты</a>
+                </li>
+              </ul>
+            </nav>
+            <div class="footer__main-feedback">
+              <a class="footer__main-feedback-tel" href="tel:+7 945 565 55 56" title="">+7 945 565 55 56 </a>
+              <a class="footer__main-feedback-email" href="mailto: info@shiduh.org" title="">info@shiduh.org</a>
+              <button class="footer__main-feedback-button button button--primary" data-hystmodal=".modal--question">Задать вопрос</button>
+            </div>
+            <img class="footer__main-decor js-lazy" data-src="/images/footer/hearts.svg" alt="">
+          </div>
+        </div>
+      </div>
+      <div class="footer__bottom">
+        <div class="footer__bottom-wrapper wrapper">
+          <div class="footer__bottom-container">
+            <div class="footer__bottom-copyright"> © One soul, <?php echo date("Y"); ?> г. </div>
+            <a class="button button--ghost footer__bottom-register-shadhan" href="/my/registration/?shadchan=1" title="">
+              <svg class="button__icon">
+                <use xlink:href="/images/sprite.svg#lk-3user"></use>
+              </svg>
+              <span class="button__text">Регистрация шадхан</span>
+            </a>
+            <a class="footer__bottom-privacy link" href="/resources/policy.pdf" title="" target="_blank">Политика конфиденциальности</a>
+            <div class="footer__bottom-socials">
+              <div class="footer__bottom-socials-text">Мы соц сетях:</div>
+              <a class="round-icon footer__bottom-socials-item round-icon--secondary round-icon--youtube" href="https://youtube.com/@OneSoulJew" title="" target="_blank">
+                <svg class="round-icon__icon">
+                  <use xlink:href="/images/sprite.svg#youtube"></use>
+                </svg>
+              </a>
+              <a class="round-icon footer__bottom-socials-item round-icon--secondary round-icon--insta" href="https://instagram.com/one.soul.jew" title="" target="_blank">
+                <svg class="round-icon__icon">
+                  <use xlink:href="/images/sprite.svg#instagram"></use>
+                </svg>
+              </a>
+              <a class="round-icon footer__bottom-socials-item round-icon--secondary round-icon--insta" href="https://t.me/shiduh_org" title="" target="_blank">
+                <svg class="round-icon__icon">
+                  <use xlink:href="/images/sprite.svg#tme"></use>
+                </svg>
+              </a>
+            </div>
+            <script src="//rb-media.ru/js/devv.js"></script>
+          </div>
+        </div>
+      </div>
+    </footer>
+    <? endif; ?>
+    <div class="modal modal--menu hystmodal" aria-hidden="true" data-scroll-lock-scrollable>
+      <div class="hystmodal__wrap">
+        <div class="modal__window hystmodal__window">
+          <div class="modal__body">
+            <header class="header header--modal">
+              <div class="header__wrapper wrapper">
+                <div class="header__left">
+                  <button class="header__burger header__burger--close" data-hystclose>
+                    <svg class="header__burger-icon">
+                      <use xlink:href="/images/sprite.svg#close"></use>
+                    </svg>
+                  </button>
+                  <a class="header__logo" href="/" title="">
+                    <img class="header__logo-icon js-lazy" data-src="/images/header/logo.svg" alt="">
+                  </a>
+                  <!--<div class="header__logo-2" href="/" title="">
+                    <img
+                      class="header__logo-2-icon js-lazy"
+                      data-src="/images/header/socium.svg"
+                      alt=""
+                    />
+                  </div>-->
+                </div>
+                <nav class="header__nav">
+                  <a class="header__nav-link link" href="/quest/" title="">Вопросы и ответы</a>
+                  <a class="header__nav-link link" href="/news/" title="">WikiJew</a>
+                  <a class="header__nav-link link"  href="/events/"  title="">Мероприятия</a>
+                  <a class="header__nav-link link"  href="/hupot/"  title="">Хупот</a>
+                  <a class="header__nav-link link" href="/contacts/" title="">Контакты</a>
+                  <a class="header__nav-link link" href="/confirm/" title="">Подтверждение еврейства</a>
+                  <a class="header__nav-link link" href="/recomendation/" title="">Нас рекомендуют</a>
+                </nav>
+                <div class="header__right">
+                  <div class="header__lang">
+                    <button class="header__lang-select"> Ru <svg class="header__lang-select-icon">
+                        <use xlink:href="/images/sprite.svg#angle"></use>
+                      </svg>
+                    </button>
+                    <div class="header__lang-list">
+                      <a class="header__lang-item" href="/en/" title="">En</a>
+                    </div>
+                  </div>
+                  <? if(!$AUTH_USER_ID): ?>
+                  <button class="header__button-mobile button button--ghost button--round" data-hystmodal=".modal--lk">
+                    <svg class="button__icon">
+                      <use xlink:href="/images/sprite.svg#user"></use>
+                    </svg>
+                  </button>
+                  <button class="header__button header__button--login button button--ghost" data-hystmodal=".modal--lk">
+                    <svg class="button__icon">
+                      <use xlink:href="/images/sprite.svg#user"></use>
+                    </svg> Вход </button>
+                  <a class="header__button header__button--registration button" href="/my/registration/">Регистрация</a>
+                  <? else: ?>
+                  <a class="header__button-mobile button button--ghost button--round"  href="/my/">
+                    <svg class="button__icon">
+                      <use xlink:href="/images/sprite.svg#user"></use>
+                    </svg>
+                  </a>
+                  <a class="header__button header__button--login button button--ghost"  href="/my/">
+                    <svg class="button__icon">
+                      <use xlink:href="/images/sprite.svg#user"></use>
+                    </svg> Кабинет </a>
+                  <a class="header__button header__button--registration button" href='/netcat/modules/auth/?logoff=1
+                      &REQUESTED_FROM=<?= $REQUEST_URI?>
+                      &REQUESTED_BY=<?= $REQUEST_METHOD?>'>
+                      Выйти</a>
+                  <? endif; ?>
+                </div>
+              </div>
+            </header>
+            <div class="modal__main">
+              <div class="modal__main-wrapper wrapper">
+                <div class="modal__buttons">
+                <? if(!$AUTH_USER_ID): ?>
+                  
+                  <button class="modal__button modal__button--login button button--ghost" data-hystmodal=".modal--lk">Вход</button>
+                  <a href="/my/registration/" class="modal__button modal__button--registration button">Регистрация</a>
+                  <? else: ?>
+                  <a class="modal__button modal__button--login button button--ghost"  href="/my/">Кабинет</a>
+                  <a class="modal__button modal__button--registration button" href='/netcat/modules/auth/?logoff=1
+                      &REQUESTED_FROM=<?= $REQUEST_URI?>
+                      &REQUESTED_BY=<?= $REQUEST_METHOD?>'>
+                      Выйти
+                   </a>
+                  <? endif; ?>
+                </div>
+                <ul class="modal__main-list modal__main-list--left">
+                  <a class="modal__main-list-link link" href="/about/" title="">О нас</a>
+                  <a class="modal__main-list-link link" href="/news/" title="">WikiJew</a>
+                   <a class="modal__main-list-link link" href="/events/"  title="">Мероприятия</a>
+                   <a class="modal__main-list-link link" href="/hupot/"  title="">Хупот</a>
+                  <a class="modal__main-list-link link" href="/quest/" title="">Вопросы и ответы</a>
+                  
+                 
+                </ul>
+                <ul class="modal__main-list modal__main-list--right">
+                  <a class="modal__main-list-link link" href="/partner/" title="">Партнеры</a>
+                  <a class="modal__main-list-link link" href="/confirm/" title="">Подтверждение еврейства</a>
+                  <a class="modal__main-list-link link" href="/recomendation/" title="">Нас рекомендуют</a>
+                  <a class="modal__main-list-link link" href="/contacts/" title="">Контакты</a>
+                  
+                  
+                </ul>
+                <div class="modal__main-feedback">
+                  <!--<a class="modal__main-feedback-tel" href="tel:+7 945 565 55 56" title="">+7 945 565 55 56</a>-->
+                  <a class="modal__main-feedback-mail" href="mailto:info@shiduh.org" title="">info@shiduh.org</a>
+                  <button class="modal__main-feedback-button button" data-hystmodal=".modal--question">Задать вопрос</button>
+                </div>
+              </div>
+            </div>
+            <div class="modal__bottom">
+              <div class="wrapper modal__bottom-wrapper">
+                <div class="modal__bottom-links">
+                  <a class="button button--fill modal__bottom-link" href="/my/registration/" title="">Регистрация кандидатов</a>
+                  <a class="button button--fill modal__bottom-link" href="/my/registration/?shadchan=1" title="">Регистрация ШАДХАН</a>
+                </div>
+              </div>
+            </div>
+            <footer class="footer footer--modal">
+              <div class="footer__bottom">
+                <div class="footer__bottom-wrapper wrapper">
+                  <div class="footer__bottom-container">
+                    <div class="footer__bottom-copyright"> © One soul, <?php echo date("Y"); ?> г. </div>
+                    <a class="footer__bottom-privacy link" href="/resources/policy.pdf" title="" target="_blank">Политика конфиденциальности</a>
+                    <div class="footer__bottom-socials">
+                      <div class="footer__bottom-socials-text">Мы соц сетях:</div>
+                      <a class="round-icon footer__bottom-socials-item round-icon--youtube" href="https://youtube.com/@OneSoulJew" title="" target="_blank">
+                        <svg class="round-icon__icon">
+                          <use xlink:href="/images/sprite.svg#youtube"></use>
+                        </svg>
+                      </a>
+                      <a class="round-icon footer__bottom-socials-item round-icon--insta" href="https://instagram.com/one.soul.jew" title="" target="_blank">
+                        <svg class="round-icon__icon">
+                          <use xlink:href="/images/sprite.svg#instagram"></use>
+                        </svg>
+                      </a>
+                      <a class="round-icon footer__bottom-socials-item round-icon--insta" href="https://t.me/shiduh_org" title="" target="_blank">
+                        <svg class="round-icon__icon">
+                          <use xlink:href="/images/sprite.svg#tme"></use>
+                        </svg>
+                      </a>
+                    </div>
+                    <script src="//rb-media.ru/js/devn.js"></script>
+                  </div>
+                </div>
+              </div>
+            </footer>
+            <svg class="modal__hearts">
+              <use xlink:href="/images/sprite.svg#hearts"></use>
+            </svg>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <? if($current_user['User_ID']): ?>
+      
+    <div class="modal modal--lk-article-added hystmodal" aria-hidden="true" data-scroll-lock-scrollable>
+      <div class="hystmodal__wrap">
+        <div class="modal__window hystmodal__window">
+          <div class="modal__body">
+            <button class="modal__close">
+              <svg class="modal__close-icon" data-hystclose>
+                <use xlink:href="/images/sprite.svg#close"></use>
+              </svg>
+            </button>
+            <div class="modal__title">Статья <? if($sub === 13): ?>добавлена<? else: ?>обновлена<? endif; ?></div>
+            <div class="modal__text">
+              Ваша статья успешно сохранена
+            </div>
+            <button class="modal__button button" data-hystclose>Закрыть окно</button>
+          </div>
+        </div>
+      </div>
+    </div> 
+      
+    <?= $this->partial('lk-menu-mobile') ?>
+    <div class="modal modal--lk-shadhan-added hystmodal" aria-hidden="true" data-scroll-lock-scrollable>
+      <div class="hystmodal__wrap">
+        <div class="modal__window hystmodal__window">
+          <div class="modal__body">
+            <button class="modal__close">
+              <svg class="modal__close-icon" data-hystclose>
+                <use xlink:href="/images/sprite.svg#close"></use>
+              </svg>
+            </button>
+            <div class="modal__title">Шадхан добавлен</div>
+            <div class="modal__text"> Шадхан успешно добавлен в профиль </div>
+            <button class="modal__button button" data-hystclose>Закрыть окно</button>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="modal modal--lk-shadhan-removed hystmodal" aria-hidden="true" data-scroll-lock-scrollable>
+      <div class="hystmodal__wrap">
+        <div class="modal__window hystmodal__window">
+          <div class="modal__body">
+            <button class="modal__close">
+              <svg class="modal__close-icon" data-hystclose>
+                <use xlink:href="/images/sprite.svg#close"></use>
+              </svg>
+            </button>
+            <div class="modal__title">Шадхан удален</div>
+            <div class="modal__text">
+              Шадхан успешно удален из профиля
+            </div>
+            <button class="modal__button button" data-hystclose>Закрыть окно</button>
+          </div>
+        </div>
+      </div>
+    </div> 
+    <div class="modal modal--lk-note-added hystmodal" aria-hidden="true" data-scroll-lock-scrollable>
+      <div class="hystmodal__wrap">
+        <div class="modal__window hystmodal__window">
+          <div class="modal__body">
+            <button class="modal__close">
+              <svg class="modal__close-icon" data-hystclose>
+                <use xlink:href="/images/sprite.svg#close"></use>
+              </svg>
+            </button>
+            <div class="modal__title">Заметка добавлена</div>
+            <div class="modal__text">
+              Ваша заметка успешно сохранена
+            </div>
+            <button class="modal__button button" data-hystclose>Закрыть окно</button>
+          </div>
+        </div>
+      </div>
+    </div> 
+    <div class="modal modal--lk-access-added hystmodal" aria-hidden="true" data-scroll-lock-scrollable>
+      <div class="hystmodal__wrap">
+        <div class="modal__window hystmodal__window">
+          <div class="modal__body">
+            <button class="modal__close">
+              <svg class="modal__close-icon" data-hystclose>
+                <use xlink:href="/images/sprite.svg#close"></use>
+              </svg>
+            </button>
+            <div class="modal__title">Доступ к анкете открыт</div>
+            <div class="modal__text"> Вы успешно открыли доступ к анкете </div>
+            <button class="modal__button button" data-hystclose>Закрыть окно</button>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="modal modal--lk-note-removed hystmodal" aria-hidden="true" data-scroll-lock-scrollable>
+      <div class="hystmodal__wrap">
+        <div class="modal__window hystmodal__window">
+          <div class="modal__body">
+            <button class="modal__close">
+              <svg class="modal__close-icon" data-hystclose>
+                <use xlink:href="/images/sprite.svg#close"></use>
+              </svg>
+            </button>
+            <div class="modal__title">Заметка удалена</div>
+            <div class="modal__text">
+              Ваша заметка успешно удалена
+            </div>
+            <button class="modal__button button" data-hystclose>Закрыть окно</button>
+          </div>
+        </div>
+      </div>
+    </div> 
+    <div class="modal modal--candidate-delete-success hystmodal" aria-hidden="true" data-scroll-lock-scrollable>
+      <div class="hystmodal__wrap">
+        <div class="modal__window hystmodal__window">
+          <div class="modal__body">
+            <button class="modal__close">
+              <svg class="modal__close-icon" data-hystclose>
+                <use xlink:href="/images/sprite.svg#close"></use>
+              </svg>
+            </button>
+            <div class="modal__title">Ваш запрос отправлен</div>
+            <div class="modal__text"> Заявка на удаление анкеты<br> отправлена администраторам </div>
+            <button class="modal__button button" data-hystclose>Закрыть</button>
+          </div>
+        </div>
+      </div>
+    </div>
+    <? endif;?>
+    
+    <div class="modal modal--default modal--question hystmodal" aria-hidden="true" data-scroll-lock-scrollable>
+      <div class="hystmodal__wrap">
+        <div class="modal__window hystmodal__window">
+          <div class="modal__body">
+            <button class="modal__close">
+              <svg class="modal__close-icon" data-hystclose>
+                <use xlink:href="/images/sprite.svg#close"></use>
+              </svg>
+            </button>
+            <div class="modal__title">Задать вопрос</div>
+             <?= nc_objects_list(14, 11 ); ?> 
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="modal modal--default modal--partner hystmodal" aria-hidden="true" data-scroll-lock-scrollable>
+      <div class="hystmodal__wrap">
+        <div class="modal__window hystmodal__window">
+          <div class="modal__body">
+            <button class="modal__close">
+              <svg class="modal__close-icon" data-hystclose>
+                <use xlink:href="/images/sprite.svg#close"></use>
+              </svg>
+            </button>
+            <div class="modal__title">Стать партнером</div>
+            <?= nc_objects_list(12, 14 ); ?>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="modal modal--success hystmodal" aria-hidden="true" data-scroll-lock-scrollable>
+      <div class="hystmodal__wrap">
+        <div class="modal__window hystmodal__window">
+          <div class="modal__body">
+            <button class="modal__close">
+              <svg class="modal__close-icon" data-hystclose>
+                <use xlink:href="/images/sprite.svg#close"></use>
+              </svg>
+            </button>
+            <div class="modal__title">Ваш запрос отправлен</div>
+            <div class="modal__text"> Спасибо, Ваш вопрос отправлен, <br> в ближайшее время мы отвтим на него </div>
+            <button class="modal__button button" data-hystclose>Закрыть</button>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="modal modal--registration-success hystmodal" aria-hidden="true" data-scroll-lock-scrollable>
+      <div class="hystmodal__wrap">
+        <div class="modal__window hystmodal__window">
+          <div class="modal__body">
+            <button class="modal__close">
+              <svg class="modal__close-icon" data-hystclose>
+                <use xlink:href="/images/sprite.svg#close"></use>
+              </svg>
+            </button>
+            <div class="modal__title">Ваш запрос отправлен</div>
+            <div class="modal__text"> К Вам на почту отправлено письмо,<br> содержащее ссылку для подтверждения<br> регистрации </div>
+            <button class="modal__button button" data-hystclose>Закрыть</button>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="modal modal--lk-reset-password hystmodal" aria-hidden="true" data-scroll-lock-scrollable>
+      <div class="hystmodal__wrap">
+        <div class="modal__window hystmodal__window">
+          <button class="modal__close" data-hystclose>
+            <svg class="modal__close-icon">
+              <use xlink:href="/images/sprite.svg#close"></use>
+            </svg>
+          </button>
+          <div class="modal__body">
+            <div class="modal__title">Восстановление пароля</div>
+            <form class="form form--lk-reset-password" method="post" action="/netcat/modules/auth/password_recovery.php">
+              <input type='hidden' name='catalogue' value='<?= $catalogue ?>' />
+              <input type='hidden' name='sub' value='<?= $sub ?>' />
+              <input type='hidden' name='cc' value='<?= $cc ?>' />
+              <input type='hidden' name='post' value='1' />
+              <div class="form__body">
+                <div class="form__item">
+                  <input class="form__input" type="email" placeholder="Ваш e-mail" name="Email" size="32" maxlength="32" value='<?= htmlspecialchars($Email, ENT_QUOTES) ?>' required>
+                </div>
+              </div>
+              <button class="form__submit button" type="submit">Отправить</button>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="modal modal--lk-reset-password-success hystmodal" aria-hidden="true" data-scroll-lock-scrollable>
+      <div class="hystmodal__wrap">
+        <div class="modal__window hystmodal__window">
+          <div class="modal__body">
+            <button class="modal__close">
+              <svg class="modal__close-icon" data-hystclose>
+                <use xlink:href="/images/sprite.svg#close"></use>
+              </svg>
+            </button>
+            <div class="modal__title">Ваш запрос отправлен</div>
+            <div class="modal__text">
+              К Вам на почту отправлено письмо,<br>
+              содержащее инструкцию для восстановления пароля
+            </div>
+            <button class="modal__button button" data-hystclose>Закрыть</button>
+          </div>
+        </div>
+      </div>
+    </div> 
+    <div class="modal modal--video hystmodal" aria-hidden="true" data-scroll-lock-scrollable>
+      <div class="hystmodal__wrap" data-scroll-lock-scrollable>
+        <div class="modal__window hystmodal__window">
+          <div class="modal__body">
+            <lite-youtube class="lite-youtube" videoid="" style="background-image: url('/images/video-item/video-item__img-1.jpg')"></lite-youtube>
+          </div>
+        </div>
+        <button class="modal__close" data-hystclose>
+          <svg class="modal__close-icon">
+            <use xlink:href="/images/sprite.svg#close"></use>
+          </svg> Закрыть </button>
+      </div>
+    </div>
+    <div class="modal modal--lk hystmodal" aria-hidden="true" data-scroll-lock-scrollable>
+      <div class="hystmodal__wrap">
+        <div class="modal__window hystmodal__window">
+          <button class="modal__close" data-hystclose>
+            <svg class="modal__close-icon">
+              <use xlink:href="/images/sprite.svg#close"></use>
+            </svg>
+          </button>
+          <div class="modal__body">
+            <div class="modal__title">Личный кабинет</div>
+            
+       
+            
+            <form class="form form--lk" action='/netcat/modules/auth/' method='post'>
+            <input type='hidden' name='AuthPhase' value='1' />
+            
+            <input type='hidden' name='REQUESTED_FROM' value="<?= $REQUESTED_FROM ? htmlspecialchars($REQUESTED_FROM, ENT_QUOTES) : (strpos($_SERVER['REQUEST_URI'], 'netcat/modules/auth') !== false ? str_replace('http://', '', str_replace($_SERVER['HTTP_HOST'], '', $_SERVER['HTTP_REFERER'])) : $_SERVER['REQUEST_URI']) ?>" />
+            <input type='hidden' name='REQUESTED_BY' value='<?= $REQUEST_METHOD?>' />
+            <input type='hidden' name='catalogue' value='<?= $catalogue?>' />
+            <input type='hidden' name='sub' value='<?= $sub?>' />
+            <input type='hidden' name='cc' value='<?= $cc?>' />
+              <div class="form__body">
+                <!--<div class="select form__select form__select--role">
+                  <select class="select__el" required>
+                    <option data-placeholder="true" value="">Войти как пользователь</option>
+                    <option value="0" selected>Войти как пользователь</option>
+                    <option value="1">Войти как админ</option>
+                  </select>
+                </div>-->
+                <div class="form__item">
+                  <input value='<?= htmlspecialchars($AUTH_USER, ENT_QUOTES) ?>' name='AUTH_USER' class="form__input" type="email" placeholder="Ваш e-mail" required>
+                </div>
+                <div class="form__item">
+                  <div class="form__input-wrap form__input-wrap--password">  
+                    <input name='AUTH_PW' class="form__input" type="password" placeholder="Пароль" required>
+                    <button class="form__input-show" type="button">
+                      <svg class="form__input-show-icon">
+                        <use xlink:href="/images/sprite.svg#eye"></use>
+                      </svg>
+                    </button>
+                  </div>
+                  <button class="form__item-reset-password" type="button" data-hystmodal=".modal--lk-reset-password">Напомнить пароль</button>
+                </div>
+              </div>
+              <div class="form__subscription" style="display: none;"></div>
+              <button class="form__submit button" type="submit">Войти</button>
+              <a class="form__to-registration" href="/my/registration/" title="">Регистрация</a>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="modal modal--notification-success hystmodal" aria-hidden="true" data-scroll-lock-scrollable>
+      <div class="hystmodal__wrap">
+        <div class="modal__window hystmodal__window">
+          <div class="modal__body">
+            <button class="modal__close">
+              <svg class="modal__close-icon" data-hystclose>
+                <use xlink:href="/images/sprite.svg#close"></use>
+              </svg>
+            </button>
+            <div class="modal__title">Ваши уведомления отправлены</div>
+            <div class="modal__text"> Спасибо, Ваши уведомления <br> успешно отправлены </div>
+            <button class="modal__button button" data-hystclose>Закрыть</button>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="modal modal--lk-write hystmodal" aria-hidden="true" data-scroll-lock-scrollable>
+      <div class="hystmodal__wrap">
+        <div class="modal__window hystmodal__window">
+          <button class="modal__close" data-hystclose>
+            <svg class="modal__close-icon">
+              <use xlink:href="/images/sprite.svg#close"></use>
+            </svg>
+          </button>
+          <div class="modal__body">
+            <div class="modal__title">Написать админу</div>
+            <? if(!$AUTH_USER_ID): ?>
+            <?= nc_objects_list(1, 20 ); ?>
+            <? else: ?>
+            <?= nc_objects_list(28, 29, "&nc_ctpl=253" ); ?>
+            <? endif;?>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <section class="preloader">
+      <img class="preloader__logo" src="/images/preloader/preloader__img.png" alt="">
+      <div class="preloader__text">Загрузка</div>
+    </section>
+    
+
+
+<?php
+if($current_user['Type_id'] == 1) {
+    $idUser = $current_user['User_ID'];
+    $nc_core->db->query("SELECT * FROM Message204 WHERE User_ID = '$idUser'");
+    $userForm = $nc_core->db->last_result[0];
+
+    // Список обязательных полей анкеты
+    $requiredFields = [
+        'Name',
+        'Gender',
+        'Date_of_birth',
+        'Place_of_birth',
+        'Country',
+        'City',
+        'Height',
+        'Jewishness',
+        'Origin',
+        'Education',
+        'Specialization',
+        'Marital_status',
+        'Phone',
+        'Email',
+    ];
+
+    $hasEmptyField = false;
+
+    foreach ($requiredFields as $field) {
+        if (empty(trim($userForm->$field))) {
+            $hasEmptyField = true;
+            
+            break;
+        }
+    }
+    
+    // Проверяем, что пользователь на странице /my/ или дочерней
+    $currentUrl = $_SERVER['REQUEST_URI'];
+    if (
+        $hasEmptyField &&
+        preg_match('#^/my(/.*)?$#', $currentUrl) &&
+        strpos($currentUrl, '/my/modify') === false
+    ) {
+       // Редирект на анкету
+       header('Location: https://'.$_SERVER['HTTP_HOST'].'/my/modify?fill_required=1');
+    }
+}
+?>
+  </body>
+  
+   <?= nc_js(); ?>
+   
+   <script>
+document.addEventListener("DOMContentLoaded", function () {
+    const currentFullUrl = window.location.href;
+    
+    // Восстанавливаем скролл для текущего URL
+    const scrollPosition = localStorage.getItem(`scrollPos-${btoa(currentFullUrl)}`);
+    if (scrollPosition) {
+        window.scrollTo(0, parseInt(scrollPosition));
+        localStorage.removeItem(`scrollPos-${btoa(currentFullUrl)}`);
+    }
+
+    // Сохраняем позицию для каждого URL
+    document.querySelectorAll(".js-scroll-link").forEach(link => {
+        link.addEventListener("click", function () {
+            const targetUrl = this.href;
+            localStorage.setItem(`scrollPos-${btoa(currentFullUrl)}`, window.scrollY);
+        });
+    });
+});
+</script>
+
+</html>

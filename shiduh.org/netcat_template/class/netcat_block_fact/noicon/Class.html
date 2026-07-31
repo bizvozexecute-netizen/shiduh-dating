@@ -1,0 +1,9 @@
+<!-- FormPrefix --><?= $f_AdminCommon; ?><!-- /FormPrefix -->
+
+<!-- RecordTemplate --><?= $f_AdminButtons; ?>
+<<?= ($f_Link && !$admin_mode ? "a href='{$f_Link}'" : "div"); ?> class="advantages-object">
+  <span class="tpl-text-header3"><?= nc_edit_inline('Title', $f_RowID,$cc_env['Sub_Class_ID']); ?></span>
+  <span class="tpl-text-default-paragraph"><?= nc_edit_inline('SubTitle', $f_RowID,$cc_env['Sub_Class_ID']); ?></span>
+</<?= ($f_Link && !$admin_mode ? "a" : "div"); ?>><!-- /RecordTemplate -->
+
+<!-- FormSuffix --><!-- /FormSuffix -->

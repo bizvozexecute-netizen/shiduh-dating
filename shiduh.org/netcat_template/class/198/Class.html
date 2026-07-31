@@ -1,0 +1,15 @@
+<!-- FormPrefix --><?= $f_AdminCommon; ?><!-- /FormPrefix -->
+
+<!-- RecordTemplate --><? if ($f_RowNum + 1 == $rowCount ): ?>
+{
+  "recomendation": "<?= $f_card_title; ?>",
+  "link": "<?= nc_object_path(183, $f_news); ?>"
+}
+<? else: ?>
+{
+  "recomendation": "<?= $f_card_title; ?>",
+  "link": "<?= nc_object_path(183, $f_news); ?>"
+},
+<? endif; ?><!-- /RecordTemplate -->
+
+<!-- FormSuffix --><!-- /FormSuffix -->

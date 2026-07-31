@@ -1,0 +1,14 @@
+<!-- FormPrefix --><?= $f_AdminCommon; ?>
+<table width='100%' cellspacing='0' cellpadding='5' border='1' class="tpl-table"><!-- /FormPrefix -->
+
+<!-- RecordTemplate --><tr>
+    <td align='left' width='1%'><?= ($f_Image ? $f_Image->resize(200, 200)->as_img() : null); ?></td>
+    <td><?= $f_Name; ?></td>
+    <td><?= $f_Description; ?><?= $f_AdminButtons; ?></td>
+    <td align='right'><?= $f_Price; ?></td>
+</tr><!-- /RecordTemplate -->
+
+<!-- FormSuffix --></table>
+<?php if ($totRows > $recNum): ?>
+<?= nc_browse_messages($cc_env, 10); ?>
+<?php endif; ?><!-- /FormSuffix -->

@@ -1,0 +1,90 @@
+<?
+$arrayMonth = array("january", "february", "march", "april", "may", "june", "july", "august", "september", "october", "november", "december");
+?>
+
+<div class="breadcrumbs ">
+  <div class="breadcrumbs__wrapper wrapper">
+    <a class="breadcrumbs__item" href="/en/" title="">
+      <svg class="breadcrumbs__item-icon">
+        <use xlink:href="/images/sprite.svg#home"></use>
+      </svg> Home </a>
+    <a class="breadcrumbs__item" href="/en/news/" title="">WikiJew</a>        
+    <a class="breadcrumbs__item" href="" title=""><?= $f_newsTitle; ?></a>
+  </div>
+</div>
+<section class="news-inner">
+  <div class="news-inner__wrapper wrapper">
+    <div class="page-head news-inner__page-head">
+      <h1 class="page-head__title"><?= $f_newsTitle; ?></h1>
+      <div class="page-head__info">
+        <span class="page-head__info-date"><?= $f_newsDate_day; ?> <?= $arrayMonth[(int)$f_newsDate_month - 1] ?> <?= $f_newsDate_year; ?> y.</span> / <a style="color: inherit;" href="/en/news/?<?= $f_autor_ID ? 'autor='.$f_autor_ID : 'user='.$f_User_ID;?>"   class="page-head__info-autor"><?=listQuery("SELECT * FROM Message200 WHERE Message_ID=$f_autor_ID", '$data[name]')?></a>
+      </div>
+    </div>
+    <div class="news-inner__main">
+      <div class="news-inner__content-wrapper">
+        <div class="news-inner__content content">
+          <?= $f_text;?>
+        </div>
+        <a class="news-inner__more more-arrow" href="/en/news/" title>
+          <svg class="more-arrow__icon">
+            <use xlink:href="/images/sprite.svg#arrow"></use>
+          </svg>All news </a>
+      </div>
+      <div class="news-inner__banner">
+        <img class="news-inner__img js-lazy" data-src="<?= $f_newsImage;?>" alt="">
+      </div>
+    </div>
+  </div>
+</section>
+
+<? if ($f_newsFiles->count()): ?>
+<section class="news-gallery">
+  <div class="news-gallery__wrapper wrapper">
+    <div class="news-gallery__container">
+      <h2 class="news-gallery__title title">Photo</h2>
+      <div class="news-gallery__swiper">
+        <div class="swiper-wrapper">
+          <? foreach($f_newsFiles->to_array() as &$file): ?>
+            <div class="news-gallery__slide swiper-slide">
+              <img class="js-lazy news-gallery__img" data-src="<?= $file['path']; ?>" alt="">
+            </div>
+          <? endforeach; ?>  
+        </div>
+      </div>
+      <a class="news-gallery__more more-arrow" href="/en/news/" title>
+        <svg class="more-arrow__icon">
+          <use xlink:href="/images/sprite.svg#arrow"></use>
+        </svg> All news </a>
+    </div>
+  </div>
+  <svg class="news-gallery__ellipse">
+    <use xlink:href="/images/sprite.svg#ellipse-2"></use>
+  </svg>
+</section>
+<? endif; ?>
+
+<section class="last-news">
+  <div class="last-news__wrapper wrapper">
+    <h2 class="last-news__title title">Last news</h2>
+    <div class="last-news__swiper swiper">
+      <div class="last-news__swiper-wrapper swiper-wrapper">
+        
+        <?= nc_objects_list(34, 34, "&recNum=8&nc_ctpl=224&ID=$f_Message_ID" ); ?>
+      </div>
+      <div class="swiper-navigation last-news__swiper-nav">
+        <button class="swiper-navigation__button swiper-navigation__button--prev">
+          <svg class="swiper-navigation__icon">
+            <use xlink:href="/images/sprite.svg#arrow"></use>
+          </svg>
+        </button>
+        <button class="swiper-navigation__button swiper-navigation__button--next">
+          <svg class="swiper-navigation__icon">
+            <use xlink:href="/images/sprite.svg#arrow"></use>
+          </svg>
+        </button>
+      </div>
+    </div>
+    
+    <a class="last-news__more more more--border" href="/en/news/" title="">View all</a>
+  </div>
+</section>

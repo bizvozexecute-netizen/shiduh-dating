@@ -1,0 +1,83 @@
+<!-- Header -->%Header
+
+<div class="breadcrumbs ">
+        <div class="breadcrumbs__wrapper wrapper">
+          <a class="breadcrumbs__item" href="/" title="">
+            <svg class="breadcrumbs__item-icon">
+              <use xlink:href="/images/sprite.svg#home"></use>
+            </svg> Главная </a>
+          <a class="breadcrumbs__item" href="" title="">Вопросы и ответы</a>
+        </div>
+      </div>
+      <section class="faq">
+        <div class="faq__wrapper wrapper">
+          <div class="page-head faq__page-head">
+            <div class="page-head__title">Вопросы и ответы</div>
+          </div>
+          <div class="faq__body">
+            <div class="faq__main">
+
+              <div class="tabs faq__tabs">
+                <div class="swiper tabs__nav">
+                  <div class="swiper-wrapper">
+                    <button class="swiper-slide tabs__nav-item">Для кандидатов</button>
+                    <button class="swiper-slide tabs__nav-item">Для шадханов</button>
+                  </div>
+                </div>
+                <div class="swiper tabs__content">
+                  <div class="swiper-wrapper">
+                    <div class="swiper-slide tabs__content-item faq__main-list">
+                      <?= nc_objects_list(14, 10 ); ?>
+                    </div>
+                    <div class="swiper-slide tabs__content-item faq__main-list">
+                      <?= nc_objects_list(14, 17 ); ?>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            
+              <button class="faq__main-question-button button" data-hystmodal=".modal--question">
+                <svg class="button__icon">
+                  <use xlink:href="/images/sprite.svg#question-2"></use>
+                </svg> Задать вопрос </button>
+            </div>
+            <div class="faq__sidebar">
+                <?= nc_objects_list(14, 15 ); ?>  
+            </div>
+          </div>
+        </div>
+      </section>
+      <section class="partners-section">
+        <div class="partners-section__wrapper wrapper">
+          <div class="partners-section__head">
+            <h2 class="partners-section__title title appearance-container">
+              <span class="appearance"> Международные <br> партнеры </span>
+            </h2>
+            <div class="partners-section__subtitle appearance-container">
+              <span class="appearance"> К нашей программе подключены специалисты из всех общин горских евреев: Махачкалы, Баку, Дербента, Кубы, Нальчика, Пятигорска, США, Израиля и Канады со своими базами кандидатов. </span>
+            </div>
+          </div>
+          <div class="partners-swiper swiper partners-section__swiper">
+            <div class="swiper-wrapper">
+              
+              <?= nc_objects_list(12, 9, "&rands=1" ); ?>
+              
+            </div>
+            <div class="swiper-navigation partners-swiper__swiper-nav">
+              <button class="swiper-navigation__button swiper-navigation__button--prev">
+                <svg class="swiper-navigation__icon">
+                  <use xlink:href="/images/sprite.svg#arrow"></use>
+                </svg>
+              </button>
+              <button class="swiper-navigation__button swiper-navigation__button--next">
+                <svg class="swiper-navigation__icon">
+                  <use xlink:href="/images/sprite.svg#arrow"></use>
+                </svg>
+              </button>
+            </div>
+          </div>
+          <a class="partners-section__more more more--border" href="" title="">Посмотреть все</a>
+        </div>
+      </section><!-- /Header -->
+
+<!-- Footer -->%Footer<!-- /Footer -->

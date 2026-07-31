@@ -1,0 +1,29 @@
+<?php
+if (!function_exists('nc_parse_coordinates_to_lat_long')) {
+    function nc_parse_coordinates_to_lat_long($coordinates) {
+        list($latitude, $longitude) = explode(',', $coordinates);
+        $latitude = floatval(trim($latitude, ' '));
+        $longitude = floatval(trim($longitude, ' '));
+        return array(
+            'latitude' => $latitude,
+            'longitude' => $longitude,
+        );
+    }
+}
+
+$b_open = '<span style="font-weight:bold;">';
+$b_close = '</span>';
+$i_open = '<span style="font-style: italic;">';
+$i_close = '</span>';
+
+$styles = array();
+switch ($cc_settings['mapPosition']) { 
+    case "end":
+        $styles[] = "--tpl-indent-top: " . $cc_settings['mapMargin'] . "px";
+        break;
+    case "begin":
+        $styles[] = "--tpl-indent-bottom: " . $cc_settings['mapMargin'] . "px";
+        break;
+}
+
+$styles = " style='" . implode("; ", $styles) . "'";

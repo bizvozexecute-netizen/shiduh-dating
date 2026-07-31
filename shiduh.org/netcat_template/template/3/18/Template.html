@@ -1,0 +1,73 @@
+<!-- Header -->%Header
+<?
+if(!$current_user['User_ID']) {
+    header('Location: https://'.$_SERVER['HTTP_HOST'].'');
+    exit();
+}
+if($current_user['Type_id'] !== 1) {
+    header('Location: https://'.$_SERVER['HTTP_HOST'].'');
+    exit();
+}
+?>
+
+
+
+<section class="lk-body ">
+  <div class="lk-body__wrapper wrapper">
+    <?= $this->partial('aside_profile') ?>
+    
+    <section class="lk-profile lk-profile--candidate">
+      <div class="lk-profile__wrapper">
+        <?php if (isset($_GET['fill_required']) && $_GET['fill_required'] == '1'): ?>
+            <div style="background: #fff3cd; color: #856404; padding: 10px 15px; border: 1px solid #ffeeba; margin: 10px 0;">
+                ⚠️ Для доступа к личному кабинету заполните все поля анкеты.
+            </div>
+        <?php endif; ?>  
+        <div class="lk-head lk-profile__head">
+          <h1 class="lk-head__title">Профиль</h1>
+          <? $userDateCreated = explode('-', explode(" ", $current_user['Created'])[0]); ?>
+          <div class="lk-profile__head-text">Дата регистрации: <?= $userDateCreated[2];?>.<?= $userDateCreated[1];?>.<?= $userDateCreated[0];?></div>
+          <a class="lk-profile__head-exit" href='/netcat/modules/auth/?logoff=1
+              &REQUESTED_FROM=<?= $REQUEST_URI?>
+              &REQUESTED_BY=<?= $REQUEST_METHOD?>' title="">
+            <svg class="lk-profile__head-exit-icon">
+              <use xlink:href="/images/sprite.svg#exit"></use>
+            </svg>
+            <span class="lk-profile__head-exit-text">Выход</span>
+          </a>
+        </div>
+        <div class="lk-profile__body">
+          <div class="lk-profile__tabs">
+     
+            <a class="lk-profile__tabs-item <?= $sub == 24 ? 'lk-profile__tabs-item--active' : ''; ?>" href="<?= $sub != 24 ? '/my/modify/' : ''; ?>" title="" <?= $sub == 24 ? 'data-target="profile_personal_data"' : ''; ?> >Личные данные</a>
+            <a class="lk-profile__tabs-item" href="<?= $sub != 24 ? '/my/modify/' : ''; ?>" title="" <?= $sub == 24 ? 'data-target="profile_preferences"' : ''; ?> >Предпочтения</a>
+            <a class="lk-profile__tabs-item" href="<?= $sub != 24 ? '/my/modify/' : ''; ?>" title="" <?= $sub == 24 ? 'data-target="profile_delete"' : ''; ?> >Удаление анкеты</a>
+            <a class="lk-profile__tabs-item" href="<?= $sub != 24 ? '/my/modify/' : ''; ?>" title="" <?= $sub == 24 ? 'data-target="profile_shadhans"' : ''; ?> >Шадханы</a>
+            <a class="lk-profile__tabs-item <?= $sub == 3 ? 'lk-profile__tabs-item--active' : ''; ?>" href="/netcat/modules/auth/password_change.php" title="">Пароль</a>
+          </div>
+          
+          
+        
+
+      
+      
+      
+      
+
+
+
+
+
+
+<!-- /Header -->
+
+<!-- Footer -->      </div>
+      </div>
+    </section>
+    
+    <?= $this->partial('lk-footer-mobile') ?>
+  
+  </div>
+</section>
+
+%Footer<!-- /Footer -->

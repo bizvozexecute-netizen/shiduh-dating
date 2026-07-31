@@ -1,0 +1,40 @@
+<!-- FormPrefix --><?= $f_AdminCommon; ?><!-- /FormPrefix -->
+
+<!-- RecordTemplate --><div class="contacts-object"<?= $styles; ?>><?= $f_AdminButtons; ?>
+    <?php if ($admin_mode || $f_Phone): ?>
+        <div class="tpl-text-header1">
+            <?php if ($admin_mode): ?>
+                <?= nc_edit_inline('Phone', $f_RowID, $cc_env['Sub_Class_ID']); ?>
+            <?php else: ?>
+                <a href='tel:<?= nc_normalize_phone_number($f_Phone); ?>'><?= $f_Phone; ?></a>
+            <?php endif; ?>
+        </div>
+    <?php endif; ?>
+    <?php if ($admin_mode || $f_Email): ?>
+        <div class="tpl-text-header1">
+            <?php if ($admin_mode): ?>
+                <?= nc_edit_inline('Email', $f_RowID, $cc_env['Sub_Class_ID']); ?>
+            <?php else: ?>
+                <a href='mailto:<?= $f_Email; ?>'><?= $f_Email; ?></a>
+            <?php endif; ?>
+        </div>
+    <?php endif; ?>
+    <?php if ($admin_mode || $f_Address): ?>
+        <div class="tpl-text-default-paragraph">
+            <?= nc_edit_inline("Address", $f_RowID, $cc_env['Sub_Class_ID']); ?>
+        </div>
+    <?php endif; ?>
+    <?php if ($admin_mode || $f_Social): ?>
+        <div class="contacts-object-socials tpl-text-<?= $cc_settings['iconSize']; ?> <?= ($admin_mode ? 'tpl-adm-text' : '' ); ?>">
+            <?php if ($admin_mode): ?>
+                <?= nc_edit_inline('Social', $f_RowID, $cc_env['Sub_Class_ID']); ?>
+            <?php else: ?>
+                <?= nc_social_icons($f_Social, "<a href='%URL' class='tpl-icon-pad " . $icon_class . "' title='%NAME' target='_blank'>%ICON</a>"); ?>
+            <?php endif; ?>
+        </div>
+    <?php endif; ?>
+</div><!-- /RecordTemplate -->
+
+<!-- FormSuffix --><?php if ($totRows > $recNum): ?>
+<?= nc_browse_messages($cc_env, 10); ?>
+<?php endif; ?><!-- /FormSuffix -->

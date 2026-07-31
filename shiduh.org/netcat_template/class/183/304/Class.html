@@ -1,0 +1,124 @@
+<!-- FormPrefix --><div class="breadcrumbs ">
+        <div class="breadcrumbs__wrapper wrapper">
+          <a class="breadcrumbs__item" href="/" title="">
+            <svg class="breadcrumbs__item-icon">
+              <use xlink:href="/images/sprite.svg#home"></use>
+            </svg> Главная </a>
+          <a class="breadcrumbs__item" href="/events/" style="pointer-events: auto;" title="">Мероприятия</a>
+        </div>
+      </div>
+      <section class="news">
+        <div class="news__wrapper wrapper">
+          <div class="page-head news__page-head">
+            <div class="page-head__title">Мероприятия</div>
+           
+            <div style="display:none;" class="page-head__selects"  <?= $_GET['autor'] || $_GET['user'] ? "style='display:none;'" : ""; ?> >
+              
+              <div class="select page-head__select page-head__select--year">
+                <select class="select__el">
+                  <option value="/news/?<?= $_GET['srchPat'][12] ? '&srchPat[12]='.$_GET['srchPat'][12] : ''; ?>">Все</option>  
+                  <option <?= $_GET['srchPat'][2] == '2024' ? 'selected' : ''; ?> value="/news/?srchPat[2]=2024&srchPat[8]=2024<?= $_GET['srchPat'][12] ? '&srchPat[12]='.$_GET['srchPat'][12] : ''; ?>">2024 г.</option>
+                  <option <?= $_GET['srchPat'][2] == '2023' ? 'selected' : ''; ?> value="/news/?srchPat[2]=2023&srchPat[8]=2023<?= $_GET['srchPat'][12] ? '&srchPat[12]='.$_GET['srchPat'][12] : ''; ?>">2023 г.</option>
+                  <option <?= $_GET['srchPat'][2] == '2022' ? 'selected' : ''; ?> value="/news/?srchPat[2]=2022&srchPat[8]=2022<?= $_GET['srchPat'][12] ? '&srchPat[12]='.$_GET['srchPat'][12] : ''; ?>">2022 г.</option>
+                  <option <?= $_GET['srchPat'][2] == '2021' ? 'selected' : ''; ?> value="/news/?srchPat[2]=2021&srchPat[8]=2021<?= $_GET['srchPat'][12] ? '&srchPat[12]='.$_GET['srchPat'][12] : ''; ?>">2021 г.</option>
+                  <option <?= $_GET['srchPat'][2] == '2020' ? 'selected' : ''; ?> value="/news/?srchPat[2]=2020&srchPat[8]=2020<?= $_GET['srchPat'][12] ? '&srchPat[12]='.$_GET['srchPat'][12] : ''; ?>">2020 г.</option>
+                  <option <?= $_GET['srchPat'][2] == '2019' ? 'selected' : ''; ?> value="/news/?srchPat[2]=2019&srchPat[8]=2019<?= $_GET['srchPat'][12] ? '&srchPat[12]='.$_GET['srchPat'][12] : ''; ?>">2019 г.</option>
+                  <option <?= $_GET['srchPat'][2] == '2018' ? 'selected' : ''; ?> value="/news/?srchPat[2]=2018&srchPat[8]=2018<?= $_GET['srchPat'][12] ? '&srchPat[12]='.$_GET['srchPat'][12] : ''; ?>">2018 г.</option>
+                  <option <?= $_GET['srchPat'][2] == '2017' ? 'selected' : ''; ?> value="/news/?srchPat[2]=2017&srchPat[8]=2017<?= $_GET['srchPat'][12] ? '&srchPat[12]='.$_GET['srchPat'][12] : ''; ?>">2017 г.</option>
+                </select>
+                </div>
+            </div>
+          </div>
+          <div class="news__body pagination-list" data-init-num="9" data-open-num="12">
+            <div class="news__grid"><!-- /FormPrefix -->
+
+<!-- RecordTemplate --><?
+$arrayMonth = array("января", "февраля", "марта", "апреля", "мая", "июня", "июля", "августа", "сентября", "октября", "ноября", "декабря");
+?>
+
+<div class="news-item news__item pagination-list__item <?= $f_mainNews ? 'news__item--large news-item--large pagination-list__item--large' : ''; ?>">
+  <div class="news-item__wrapper ">
+    <a class="news-item__head" href="<?=$fullLink?>" title="">
+      <?= $f_mainNews ? '<span class="news-item__badge">Главное</span>' : ''; ?>
+      <img class="news-item__img js-lazy" data-src="<?= $f_mainNews ? $f_newsImage->resize(773, 773) : $f_newsImage->resize(370, 370) ?>" alt="">
+    </a>
+    <div class="news-item__info">
+      <span class="news-item__date"><?= $f_newsDate_day; ?> <?= $arrayMonth[(int)$f_newsDate_month - 1] ?> <?= $f_newsDate_year; ?> г.</span> / <a style="color: inherit;" href="/news/?<?= $f_autor_ID ? 'autor='.$f_autor_ID : 'user='.$f_User_ID;?>" class="news-item__autor"> <?=listQuery("SELECT * FROM Message200 WHERE Message_ID=$f_autor_ID", '$data[name]') ?: $nc_core->user->get_by_id($f_User_ID, "Name" ); ?> </a>
+    </div>
+    <a class="news-item__title" href="<?=$fullLink?>" title=""><?= $f_newsTitle; ?></a>
+    <? if($f_newsSubTitle && $f_mainNews): ?>
+    <div class="news-item__subtitle"><?= $f_newsSubTitle; ?></div>
+    <? endif; ?>
+  </div>
+</div><!-- /RecordTemplate -->
+
+<!-- FormSuffix --></div>
+            <button class="news__load-btn button button--ghost button--repeat pagination-list__more">
+              <svg class="button__icon">
+                <use xlink:href="/images/sprite.svg#repeat"></use>
+              </svg> Показать еще </button>
+            <div class="pagination news__pagination pagination-list__pagination">
+              <button class="pagination__button pagination__button--prev pagination__button--disabled">
+                <svg class="pagination__button-icon">
+                  <use xlink:href="/images/sprite.svg#arrow"></use>
+                </svg>
+                <span class="pagination__button-text">Назад</span>
+              </button>
+              <div class="pagination__list">
+                <div class="pagination__list-prev">
+                  <button class="pagination__link pagination__link--first">1</button>
+                  <!-- <div class="pagination__sep">. . .</div> -->
+                </div>
+                <div class="pagination__list-inner">
+                  <button class="pagination__link pagination__link--active">2</button>
+                  <button class="pagination__link">3</button>
+                  <!-- <a class="pagination__link" href="" title="">4</a> -->
+                </div>
+                <div class="pagination__list-next">
+                  <div class="pagination__sep">. . .</div>
+                  <button class="pagination__link pagination__link--last">17</button>
+                </div>
+              </div>
+              <button class="pagination__button pagination__button--next">
+                <span class="pagination__button-text">Далее</span>
+                <svg class="pagination__button-icon">
+                  <use xlink:href="/images/sprite.svg#arrow"></use>
+                </svg>
+              </button>
+            </div>
+          </div>
+        </div>
+      </section>
+      <section class="partners-section">
+        <div class="partners-section__wrapper wrapper">
+          <div class="partners-section__head">
+            <h2 class="partners-section__title title appearance-container">
+              <span class="appearance"> Международные <br> партнеры </span>
+            </h2>
+            <div class="partners-section__subtitle appearance-container">
+              <span class="appearance"> К нашей программе подключены специалисты из всех общин горских евреев: Махачкалы, Баку, Дербента, Кубы, Нальчика, Пятигорска, США, Израиля и Канады со своими базами кандидатов. </span>
+            </div>
+          </div>
+          <div class="partners-swiper swiper partners-section__swiper">
+            <div class="swiper-wrapper">
+              
+              <?= nc_objects_list(12, 9, "&rands=1" ); ?>
+              
+              
+            </div>
+            <div class="swiper-navigation partners-swiper__swiper-nav">
+              <button class="swiper-navigation__button swiper-navigation__button--prev">
+                <svg class="swiper-navigation__icon">
+                  <use xlink:href="/images/sprite.svg#arrow"></use>
+                </svg>
+              </button>
+              <button class="swiper-navigation__button swiper-navigation__button--next">
+                <svg class="swiper-navigation__icon">
+                  <use xlink:href="/images/sprite.svg#arrow"></use>
+                </svg>
+              </button>
+            </div>
+          </div>
+          <a class="partners-section__more more more--border" href="/partner/" title="">Посмотреть все</a>
+        </div>
+      </section><!-- /FormSuffix -->

@@ -1,0 +1,23 @@
+<!-- FormPrefix --><?= $f_AdminCommon; ?><!-- /FormPrefix -->
+
+<!-- RecordTemplate --><div class="partner-item appearance-container partners-swiper__swiper-slide swiper-slide">
+  <? if ($f_url): ?>
+    <a href="<?= $f_url; ?>" target="_blank" class="partner-item__wrapper appearance">
+      <div class="partner-item__img-wrapper">
+        <img class="partner-item__img js-lazy" data-src="<?= $f_logo; ?>" alt="">
+      </div>
+      <div class="partner-item__title"  title=""><?= $f_name; ?></div>
+      <div class="partner-item__subtitle"><?= $f_subName; ?></div>
+    </a>
+  <? else: ?>
+    <div class="partner-item__wrapper appearance">
+      <div class="partner-item__img-wrapper">
+        <img class="partner-item__img js-lazy" data-src="<?= $f_logo; ?>" alt="">
+      </div>
+      <div class="partner-item__title"  title=""><?= $f_name; ?></div>
+      <div class="partner-item__subtitle"><?= $f_subName; ?></div>
+    </div>
+  <? endif; ?>
+</div><!-- /RecordTemplate -->
+
+<!-- FormSuffix --><!-- /FormSuffix -->

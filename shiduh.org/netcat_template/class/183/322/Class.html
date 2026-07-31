@@ -1,0 +1,53 @@
+<!-- FormPrefix --><section class="lk-blog">
+            <div class="lk-blog__wrapper">
+              <div class="lk-head lk-blog__head">
+                <h1 class="lk-head__title">Хупот</h1>
+                <div class="lk-head__manage">
+                  
+                  <!--<div class="select lk-head__manage-select lk-head__manage-select--year">
+                    <select class="select__el">
+                      <option value="<?= $subLink; ?>?<?= $_GET['srchPat'][12] ? '&srchPat[12]='.$_GET['srchPat'][12] : ''; ?>">Все</option>  
+                      <option <?= $_GET['srchPat'][2] == '2024' ? 'selected' : ''; ?> value="<?= $subLink; ?>?srchPat[2]=2024&srchPat[8]=2024<?= $_GET['srchPat'][12] ? '&srchPat[12]='.$_GET['srchPat'][12] : ''; ?>">2024 г.</option>
+                      <option <?= $_GET['srchPat'][2] == '2023' ? 'selected' : ''; ?> value="<?= $subLink; ?>?srchPat[2]=2023&srchPat[8]=2023<?= $_GET['srchPat'][12] ? '&srchPat[12]='.$_GET['srchPat'][12] : ''; ?>">2023 г.</option>
+                      <option <?= $_GET['srchPat'][2] == '2022' ? 'selected' : ''; ?> value="<?= $subLink; ?>?srchPat[2]=2022&srchPat[8]=2022<?= $_GET['srchPat'][12] ? '&srchPat[12]='.$_GET['srchPat'][12] : ''; ?>">2022 г.</option>
+                      <option <?= $_GET['srchPat'][2] == '2021' ? 'selected' : ''; ?> value="<?= $subLink; ?>?srchPat[2]=2021&srchPat[8]=2021<?= $_GET['srchPat'][12] ? '&srchPat[12]='.$_GET['srchPat'][12] : ''; ?>">2021 г.</option>
+                      <option <?= $_GET['srchPat'][2] == '2020' ? 'selected' : ''; ?> value="<?= $subLink; ?>?srchPat[2]=2020&srchPat[8]=2020<?= $_GET['srchPat'][12] ? '&srchPat[12]='.$_GET['srchPat'][12] : ''; ?>">2020 г.</option>
+                      <option <?= $_GET['srchPat'][2] == '2019' ? 'selected' : ''; ?> value="<?= $subLink; ?>?srchPat[2]=2019&srchPat[8]=2019<?= $_GET['srchPat'][12] ? '&srchPat[12]='.$_GET['srchPat'][12] : ''; ?>">2019 г.</option>
+                      <option <?= $_GET['srchPat'][2] == '2018' ? 'selected' : ''; ?> value="<?= $subLink; ?>?srchPat[2]=2018&srchPat[8]=2018<?= $_GET['srchPat'][12] ? '&srchPat[12]='.$_GET['srchPat'][12] : ''; ?>">2018 г.</option>
+                      <option <?= $_GET['srchPat'][2] == '2017' ? 'selected' : ''; ?> value="<?= $subLink; ?>?srchPat[2]=2017&srchPat[8]=2017<?= $_GET['srchPat'][12] ? '&srchPat[12]='.$_GET['srchPat'][12] : ''; ?>">2017 г.</option>
+                    </select>
+                  </div>  -->
+                  
+                </div>
+              </div>
+              <div class="lk-blog__body">
+                <div class="lk-blog__grid"><!-- /FormPrefix -->
+
+<!-- RecordTemplate --><?
+$arrayMonth = array("января", "февраля", "марта", "апреля", "мая", "июня", "июля", "августа", "сентября", "октября", "ноября", "декабря");
+?>
+
+
+<div class="article-item lk-blog__item"  >
+                    <a href="<?=$fullLink?>" class="article-item__head">
+                      <img class="article-item__img js-lazy" data-src="<?= $f_mainNews ? $f_newsImage->resize(773, 773) : $f_newsImage->resize(370, 370) ?>" alt="">
+                    </a>
+                    <div class="article-item__body">
+                      <div class="avatar article-item__avatar">
+                        
+                        <div class="avatar__body">
+                          <div class="avatar__date"><?= $f_newsDate_day; ?> <?= $arrayMonth[(int)$f_newsDate_month - 1] ?> <?= $f_newsDate_year; ?> г.</div>
+                          <a  href="/my/events/?<?= $f_autor_ID ? 'autor='.$f_autor_ID : 'user='.$f_User_ID;?>"  class="avatar__autor"  title=""> <?=listQuery("SELECT * FROM Message200 WHERE Message_ID=$f_autor_ID", '$data[name]') ?: $nc_core->user->get_by_id($f_User_ID, "Name" );?> </a>
+                        </div>
+                      </div>
+                      <a href="<?=$fullLink?>" class="article-item__title" title=""><?= $f_newsTitle; ?></a>
+                    </div>
+                  </div><!-- /RecordTemplate -->
+
+<!-- FormSuffix --></div>
+                <div class="lk-blog__load-more">
+                  <button class="lk-blog__load-more-btn">Показать ещё</button>
+                </div>
+              </div>
+            </div>
+          </section><!-- /FormSuffix -->

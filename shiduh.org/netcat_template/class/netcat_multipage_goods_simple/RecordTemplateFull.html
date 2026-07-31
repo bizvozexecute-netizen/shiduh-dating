@@ -1,0 +1,60 @@
+<?php
+if ($has_netshop) {
+    $item = new nc_netshop_item($resMsg);
+} else {
+    $item = $resMsg;
+}
+$item_parent_id = $item['Parent_Message_ID'] ?: $item['Message_ID'];
+$item_list_key = $classID . ':' . $item_parent_id;
+$item_in_stock = (!$nc_core->get_settings('IgnoreStockUnitsValue', 'netshop') ? ($item['StockUnits'] > 0) : true);
+$in_cart = $netshop_cart_items[$item_list_key]['Qty'] > 0;
+?>
+    <?= $f_AdminButtons; ?>
+    <article data-page-type="goods full" class="objects-item-full"<?= $styles; ?>
+            data-component-id="<?= $item['Class_ID']; ?>" data-message-id="<?= $item_parent_id; ?>" >
+        <h1 class="item-name tpl-text-header1">
+            <?= ($has_netshop ? $item['FullName'] : $f_Name); ?>
+        </h1>
+        <div class="item-row">
+            <?php if ($f_Image) { ?>
+                <div class="item-image">
+                    <div class="image" data-lightbox="test">
+                        <a href="<?= $f_Image ?>" data-lightbox="<?= "item_{$classID}_{$f_Message_ID}" ?>">
+                            <?= $f_Image->as_img(array('alt' => $f_Name)); ?>
+                        </a>
+                    </div>
+                </div>
+            <?php } ?>
+            <div class="item-info">
+                <?php if ($f_Price): ?>
+                    <?php if ($has_netshop): ?>
+                        <form action="<?= $netshop->get_add_to_cart_url() ?>" method="post" class="item-form">
+                            <input type="hidden" name="redirect_url" value="<?= $_SERVER["REQUEST_URI"] ?>"/>
+                            <input type="hidden" name="cart_mode" value="add"/>
+                            <input type="hidden" name="items[]" value="<?= $item['Class_ID'] . ':' . $item_parent_id; ?>"/>
+                            <input type="hidden" name="item_id" value="<?= $item_parent_id; ?>"/>
+                            <input type="hidden" name="class_id" value="<?= $item['Class_ID']; ?>"/>
+
+                            <div class="item-price tpl-text-header6">
+                                <?= $item['ItemPriceF']; ?>
+                            </div>
+                            <div class="item-count">
+                                <input type="hidden" name="qty" value="1"/>
+                                <?= $button($in_cart, $item_in_stock); ?>
+                            </div>
+                        </form>
+                    <?php else: ?>
+                        <div class="item-price tpl-text-header6">
+                            <?= $f_Price . ' ' . ($f_Currency === 'RUR' || $f_Currency === 'RUB' || !$f_Currency ? '₽' : $f_Currency) ?>
+                        </div>
+                    <?php endif; ?>
+                <?php endif; ?>
+
+                <div class="item-params tpl-text-default">
+                    <?= nc_edit_inline('Details', $f_RowID, $cc_env['Sub_Class_ID']); ?>
+                </div>
+
+            </div>
+        </div>
+    </article>
+<?= nc_netshop_goods_scripts(); ?>

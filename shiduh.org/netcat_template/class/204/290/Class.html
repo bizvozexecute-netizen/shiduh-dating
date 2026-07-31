@@ -1,0 +1,30 @@
+<!-- FormPrefix --><!-- /FormPrefix -->
+
+<!-- RecordTemplate --><a href="<?=$fullLink?>" class="lk-table__cell lk-table__cell--id js-scroll-link">
+  <div class="lk-table__cell-key">ID</div>
+  <div class="lk-table__cell-val">
+      <div class="lk-search-candidate-result__table-cell-value-check">
+        <svg class="lk-search-candidate-result__table-cell-value-check-item tooltip <? if($f_Success_docs):?>lk-search-candidate-result__table-cell-value-check-item--checked<? endif; ?>" data-tippy-content="Свидетельство о рождении <? if(!$f_Success_docs):?>не<? endif; ?> подтверждено">
+          <use xlink:href="/images/sprite.svg#check"></use>
+        </svg>
+        <svg class="lk-search-candidate-result__table-cell-value-check-item tooltip <? if($f_Success_ravin):?>lk-search-candidate-result__table-cell-value-check-item--checked<? endif; ?>" data-tippy-content="<? if($f_Success_ravin):?>Подтвержден<? else: ?>Не подтвержден<? endif; ?>  раввином">
+          <use xlink:href="/images/sprite.svg#check"></use>
+        </svg>
+      </div>    
+      ID <?= $f_Message_ID;?>
+  </div>
+</a>
+<a href="<?=$fullLink?>" class="lk-table__cell lk-table__cell--address js-scroll-link">
+  <div class="lk-table__cell-key">Страна</div>
+  <div class="lk-table__cell-val"><?= $f_Country;?></div>
+</a>
+<a href="<?=$fullLink?>" class="lk-table__cell lk-table__cell--address js-scroll-link">
+  <div class="lk-table__cell-key">Город</div>
+  <div class="lk-table__cell-val"><?= $f_City;?></div>
+</a>
+<a href="<?=$fullLink?>" class="lk-table__cell lk-table__cell--address js-scroll-link">
+  <div class="lk-table__cell-key">Возраст</div>
+  <div class="lk-table__cell-val"><?= $f_Date_of_birth_year < 2024 && $f_Date_of_birth_year !== '0000' ? get_age($f_Date_of_birth) : ''; ?></div>
+</a><!-- /RecordTemplate -->
+
+<!-- FormSuffix --><!-- /FormSuffix -->

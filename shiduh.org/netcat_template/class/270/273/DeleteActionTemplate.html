@@ -1,0 +1,10 @@
+<?
+if($inside_admin) {
+    ob_end_clean();
+    header('Location: '.$goBackLink.'&inside_admin=1');
+    exit;
+} else { 
+header('Location: /en/my/candidate/?srchPat%5B0%5D=&age%5B0%5D=0&age%5B1%5D=100&srchPat%5B16%5D=&srchPat%5B13%5D=0&srchPat%5B14%5D=300&srchPat%5B17%5D=&srchPat%5B22%5D=&srchPat%5B24%5D=&srchPat%5B25%5D=&srchPat%5B18%5D=&srchPat%5B20%5D=&srchPat%5B26%5D=&srchPat%5B22%5D=');
+        exit;
+}
+?>

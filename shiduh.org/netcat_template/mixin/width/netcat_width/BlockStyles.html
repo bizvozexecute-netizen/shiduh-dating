@@ -1,0 +1,35 @@
+<?php
+
+/** @var string $selector */
+/** @var array $settings */
+
+// Использует CSS-переменные, устанавливаемые миксинами netcat_layout_width, netcat_margin
+
+$width = '';
+if ($settings['width']) {
+    // !important приходится добавлять из-за миксина netcat_layout_width...
+    $width = 'width: ' . $settings['width'] . $settings['width_unit'] . ' !important; flex-shrink: 0; flex-grow: 0;';
+    if (!$settings['width_max']) {
+        $settings['width_max'] = '100';
+        $settings['width_max_unit'] = '%';
+    }
+}
+
+$min_width = '';
+if ($settings['width_min']) {
+    $min_width = 'min-width: ' . $settings['width_min'] . $settings['width_min_unit'] . ' !important;';
+}
+
+$max_width = '';
+if ($settings['width_max']) {
+    $max_width = 'max-width: calc(' .
+        $settings['width_max'] . $settings['width_max_unit'] .
+        // вычитаем margin, заданный миксином netcat_margin
+        ' - var(--tpl-mixin-margin-left, 0px) - var(--tpl-mixin-margin-right, 0px)' .
+        // при размещении блоков слева нужно учесть отступ слева, иначе блок вылезет за границы контейнера
+        // (а при размещении по центру — не надо: он равен ½ свободного пространства слева и справа):
+        ' - var(--tpl-mixin-layout-child-on-left, 0) * var(--tpl-mixin-layout-child-indent-left, 0px)' .
+        ') !important;';
+}
+
+return "$selector { $width $min_width $max_width }";

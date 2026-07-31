@@ -1,0 +1,25 @@
+<!-- FormPrefix --><?= $f_AdminCommon; ?><!-- /FormPrefix -->
+
+<!-- RecordTemplate --><div class='vacancy-item'>
+    <div class="item-info">
+        <?php if ($admin_mode) : ?>
+            <div class="title tpl-text-header6"><?= nc_edit_inline('Name', $f_RowID, $cc_env['Sub_Class_ID']); ?></div>
+        <?php elseif ($f_Name): ?>
+            <a href='<?= $fullLink; ?>' class="title tpl-text-header6"><?= $f_Name; ?></a>
+        <?php endif; ?>
+        <div class='description tpl-text-default-smaller-paragraph'>
+            <?= nc_edit_inline('Description', $f_RowID, $cc_env['Sub_Class_ID']); ?>
+        </div>
+        <?= $f_AdminButtons; ?>
+    </div>
+    <div class='item-salary tpl-text-header6'>
+        <?php if (!$f_Salary): ?>
+            <div class="no-salary">з/п не указана</div>
+        <?php endif; ?>
+        <?= nc_edit_inline('Salary', $f_RowID, $cc_env['Sub_Class_ID']); ?>
+    </div>
+</div><!-- /RecordTemplate -->
+
+<!-- FormSuffix --><?php if ($totRows > $recNum): ?>
+<?= nc_browse_messages($cc_env, 10); ?>
+<?php endif; ?><!-- /FormSuffix -->

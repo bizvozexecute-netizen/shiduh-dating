@@ -1,0 +1,13 @@
+/*
+object-assign
+(c) Sindre Sorhus
+@license MIT
+*/
+
+/*! regenerator-runtime -- Copyright (c) 2014-present, Facebook, Inc. -- license (MIT): https://github.com/facebook/regenerator/blob/main/LICENSE */
+
+/**
+ * tua-body-scroll-lock v1.4.0
+ * (c) 2023 Evinma, BuptStEve
+ * @license MIT
+ */

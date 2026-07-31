@@ -1,0 +1,79 @@
+&{min-height: 75px;}
+
+.timetable-object {
+    display: flex;
+    border-top: 1px solid var(--tpl-color-foreground-main);
+    padding: 45px 0;
+}
+
+.timetable-object:last-child {
+    border-bottom: 1px solid var(--tpl-color-foreground-main);
+}
+
+.timetable-time {
+    line-height: 1.35;
+    width: 25%;
+}
+
+.timetable-info {
+    width: 75%;
+    padding-right: 20px;
+}
+
+.timetable-person {
+    display: flex;
+    align-items: center;
+}
+
+.timetable-person + .timetable-desc {
+    margin-top: 35px;
+}
+
+.timetable-image {
+    width: 50px;
+    height: 50px;
+    min-width: 50px;
+    min-height: 50px;
+    border-radius: 50%;
+    overflow: hidden;
+    margin-right: 20px;
+}
+
+.timetable-image img {
+    max-width: 100%;
+}
+
+.timetable-about strong {
+    font-weight: 600;
+}
+
+.timetable-header + .timetable-person {
+    margin-top: 35px;
+}
+
+.timetable-header + .timetable-desc {
+    margin-top: 35px;
+}
+
+.no-separator .timetable-object {
+    border: 0;
+}
+
+.no-separator .timetable-object:last-child {
+    border: 0;
+}
+
+@nc-list-object (max-width: 800px) {
+  .timetable-object {
+      flex-direction: column;
+  }
+
+  .timetable-object .timetable-time {
+      width: 100%;
+  }
+
+  .timetable-object .timetable-info {
+      padding-top: 20px;
+      width: 100%;
+  }
+}

@@ -1,0 +1,34 @@
+<!-- Header -->%Header
+<?
+if(!$current_user['User_ID']) {
+    header('Location: https://'.$_SERVER['HTTP_HOST'].'');
+    exit();
+}
+//$user = $nc_core->user->get_by_id(30);
+//print_r($user);
+?>
+
+<section class="lk-body ">
+  <div class="lk-body__wrapper wrapper">
+    <?= $this->partial('aside_profile') ?>
+    
+    
+
+      
+      
+      
+      
+
+
+
+
+
+
+<!-- /Header -->
+
+<!-- Footer -->    
+<?= $this->partial('lk-footer-mobile') ?>
+  </div>
+</section>
+
+%Footer<!-- /Footer -->

@@ -1,0 +1,28 @@
+<!-- FormPrefix --><?= $f_AdminCommon; ?><!-- /FormPrefix -->
+
+<!-- RecordTemplate --><?= $f_AdminButtons; ?>
+<<?= ($f_Link && !$admin_mode ? "a href='{$f_Link}'" : "div"); ?> class="object-item"<?= $styles; ?>>
+<?php if ($admin_mode || $f_Image): ?>
+    <div class="object-item-image">
+        <div class="<?= $icon_class; ?>">
+            <?= nc_embed_icon($classID, $f_RowID, 'Image'); ?>
+        </div>
+    </div>
+<?php endif; ?>
+<?php if ($admin_mode || $f_Title || $f_SubTitle): ?>
+    <div class="object-item-info">
+        <?php if ($admin_mode || $f_Title): ?>
+            <div class="tpl-text-header6">
+                <?= nc_edit_inline('Title', $f_RowID, $cc_env['Sub_Class_ID']); ?>
+            </div>
+        <?php endif; ?>
+        <?php if ($admin_mode || $f_SubTitle): ?>
+            <div class="tpl-text-default-paragraph">
+                <?= nc_edit_inline('SubTitle', $f_RowID, $cc_env['Sub_Class_ID']); ?>
+            </div>
+        <?php endif; ?>
+    </div>
+<?php endif; ?>
+</<?= ($f_Link && !$admin_mode ? "a" : "div"); ?>><!-- /RecordTemplate -->
+
+<!-- FormSuffix --><!-- /FormSuffix -->

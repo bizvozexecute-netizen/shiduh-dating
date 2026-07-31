@@ -1,0 +1,59 @@
+<?
+$uid = 119;
+if (!$uid)
+    $uid = $f_UserID ? $f_UserID : $f_ToUser;
+$f_Parent_Message_ID = ($f_Parent_Message_ID ? $f_Parent_Message_ID : $f_RowID);
+$uid = intval($uid);
+$to_user = $db->get_var("SELECT `" . $AUTHORIZE_BY . "` FROM `User` WHERE `User_ID` = '" . $uid . "'");
+
+$reSubject = '';
+
+
+if (!$inside_admin && $to_user && $uid != $current_user['User_ID'] && $nc_core->get_settings('pm_allow', 'auth')) {
+    ?>
+<form class="form form--lk-profile-candidate-delete tpl-module-auth-registration-form " action="<?= $SUB_FOLDER ?>/netcat/add.php" autocomplete="off">
+
+<input type='hidden' name='cc' value='<?= $cc ?>' />
+            <input type='hidden' name='sub' value='<?= $sub ?>' />
+            <input type='hidden' name='catalogue' value='<?= $catalogue ?>' />
+            <input type='hidden' name='curPos' value='<?= $curPos ?>' />
+            <input type='hidden' name='posting' value='1' />
+            <input type='hidden' name='f_Checked' value='1' />
+            <input type='hidden' name='uid' value='<?= $uid ?>' />
+            <input type='hidden' name='f_ToUser' value='<?= $uid ?>' />
+            <input type='hidden' name='f_Parent_Message_ID' value='<?= $f_Parent_Message_ID ?>' />
+    <?= $nc_core->token->get_input() ?>
+ <input type='hidden' name='f_Subject' class='text' tabindex='1' value='Удалить анкету ID: <?= $IDCandidate;?>' />
+ 
+ <div class="form__body">
+              <div class="form__body-section">
+                <div class="form__body-container">
+                <input type="hidden" name="f_name" value="<?= $FIOCandidate;?>">
+              
+                  <div id="profile_delete" class="form__body-title">Удаление анкеты</div>
+                  <fieldset class="form__fieldset">
+                    <div class="form__item form__item--2col tpl-field">
+                      <label class="form__item-name" for="profile_delete_reasons">Выберите причину удаления</label>
+                      <div class="select form__select">
+                        <select class="select__el" name="f_Message">
+                          <option data-placeholder="true" value="" disabled>-- Выбрать --</option>
+                          <option value="женился / вышел замуж" id="">женился / вышел замуж</option>
+                          <option value="не актуально по личным соображениям " id="">не актуально по личным соображениям </option>
+                          <option value="не нравиться платформа" id="">не нравиться платформа</option>
+                         
+                        </select>
+                      </div>
+                    </div>
+                  </fieldset>
+                </div>
+              </div>
+             </div>
+                  <button class="form__submit button button--fill" type="submit" data-drop="<?= htmlspecialchars($dropLink) ?>">Удалить анкету</button>
+                   <!--<a class="form__submit button button--fill" href="<?= $dropLink;?>">Удалить анкету</a>-->
+
+              
+            
+            </form>
+           
+
+<? } ?>

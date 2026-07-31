@@ -1,0 +1,68 @@
+<?php if ($cc_settings['mapPosition'] === 'end'): ?>
+    <div id="map" class="tpl-text-indent-top" <?= $styles; ?>></div>
+<?php endif; ?>
+<?php if ($totRows) { ?>
+    <?php
+    $center_latitude_min = $center_latitude_max = null;
+    $center_longitude_min = $center_longitude_max = null;
+    foreach ($shops as $shop) {
+        $lat_long = nc_parse_coordinates_to_lat_long($shop['coordinates']);
+        $center_latitude_min = !is_null($center_latitude_min) ? min($center_latitude_min, $lat_long['latitude']) : $lat_long['latitude'];
+        $center_latitude_max = !is_null($center_latitude_max) ? max($center_latitude_max, $lat_long['latitude']) : $lat_long['latitude'];
+        $center_longitude_min = !is_null($center_longitude_min) ? min($center_longitude_min, $lat_long['longitude']) : $lat_long['longitude'];
+        $center_longitude_max = !is_null($center_longitude_max) ? max($center_longitude_max, $lat_long['longitude']) : $lat_long['longitude'];
+    }
+    $center_latitude = ($center_latitude_min + $center_latitude_max) / 2.0;
+    $center_longitude = ($center_longitude_min + $center_longitude_max) / 2.0;
+
+    $apikey = $cc_settings['YandexMapApiKey'] ? "&apikey=" . $cc_settings['YandexMapApiKey'] : "";
+    ?>
+
+    <script type="text/javascript" src="https://api-maps.yandex.ru/2.1/?lang=ru_RU<?= $apikey; ?>"></script>
+    <script>
+        function init() {
+            let mapCenter = [
+                <?= number_format($center_latitude, 6); ?>,
+                <?= number_format($center_longitude, 6); ?>
+            ];
+            let myMap = new ymaps.Map("map", {center: mapCenter, zoom: 10});
+            let points = [];
+            <?php foreach ($shops as $shop) {
+                $shop_name = array(
+                    "{$b_open}{$shop['name']}{$b_close}",
+                    "{$b_open}Адрес:{$b_close} {$shop['address']}",
+                );
+                if ($shop['working_time']) {
+                    $shop_name[] = "{$b_open}Часы работы:{$b_close} {$shop['working_time']}";
+                }
+                if ($shop['phones_processed']) {
+                    $shop_name[] = "{$b_open}Контакты:{$b_close} {$shop['phones_processed']}";
+                }
+                $shop_name = implode('<br>', $shop_name);
+                ?>
+                myMap.geoObjects.add(new ymaps.Placemark([<?= $shop['coordinates']; ?>],
+                    {
+                        hintContent: '<?= $shop['name']; ?>',
+                        balloonContent: '<?= $shop_name; ?>'
+                    },
+                    {
+                        preset: 'islands#icon',
+                        iconColor: '#0095b6'
+                    }
+                ));
+                points.push(<?= $shop['coordinates']; ?>);
+            <?php } ?>
+        }
+
+        if (document.readyState == 'loading') {
+            document.addEventListener("DOMContentLoaded", function (event) {
+                ymaps.ready(init);
+            });
+        } else {
+            ymaps.ready(init);
+        }
+    </script>
+<?php } ?>
+<?php if ($totRows > $recNum): ?>
+    <?= nc_browse_messages($cc_env, 10); ?>
+<?php endif; ?>

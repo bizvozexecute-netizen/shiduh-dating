@@ -1,0 +1,58 @@
+<?/* Служебная часть */for ($f_RowNum = 0; $f_RowNum < $rowCount; $f_RowNum++) {    if($fetch_row[$f_RowNum] instanceof Iterator) {        extract($fetch_row[$f_RowNum]->to_array(), EXTR_PREFIX_ALL, "f");    } else {        extract($fetch_row[$f_RowNum], EXTR_PREFIX_ALL, "f");    }    foreach($iteration_RecordTemplate[$f_RowNum] as $value) {        extract($value);    }    eval($cc_env["convert2txt"]);    ob_start();/* Конец служебной части */?>
+<?php
+if ($has_netshop) {
+    $item = new nc_netshop_item($res[$f_RowNum]);
+} else {
+    $item = $res[$f_RowNum];
+}
+$item_parent_id = $item['Parent_Message_ID'] ?: $item['Message_ID'];
+$item_list_key = $item['Class_ID'] . ':' . $item_parent_id;
+$item_in_stock = (!$nc_core->get_settings('IgnoreStockUnitsValue', 'netshop') ? ($item['StockUnits'] > 0) : true);
+$in_cart = isset($netshop_cart_items[$item_list_key]['Qty']);
+?>
+<div>
+<?= $f_AdminButtons; ?>
+<?php if (!empty($f_Details)): ?><a href="<?= $fullLink ?>" class="object-item-link"><?php endif; ?>
+<div class="objects-item<?= $f_Marked ? " item-marked" : ""; ?>"<?= $styles ?>
+     data-class-id="<?= $item['Class_ID']; ?>" data-item-id="<?= $item_parent_id; ?>">
+    <?php if ($f_Image) { ?>
+        <div class='item-image'>
+            <div class="image">
+                <?= $f_Image->as_img(array('alt' => $f_Name)); ?>
+            </div>
+        </div>
+    <?php } ?>
+    <div class="item-name tpl-text-header4">
+        <?= nc_edit_inline('Name', $f_RowID, $cc_env['Sub_Class_ID']); ?>
+    </div>
+    <div class="item-params tpl-text-default">
+        <?= nc_edit_inline('Description', $f_RowID, $cc_env['Sub_Class_ID']); ?>
+    </div>
+
+    <?php if ($f_Price): ?>
+        <?php if ($has_netshop): ?>
+        <form action="<?= $netshop->get_add_to_cart_url() ?>" method="post" class="item-form">
+            <input type="hidden" name="redirect_url" value="<?= $_SERVER["REQUEST_URI"] ?>"/>
+            <input type="hidden" name="cart_mode" value="add"/>
+            <input type="hidden" name="items[]" value="<?= $item['Class_ID'] . ':' . $item_parent_id; ?>"/>
+            <input type="hidden" name="item_id" value="<?= $item_parent_id; ?>"/>
+            <input type="hidden" name="class_id" value="<?= $item['Class_ID']; ?>"/>
+            <div class="item-price tpl-text-header6">
+                <?= $item['ItemPriceF']; ?>
+            </div>
+            <div class="item-count  tpl-text-header6">
+                <input type="hidden" name="qty" value="1"/>
+                <?= $button($in_cart, $item_in_stock); ?>
+            </div>
+        </form>
+        <?php else: ?>
+            <div class="item-price tpl-text-header6">
+                <?= $f_Price . ' ' . ($f_Currency === 'RUR' || $f_Currency === 'RUB' ? '₽' : $f_Currency) ?>
+            </div>
+        <?php endif; ?>
+    <?php endif; ?>
+
+</div>
+<?php if (!empty($f_Details)): ?></a><?php endif; ?>
+</div>
+<?/* Служебная часть */    echo nc_finishing_RecordTemplate(ob_get_clean(), $inside_admin, $classID, $f_RowID, $parent_message, $cc, $cc_env["Class_Name"], $no_cache_marks);}/* Конец служебной части */?>

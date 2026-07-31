@@ -1,0 +1,66 @@
+<!-- FormPrefix --><?= $f_AdminCommon; ?><!-- /FormPrefix -->
+
+<!-- RecordTemplate --><div class="<?= $contact_class; ?>"<?= $styles; ?>><?= $f_AdminButtons; ?>
+    <div class="address">
+        <?php if ($admin_mode || $f_Icon): ?>
+            <div class="contacts-object-image tpl-text-header1">
+                <?= nc_image_edit_inline('Icon', $f_RowID, $cc_env['Sub_Class_ID']); ?>
+            </div>
+        <?php endif; ?>
+        <div class="contacts-object-info ">
+            <?php if ($admin_mode || $f_Name): ?>
+                <div class="contacts-object-header tpl-text-header4">
+                    <?= nc_edit_inline('Name', $f_RowID, $cc_env['Sub_Class_ID']); ?>
+                </div>
+            <?php endif; ?>
+            <div class="contacts-object-about">
+                <?php if ($admin_mode || $f_Description): ?>
+                    <div class='tpl-text-header5'>
+                        <?= nc_edit_inline('Description', $f_RowID, $cc_env['Sub_Class_ID']); ?>
+                    </div>
+                <?php endif; ?>
+                <?php if ($admin_mode || $f_Address): ?>
+                    <div class="tpl-text-default-paragraph">
+                        <?= nc_edit_inline('Address', $f_RowID, $cc_env['Sub_Class_ID']); ?>
+                    </div>
+                <?php endif; ?>
+                <?php if ($admin_mode || $f_Phone): ?>
+                    <div class="tpl-text-default-paragraph">
+                        <?php if ($admin_mode): ?>
+                            <?= nc_edit_inline('Phone', $f_RowID, $cc_env['Sub_Class_ID']); ?>
+                        <?php else: ?>
+                            <a href='tel:<?= nc_normalize_phone_number($f_Phone); ?>'><?= $f_Phone; ?></a>
+                        <?php endif; ?>
+                    </div>
+                <?php endif; ?>
+                <?php if ($admin_mode || $f_Email): ?>
+                    <div class="tpl-text-default-paragraph">
+                        <?php if ($admin_mode): ?>
+                            <?= nc_edit_inline('Email', $f_RowID, $cc_env['Sub_Class_ID']); ?>
+                        <?php else: ?>
+                            <a href='mailto:<?= $f_Email; ?>'><?= $f_Email; ?></a>
+                        <?php endif; ?>
+                    </div>
+                <?php endif; ?>
+            </div>
+            <div class="contacts-object-socials tpl-text-<?=$cc_settings['iconSize'];?> <?= ($admin_mode ? 'tpl-adm-text' : '' ); ?>">
+                <?php if ($admin_mode): ?>
+                    <?= nc_edit_inline('Social', $f_RowID, $cc_env['Sub_Class_ID']); ?>
+                <?php else: ?>
+                    <?= nc_social_icons($f_Social, "<a href='%URL' class='tpl-icon-pad " . $icon_class . "' title='%NAME' target='_blank'>%ICON</a>"); ?>
+                <?php endif; ?>
+            </div>
+        </div>
+    </div>
+</div>
+<?php if ($cc_settings['mapCode']): ?>
+    <div class="contacts-map contacts-object"><?= $cc_settings['mapCode']; ?></div>
+<?php else: ?>
+    <?php if ($admin_mode): ?>
+        <?= $nc_core->ui->alert->info('Не указан код карты. Укажите код в настройках инфоблока или выберите другой шаблон'); ?>
+    <?php endif; ?>
+<?php endif; ?><!-- /RecordTemplate -->
+
+<!-- FormSuffix --><?php if ($totRows > $recNum): ?>
+  <?= nc_browse_messages($cc_env, 10); ?>
+<?php endif; ?><!-- /FormSuffix -->

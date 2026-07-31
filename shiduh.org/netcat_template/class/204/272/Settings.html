@@ -1,0 +1,38 @@
+<?php
+$arfloor['element'] = '%ELEMENT';
+$arfloor['divider'] = ', ';
+$arfloor['suffix']  = '';
+
+$idUser = $current_user['User_ID'];
+
+
+if($_GET["search"]) {
+   $ignore_all = 1;
+   $query_limit = 0; 
+} 
+if($action !== 'full') {
+
+    $arrIdCandidates = [];
+    $nc_core->db->query("SELECT * FROM Message270 WHERE User_ID = $idUser ORDER BY Message_ID DESC", ARRAY_A );
+    $arr = $nc_core->db->last_result;
+    if (!empty($arr)) {
+      foreach ($arr as $row) {
+         $arrIdCandidates[] = $row['Candidate'];
+      }
+      $arrIdCandidatesResult = array_unique($arrIdCandidates);  
+      $condition = implode(',', $arrIdCandidatesResult);
+
+      $query_where .= " Message_ID IN ($condition)";
+    }  else {
+      $query_where .= " Message_ID IN (0)"; 
+    }
+    
+}
+
+if($_GET["country"]) {
+  $ids = implode(',', $_GET["country"]); 
+  $query_where .= " AND Country IN (".$ids.") ";
+}
+//$ignore_user = 1;
+
+//$query_where .= "a.Shadhan_1 = $idUser or a.Shadhan_2 = $idUser or a.Shadhan_3 = $idUser";

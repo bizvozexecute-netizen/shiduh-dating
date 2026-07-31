@@ -1,0 +1,15 @@
+<!-- FormPrefix --><div class="objects-item objects-header tpl-text-alt d-flex py-2">
+    <div class="item-name"><?= nc_infoblock_custom_setting_edit_inline('NameDescription', $cc_env['Sub_Class_ID']); ?></div>
+    <div class="item-price"><?= nc_infoblock_custom_setting_edit_inline('PriceDescription', $cc_env['Sub_Class_ID']); ?></div>
+</div>
+<?= $f_AdminCommon; ?>
+<!-- /FormPrefix -->
+
+<!-- RecordTemplate --><div class="objects-item d-flex py-3 tpl-text-default <?= $f_Marked ? "item-marked" : ""; ?>">
+    <?= $f_AdminButtons; ?>
+    <div class="item-name tpl-text-default-paragraph"><?= nc_edit_inline('Name', $f_RowID, $cc_env['Sub_Class_ID']); ?></div>
+    <div class="item-price tpl-text-default-paragraph"><?= nc_edit_inline('Price', $f_RowID, $cc_env['Sub_Class_ID']); ?></div>
+    <div class="item-params tpl-text-default-paragraph"><?= nc_edit_inline('Description', $f_RowID, $cc_env['Sub_Class_ID']); ?></div>
+</div><!-- /RecordTemplate -->
+
+<!-- FormSuffix --><!-- /FormSuffix -->

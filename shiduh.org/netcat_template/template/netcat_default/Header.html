@@ -1,0 +1,13 @@
+<!DOCTYPE html>
+<html lang="<?= $current_sub['Language']; ?>">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=0">
+    <?= $nc_core->page->get_metatags(); ?>
+    <title><?= $nc_core->page->get_title(); ?></title>
+    <?php if ($nc_core->admin_mode) { echo nc_js(); } ?>
+    <link href="<?= $nc_parent_template_folder_path; ?>css/default.css" rel="stylesheet" type="text/css">
+    <link href="<?= $nc_parent_template_folder_path; ?>css/mixin_defaults.css" rel="stylesheet" type="text/css">
+</head>
+<body>
+<?=  nc_area('main'); ?>

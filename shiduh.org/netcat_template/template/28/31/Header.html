@@ -1,0 +1,39 @@
+%Header
+
+<div class="breadcrumbs ">
+        <div class="breadcrumbs__wrapper wrapper">
+          <a class="breadcrumbs__item" href="/en/" title="">
+            <svg class="breadcrumbs__item-icon">
+              <use xlink:href="/images/sprite.svg#home"></use>
+            </svg> Home </a>
+          <a class="breadcrumbs__item" href="" title="">Partners</a>
+        </div>
+      </div>
+      <section class="partners">
+        <div class="partners__wrapper wrapper">
+          <div class="page-head partners__page-head">
+            <div class="page-head__title">Partners</div>
+          </div>
+          <picture class="partners__picture">
+            <source data-srcset="/images/partners/partners__img-xs.png 1x, images/partners/partners__img-xs--2x.png 2x" media="(max-width: 767.98px)">
+            <source data-srcset="/images/partners/partners__img-sm.png 1x, images/partners/partners__img-sm--2x.png 2x" media="(max-width: 1279.98px)">
+            <source data-srcset="/images/partners/partners__img-md.png" media="(max-width: 1709.98px)">
+            <img class="js-lazy" data-src="/images/partners/partners__img.png" alt="">
+          </picture>
+          <div class="partners__main">
+            <div class="partners__text">
+              <b>Specislists from all communities of Mountain Jews: </b>  Makhachkala ,Baku , Derbent, Nalchik, Pyatigorsk, USA, Israel and Canada with their candidates databases are connected to our program.
+            </div>
+            <button class="partners__partner-btn button" data-hystmodal=".modal--partner">Become a partner</button>
+            <div class="partners__grid">
+              <?= nc_objects_list(35, 33, "&nc_ctpl=190"  ); ?>
+              
+              
+            </div>
+            <!--<button class="partners__more-btn button button--ghost button--repeat">
+              <svg class="button__icon">
+                <use xlink:href="/images/sprite.svg#repeat"></use>
+              </svg> Показать еще </button>-->
+          </div>
+        </div>
+      </section>

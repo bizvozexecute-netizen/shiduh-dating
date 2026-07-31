@@ -1,0 +1,3 @@
+.tpl-component-netcat-module-search-result-by-type.tpl-template-others .search-result-title { margin-top: 30px; margin-bottom: 10px; text-align: left; }
+.tpl-component-netcat-module-search-result-by-type.tpl-template-others .search-no-result { text-align: left; }
+.tpl-component-netcat-module-search-result-by-type.tpl-template-others .search-result-item { display: flex; align-items: flex-start; flex-direction: column; justify-items: flex-start; margin-bottom: 0.5rem; }

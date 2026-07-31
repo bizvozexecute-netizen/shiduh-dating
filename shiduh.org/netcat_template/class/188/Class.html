@@ -1,0 +1,10 @@
+<!-- FormPrefix --><?= $f_AdminCommon; ?><!-- /FormPrefix -->
+
+<!-- RecordTemplate --><? foreach($f_image->to_array() as &$file): ?>
+   
+            <picture class="mission__swiper-slide swiper-slide appearance-container">
+                  <img class="mission__swiper-img js-lazy appearance" data-src="<?= $file['path']; ?>" alt="">
+                </picture>
+          <? endforeach; ?><!-- /RecordTemplate -->
+
+<!-- FormSuffix --><!-- /FormSuffix -->

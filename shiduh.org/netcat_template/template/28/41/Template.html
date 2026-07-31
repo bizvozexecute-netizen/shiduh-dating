@@ -1,0 +1,94 @@
+<!-- Header -->%Header
+<?
+if(!$current_user['User_ID']) {
+    header('Location: https://'.$_SERVER['HTTP_HOST'].'');
+    exit();
+}
+?>
+
+<section class="lk-body ">
+  <div class="lk-body__wrapper wrapper">
+    <?= $this->partial('aside_profile') ?>
+    <section class="lk-manual">
+            <div class="lk-manual__wrapper">
+              <div class="lk-head lk-manual__head">
+                <h1 class="lk-head__title">Instruction</h1>
+              </div>
+              <div class="lk-manual__body">
+                <ol class="lk-manual__list num-list">
+                  <li class="num-list__item">
+                    <div class="num-list__item-title">Registration of candidates. </div>
+                    <p> 
+                    The candidate can register in the system either independently or be registered by shadchan.
+Only shadchans have access to the database of registered shadchans. All features of the shadchan are available only after logging in using your username and password, which is issued by the site administration.
+
+                    </p>
+                  </li>
+                  <li class="num-list__item">
+                    <div class="num-list__item-title">Confirmation of candidates.</div>
+                    <p> 
+                    In order to increase confidence in candidates, the «candidate confirmation» function is used. IF someone of the shadchans is ready to confirm the Jewishness of a particular candidate and the seriousness of his intention, he presses the button «to endorse the candidates». After that, all other shadchans will see in the candidate's profile that the person can be trusted and which of the shadchans confirmed him. Please use this function - because by doing this you make life easier for your colleagues and they make life easier for you.   
+                    </p>
+                  </li>
+                  <li class="num-list__item">
+                    <div class="num-list__item-title">Editing a candidate's profile.   </div>
+                    <p> 
+                    Only shadchan can edit a candidate's profile. If you know that some information in the application form is incorrect or you want to add something etc., you can do this on the candidate application page. Of course, you must be sure of the accuracy of the entered data. If you find out any questions from the candidate directly, please enter this information into his application form. It could help other shadchans and eliminate repeated questions.
+                    </p>
+                  </li>
+                  <li class="num-list__item">
+                    <div class="num-list__item-title">Filters and candidate selection. </div>
+                    <p>To select a pair, shadchans can use the system of filters implemented in the system.  So you can select, for example, only women of such and such  age from such and such cities. Or, men of a certain height and age etc. All filters are intuitive, but if you have any questions, ask them to the site administration. </p>
+                  </li>
+                  <li class="num-list__item">
+                    <div class="num-list__item-title">Candidate status management.            </div>
+                    <p> Each candidate's profile has a current status field: whether the candidate is open to suggestions or is in shidduch. The state can be seen and edited by any of the shadchans or by the candidates himself.  This function allows the shadchans not to overwhelm candidates with proposals when the candidates are not even ready to consider these proposals. If the shidduch is over, don't forget to set the status to «open to suggestions».  </p>
+                  </li>
+                  <li class="num-list__item">
+                    <div class="num-list__item-title">Communication with candidates. </div>
+                    <p>Candidates can be contacted either by phone or Skype specified in the system or by email, by clicking on the «send» button, your message will be sent to the candidate to the email specified during registration.   </p>
+                  </li>
+                  <li class="num-list__item">
+                    <div class="num-list__item-title">Shidduch offering. </div>
+                    <p> By opening the page with the candidate's   questionnaire, you can see the field «send this questionnaire with a shidduch proposal  by email». Please enter here the email address of the person to whom you propose shidduch with the candidate whose profile you have opened.
+Then the questionnaire will be sent to the email you entered with an offer of shidduch. You can see the email address of any candidate in the application form. To better understand how it works, we recommend opening any profile and entering your email. The message received allows us to better understand this system.   
+                    </p>
+                  </li>
+                  <li class="num-list__item">
+                    <div class="num-list__item-title">Communication with other shadchans. </div>
+                    <p>You can contact other shadchans, which will allow you to join efforts to clarify information, etc. for this, on the page «list of shadchans» there is a button «send a message».      </p>
+                  </li>
+                  <li class="num-list__item">
+                    <div class="num-list__item-title">Questions and answers.</div>
+                    <p>
+                    What to do if the information specified in the application form is insufficient or it is erroneous, raises doubts etc. You can contact the candidate himself (see paragraph 6 «Communication with the candidate») and after receiving their response, independently correct the data in the application form (see paragraph 3 «Editing a candidate's profile»). You can also contact a person indicated in the candidate's application form as a recommender.         
+                    </p>
+                  </li>
+                  <li class="num-list__item">
+                    <div class="num-list__item-title">If you have some more questions.</div>
+                    <p>
+                   We will be happy to answer them. If you lack any system capabilities, we will be happy to implement them. Write to us. The more feedback we receive from you, the better we can develop the system and make it better for you.        
+                    </p>
+                  </li>
+                </ol>
+              </div>
+            </div>
+          </section>
+      
+
+      
+      
+      
+      
+
+
+
+
+
+
+<!-- /Header -->
+
+<!-- Footer -->      <?= $this->partial('lk-footer-mobile') ?>
+  </div>
+</section>
+%Footer<!-- /Footer -->

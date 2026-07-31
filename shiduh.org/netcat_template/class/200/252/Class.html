@@ -1,0 +1,12 @@
+<!-- FormPrefix --><ul class="recommendation__list"><!-- /FormPrefix -->
+
+<!-- RecordTemplate --><li class="recommendation__item">
+  <img class="js-lazy recommendation__photo" data-src="<?= $f_photo ?  $f_photo : '/images/about-team/about-team__photo.jpg'; ?>" alt="">
+  <div class="recommendation__name"><?= $f_name; ?></div>
+  <div class="recommendation__subname"><?= $f_post; ?></div>
+  <? if($f_pdf): ?>
+  <a class="recommendation__link"  target="_blank" href="<?= $f_pdf; ?>" title="">Подробнее</a>
+  <? endif; ?>
+</li><!-- /RecordTemplate -->
+
+<!-- FormSuffix --></ul><!-- /FormSuffix -->

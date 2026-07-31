@@ -1,0 +1,778 @@
+<?/* Служебная часть */for ($f_RowNum = 0; $f_RowNum < $rowCount; $f_RowNum++) {    if($fetch_row[$f_RowNum] instanceof Iterator) {        extract($fetch_row[$f_RowNum]->to_array(), EXTR_PREFIX_ALL, "f");    } else {        extract($fetch_row[$f_RowNum], EXTR_PREFIX_ALL, "f");    }    foreach($iteration_RecordTemplate[$f_RowNum] as $value) {        extract($value);    }    eval($cc_env["convert2txt"]);    ob_start();/* Конец служебной части */?>
+<?
+// 1. Сопоставление полей и их русских названий
+$fieldLabels = [
+    'f_Name'                  => 'Ф.И.О.',
+    'f_Gender_id'                => 'Пол',
+    'f_Date_of_birth'         => 'Дата рождения',
+    'f_Place_of_birth'        => 'Место рождения',
+    'f_Country_id'               => 'Страна проживания',
+    'f_City'                  => 'Город проживания',
+    'f_Height'                => 'Рост',
+    'f_Jewishness_id'            => 'Еврейство',
+    'f_Origin_id'                => 'Происхождение',
+    'f_Education_id'             => 'Образование',
+    'f_Specialization'        => 'Специальность',
+    'f_Marital_status_id'        => 'Семейное положение',
+    'f_Phone'                 => 'Телефон',
+    'f_Email'                 => 'Email',
+];
+
+$requiredFields = array_keys($fieldLabels);
+$missingFields = [];
+
+// Проверяем, включена ли "Открытая анкета"
+
+    foreach ($fieldLabels as $fieldKey => $fieldLabel) {
+        $value = isset($$fieldKey) ? $$fieldKey : null;
+        
+        
+        
+        // Проверяем пустоту (для чисел учитываем 0)
+        if (empty($value) && $value !== '0') {
+            $missingFields[] = $fieldLabel;
+        }
+        // Для полей-классификаторов, где значение может быть 0 или '', приводим к проверке
+        if (in_array($fieldKey, ['f_Gender', 'f_Country', 'f_Jewishness', 'f_Origin', 'f_Education', 'f_Marital_status']) && ($value == 0 || $value == '')) {
+            if (!in_array($fieldLabel, $missingFields)) {
+                $missingFields[] = $fieldLabel;
+            }
+        }
+    }
+
+// Если есть незаполненные поля – возвращаем ошибку
+if (!empty($missingFields)) {
+    // Формируем читаемый список
+ 
+    $fieldsList = implode(', ', $missingFields);
+?>
+
+    <div style="background: #fff3cd; color: #856404; padding: 10px 15px; border: 1px solid #ffeeba; margin: 10px 0;">
+        <strong>⚠️ Для отображения анкеты заполните следующие обязательные поля:</strong>
+        <ul>
+            <?php 
+            // Если список полей сохранён в сессии
+            if (isset($fieldsList)) {
+                $fields = explode(', ', $fieldsList);
+                foreach ($fields as $field) {
+                    echo '<li>' . htmlspecialchars($field) . '</li>';
+                }
+       
+            } 
+            ?>
+        </ul>
+    </div>
+
+<?
+}
+?>
+
+<div class="tpl-block-change-form tpl-component-netcat-module-auth-user" id="nc-block-c28cd920d139d1087582717014a2931e">
+  <?=( $warnText ? "<div class='warnText'>$warnText</div>" : NULL )?>
+  <form class="form form--lk-profile-candidate tpl-module-auth-registration-form" name="adminForm" id="adminForm" enctype="multipart/form-data" method="post" action='<?= $SUB_FOLDER ?><?= $HTTP_ROOT_PATH ?>message.php'>
+    <div id='nc_moderate_form'>
+    <div class='nc_clear'></div>
+    <input name='admin_mode' type='hidden' value='<?= $admin_mode ?>' />
+    <?= $nc_core->token->get_input() ?>
+    <input name='catalogue' type='hidden' value='<?= $catalogue ?>' />
+    <input name='cc' type='hidden' value='<?= $cc ?>' />
+    <input name='sub' type='hidden' value='<?= $sub ?>' /><input name='message' type='hidden' value='<?= $f_Message_ID; ?>' />
+    <input name='posting' type='hidden' value='1' />
+    <input name='curPos' type='hidden' value='<?= $curPos ?>' />
+    <input name='f_Parent_Message_ID' type='hidden' value='<?= $f_Parent_Message_ID ?>' />
+    <?= nc_form_moderate('change', $admin_mode, 0, $systemTableID, $current_cc, (isset($f_Checked) ? $f_Checked  : null), $f_Priority , $f_Keyword, $f_ncTitle, $f_ncKeywords, $f_ncDescription ) ?>
+    <input type="hidden" name="partial" value="1" />
+    </div>
+    
+    
+    <div class="form__body">
+      <div class="form__body-section">
+        <div class="form__body-container">
+          <div id="profile_personal_data" class="form__body-title">Личные данные</div>
+          <fieldset class="form__fieldset">
+            <input type="checkbox" name="f_Open" value="0" checked style="display:none;" />  
+            <div class="form__item form__item--2col tpl-field  ">  
+              <label class="lk-questionnaire__switch">
+                <input type="checkbox" name="f_Open" value="1" <?= $f_Open ? 'checked' : ''; ?> />
+                <div class="lk-questionnaire__text-2">Закрытая анкета</div>
+                <span class="lk-questionnaire__slider lk-questionnaire__round"></span>
+                <div class="lk-questionnaire__text-1">Открытая анкета</div>
+              </label>  
+            </div>
+            
+          
+            <div class="form__item tpl-field">
+              <label class="form__item-name" for="personal_name">Ф.И.О.</label>
+              <input class="form__input tpl-field-input" id="personal_name" name="f_Name" maxlength="255" size="50" type="text" value="<?= $f_Name;?>" placeholder="Ваше ФИО" required>
+            </div>
+            <div class="form__item tpl-field">
+              <label class="form__item-name" for="personal_jewish_name">Еврейское имя</label>
+              <input class="form__input tpl-field-input" id="personal_jewish_name" name="f_Jewish_name" maxlength="255" value="<?= $f_Jewish_name;?>" size="50" type="text" placeholder="Укажите имя">
+            </div>
+            <div class="form__item tpl-field">
+              <label class="form__item-name" for="personal_gender">Пол</label>
+              <div  id="candidateGenderSelect"  class="select form__select">
+                  <?=nc_list_select ("Sex", "Gender", $f_Gender_id,"","", "<select required class='select__el' name='f_Gender'><option data-placeholder='true' value=''>-- Выбрать --</option>", "<option value='\$value_id' \$value_selected>\$value_name</option>")?>
+              </div>  
+            </div>
+            <div class="form__item tpl-field">
+              <label class="form__item-name" for="personal_date_birth">Дата рождения</label>
+              
+              <div class="datepicker ">
+                <input class="datepicker__el" name="f_Date_of_birth" type="text" placeholder="Укажите дату" value="<?= $f_Date_of_birth_year ? $f_Date_of_birth_day.'.'.$f_Date_of_birth_month.'.'.$f_Date_of_birth_year : ''?>" required>
+              </div>
+              <input id="personal_date_birth_day" type="hidden" name="f_Date_of_birth_day" maxlength="2" size="2" class="form__input-date-day " value="<?= $f_Date_of_birth_day; ?>" placeholder="ДД" />
+              <input id="personal_date_birth_month" type="hidden" name="f_Date_of_birth_month" class="form__input-date-month " value="<?= $f_Date_of_birth_month; ?>" placeholder="ММ" />
+              <input id="personal_date_birth_year" type="hidden" name="f_Date_of_birth_year" class="form__input-date-year " value="<?= $f_Date_of_birth_year; ?>" placeholder="ГГГГ" />
+              <input id="personal_date_birth_hours" type="hidden" name="f_Date_of_birth_hours" class="" value="00" placeholder="чч" />
+              <input id="personal_date_birth_minutes" type="hidden" name="f_Date_of_birth_minutes" class="" value="00" placeholder="мм" />
+              <input id="personal_date_birth_seconds" type="hidden" name="f_Date_of_birth_seconds" class="" value="00" placeholder="сс" />
+              
+         
+            </div>
+            <div class="form__item tpl-field">
+              <label class="form__item-name" for="personal_place_pbirth">Место рождения</label>
+              <input class="form__input tpl-field-input" name="f_Place_of_birth" maxlength="255" size="50" type="text" id="personal_place_pbirth" value="<?= $f_Place_of_birth; ?>" placeholder="Укажите место рождения" required>
+            </div>
+            <div class="form__item tpl-field">
+              <label class="form__item-name" for="personal_country">Страна проживания</label>
+              <div class="select select--search form__select form__select--country">
+                <?=nc_list_select ("Country", "Country", $f_Country_id,"","", "<select id='f_Country' required class='select__el' name='f_Country'>", "<option value='\$value_id' \$value_selected>\$value_name</option>", "", "<option value=''></option>")?>  
+
+              </div>
+            </div>
+            <div class="form__item tpl-field">
+              <label class="form__item-name" for="personal_height">Город проживания</label>
+              <input class="form__input tpl-field-input" name="f_City" maxlength="255" size="50" type="text" id="personal_place_pbirth" value="<?= $f_City; ?>" placeholder="Укажите город проживания" required>
+            </div>
+            <div class="form__item tpl-field">
+              <label class="form__item-name" for="personal_height">Рост</label>
+              <input class="form__input tpl-field-input" name="f_Height" min="0" step="any" max="200" maxlength="12" size="12" type="number" id="personal_height" value="<?= $f_Height; ?>"  placeholder="Укажите рост" required>
+            </div>
+            <div class="form__item tpl-field">
+              <label class="form__item-name" for="personal_jewishness">Еврейство</label>
+              <div class="select form__select form__select--nation">
+                <?=nc_list_select ("Jewishness", "Jewishness", $f_Jewishness_id,"","", "<select required class='select__el' name='f_Jewishness'><option data-placeholder='true' value=''>-- Выбрать --</option>", "<option value='\$value_id' \$value_selected>\$value_name</option>")?>  
+                                
+              </div>
+            </div>
+            <div class="form__item tpl-field">
+              <label class="form__item-name" for="personal_jewishness">Происхождение</label>
+              <div class="select form__select form__select--nation">
+                <?=nc_list_select ("Origin", "Origin", $f_Origin_id,"1","", "<select required class='select__el' name='f_Origin'><option data-placeholder='true' value=''>-- Выбрать --</option>", "<option value='\$value_id' \$value_selected>\$value_name</option>")?>       
+              </div>
+            </div>
+            
+            <div class="form__item tpl-field">
+              <label class="form__item-name" for="personal_jewishness">Происхождение Мамы</label>
+              <div class="select form__select form__select--nation">
+                <?=nc_list_select ("Origin", "Mother_Origin", $f_Mother_Origin_id,"1","", "<select  class='select__el' name='f_Mother_Origin'><option data-placeholder='true' value=''>-- Выбрать --</option>", "<option value='\$value_id' \$value_selected>\$value_name</option>")?>       
+              </div>
+            </div>
+            <div class="form__item tpl-field">
+              <label class="form__item-name" for="personal_jewishness">Происхождение Папы</label>
+              <div class="select form__select form__select--nation">
+                <?=nc_list_select ("Origin", "Father_Origin", $f_Father_Origin_id,"1","", "<select  class='select__el' name='f_Father_Origin'><option data-placeholder='true' value=''>-- Выбрать --</option>", "<option value='\$value_id' \$value_selected>\$value_name</option>")?>       
+              </div>
+            </div>
+            
+            <div class="form__item tpl-field">
+              <label class="form__item-name" for="personal__degree_compliance">Степень соблюдения</label>
+              <div class="select form__select">
+            
+                <?= nc_multilist_field('Degree_of_compliance', 'class="select__el"', 'select', ($class_id ? $class_id : $classID), false, nc_array_to_string($f_Degree_of_compliance_id, $arfloor)); ?>                      
+              </div>
+            </div>
+            <div class="form__item tpl-field">
+              <label class="form__item-name" for="personal_confess">Течение соблюдения</label>
+              <div class="select form__select">
+                <?=nc_list_select ("Course_of_compliance", "Course_of_compliance", $f_Course_of_compliance_id,"1","", "<select  class='select__el' name='f_Course_of_compliance'><option data-placeholder='true' value=''>-- Выбрать --</option>", "<option value='\$value_id' \$value_selected>\$value_name</option>")?>    
+              </div>
+            </div>
+            <div class="form__item tpl-field">
+              <label class="form__item-name" for="personal_confess">Принадлежность к конфессии</label>
+              <div class="select form__select">
+                <?=nc_list_select ("Belonging_denomination", "Belonging_denomination", $f_Belonging_denomination_id,"1","", "<select  class='select__el' name='f_Belonging_denomination'><option data-placeholder='true' value=''>-- Выбрать --</option>", "<option value='\$value_id' \$value_selected>\$value_name</option>")?>    
+              </div>
+            </div>
+            <div class="form__item tpl-field">
+              <label class="form__item-name"  for="personal_education">Образование</label>
+              <div class="select form__select">
+                <?=nc_list_select ("Education", "Education", $f_Education_id,2,"", "<select required class='select__el' name='f_Education'><option data-placeholder='true' value=''>-- Выбрать --</option>", "<option value='\$value_id' \$value_selected>\$value_name</option>")?>    
+                    
+              </div>
+            </div>
+            <div class="form__item tpl-field">
+              <label class="form__item-name" for="personal_education_specialization">Специальность</label>
+              
+               <input class="form__input " id="" name="f_Specialization" maxlength="255" value="<?= $f_Specialization;?>" size="50" type="text" placeholder="Укажите специальность" required>
+              
+            </div>
+            <div class="form__item tpl-field">
+              <label class="form__item-name" for="personal_activity">Чем занимается</label>
+              
+              <input class="form__input " id="" name="f_What_does" maxlength="255" value="<?= $f_What_does;?>" size="50" type="text" placeholder="Укажите чем занимаетесь">
+              
+            </div>
+            
+     
+            <!--<div class="form__item form__item--2col tpl-field">
+              <label class="form__item-name" for="personal_hobby">Хобби</label>
+              <div class="form__item-container">
+                <div class="select form__select">
+                  <?=nc_list_select ("Hobby", "Hobby", $f_Hobby_id,"","", "<select  class='select__el' name='f_Hobby'><option data-placeholder='true' value=''>-- Выбрать --</option>", "<option value='\$value_id' \$value_selected>\$value_name</option>")?>     
+                </div>
+                <input class="form__input tpl-field-input" id="" name="f_Hobby_description" value="<?= $f_Hobby_description;?>" maxlength="255" size="50" type="text" placeholder="Укажите хобби">
+              </div>
+            </div>-->
+            
+            <div class="form__item tpl-field">
+              <label class="form__item-name" for="personal_hobby">Хобби</label>
+              
+               
+                <input class="form__input tpl-field-input" id="" name="f_Hobby_description" value="<?= $f_Hobby_description;?>" maxlength="255" size="50" type="text" placeholder="Укажите хобби">
+              
+            </div>
+            
+            <div class="form__item tpl-field">
+              <label class="form__item-name" for="personal_badhabits_smoking">Вредные привычки </label>
+              <div class="select form__select">
+                <?=nc_list_select ("Bad_habits", "Bad_habits", $f_Bad_habits_id,"","", "<select  class='select__el' name='f_Bad_habits'><option data-placeholder='true' value=''>-- Выбрать --</option>", "<option value='\$value_id' \$value_selected>\$value_name</option>")?>    
+                  
+              </div>
+            </div>
+            
+            <div class="form__item tpl-field">
+              <label class="form__item-name" for="personal_health">Состояние здоровья</label>
+              
+               <input class="form__input tpl-field-input" id="personal_hobby" name="f_Health_status" value="<?= $f_Health_status;?>" maxlength="255" size="50" type="text" placeholder="Укажите состояние здоровья">
+              
+            </div>
+        
+            <div class="form__item tpl-field">
+              <label class="form__item-name" for="personal_marriage">Семейное положение</label>
+              <div class="select form__select">
+                <?=nc_list_select ("Marital_status", "Marital_status", $f_Marital_status_id,"","", "<select required class='select__el' name='f_Marital_status'><option data-placeholder='true' value=''>-- Выбрать --</option>", "<option value='\$value_id' \$value_selected>\$value_name</option>")?>    
+                  
+              </div>
+            </div>
+          
+            
+            <div class="form__item tpl-field">
+              <label class="form__item-name" for="personal_childs">Количество детей</label>
+              <div class="select form__select form__select--childs">
+                <?=nc_list_select ("Number_of_children", "Number_of_children", $f_Number_of_children_id,"","", "<select  class='select__el' name='f_Number_of_children'><option data-placeholder='true' value=''>-- Выбрать --</option>", "<option value='\$value_id' \$value_selected>\$value_name</option>")?>    
+                  
+              </div>
+            </div>
+            <div class="form__item form__item--child form__item--hidden ">
+              <label class="form__item-name" for="about_childs_age_1">Возраст ребенка 1</label>
+              <input class="form__input " name="f_Age_of_children_1" min="0" step="any" max="100" maxlength="12" size="12" type="number" id="personal_childs_age_1" value="<?= $f_Age_of_children_1;?>" placeholder="Укажите возраст" >
+            </div>
+            <div class="form__item form__item--child form__item--hidden ">
+              <label class="form__item-name" for="about_childs_age_2">Возраст ребенка 2</label>
+              <input class="form__input " name="f_Age_of_children_2" min="0" step="any" max="100" maxlength="12" size="12" type="number" id="personal_childs_age_2" value="<?= $f_Age_of_children_2;?>" placeholder="Укажите возраст" >
+            </div>
+            <div class="form__item form__item--child form__item--hidden ">
+              <label class="form__item-name" for="about_childs_age_3">Возраст ребенка 3</label>
+              <input class="form__input " name="f_Age_of_children_3" min="0" step="any" max="100" maxlength="12" size="12" type="number" id="personal_childs_age_3" value="<?= $f_Age_of_children_3;?>" placeholder="Укажите возраст" >
+            </div>
+            <div class="form__item form__item--child form__item--hidden ">
+              <label class="form__item-name" for="about_childs_age_4">Возраст ребенка 4</label>
+              <input class="form__input " name="f_Age_of_children_4" min="0" step="any" max="100" maxlength="12" size="12" type="number" id="personal_childs_age_4" value="<?= $f_Age_of_children_4;?>" placeholder="Укажите возраст" >
+            </div>
+            <div class="form__item form__item--child form__item--hidden ">
+              <label class="form__item-name" for="about_childs_age_5">Возраст ребенка 5</label>
+              <input class="form__input " name="f_Age_of_children_5" min="0" step="any" max="100" maxlength="12" size="12" type="number" id="personal_childs_age_5" value="<?= $f_Age_of_children_5;?>" placeholder="Укажите возраст" >
+            </div>
+            <div class="form__item form__item--child form__item--hidden ">
+              <label class="form__item-name" for="about_childs_age_6">Возраст ребенка 6</label>
+              <input class="form__input " name="f_Age_of_children_6" min="0" step="any" max="100" maxlength="12" size="12" type="number" id="personal_childs_age_6" value="<?= $f_Age_of_children_6;?>" placeholder="Укажите возраст" >
+            </div>
+            <div class="form__item form__item--child form__item--hidden ">
+              <label class="form__item-name" for="about_childs_age_7">Возраст ребенка 7</label>
+              <input class="form__input " name="f_Age_of_children_7" min="0" step="any" max="100" maxlength="12" size="12" type="number" id="personal_childs_age_7" value="<?= $f_Age_of_children_7;?>" placeholder="Укажите возраст" >
+            </div>
+            <div class="form__item form__item--child form__item--hidden ">
+              <label class="form__item-name" for="about_childs_age_8">Возраст ребенка 8</label>
+              <input class="form__input " name="f_Age_of_children_8" min="0" step="any" max="100" maxlength="12" size="12" type="number" id="personal_childs_age_8" value="<?= $f_Age_of_children_8;?>" placeholder="Укажите возраст" >
+            </div>
+            <div class="form__item form__item--child form__item--hidden ">
+              <label class="form__item-name" for="about_childs_age_9">Возраст ребенка 9</label>
+              <input class="form__input " name="f_Age_of_children_9" min="0" step="any" max="100" maxlength="12" size="12" type="number" id="personal_childs_age_9" value="<?= $f_Age_of_children_9;?>" placeholder="Укажите возраст" >
+            </div>
+            <div class="form__item form__item--child form__item--hidden ">
+              <label class="form__item-name" for="about_childs_age_10">Возраст ребенка 10</label>
+              <input class="form__input " name="f_Age_of_children_10" min="0" step="any" max="100" maxlength="12" size="12" type="number" id="personal_childs_age_10" value="<?= $f_Age_of_children_10;?>" placeholder="Укажите возраст" >
+            </div>
+            
+            <div class="form__item form__item--family-structure ">
+              <div class="form__item-name">Состав семьи</div>
+              <div class="form__item-checkbox-row">
+                <label class="checkbox form__checkbox form__checkbox--family-structure-father">
+                  <input class="checkbox__input" type="checkbox" name="f_Father" <?= $f_Father ? 'checked' : '';?> >
+                  <div class="checkbox__body">
+                    <span class="checkbox__el">
+                      <svg class="checkbox__el-icon">
+                        <use xlink:href="/images/sprite.svg#checked"></use>
+                      </svg>
+                    </span>
+                    <span class="checkbox__text">Папа</span>
+                  </div>
+                </label>
+                <label class="checkbox form__checkbox form__checkbox--family-structure-mother">
+                  <input class="checkbox__input" type="checkbox" name="f_Mother" <?= $f_Mother ? 'checked' : '';?> >
+                  <div class="checkbox__body">
+                    <span class="checkbox__el">
+                      <svg class="checkbox__el-icon">
+                        <use xlink:href="/images/sprite.svg#checked"></use>
+                      </svg>
+                    </span>
+                    <span class="checkbox__text">Мама</span>
+                  </div>
+                </label>
+                <label class="checkbox form__checkbox form__checkbox--family-structure-brother">
+                  <input class="checkbox__input" type="checkbox" name="f_Brother" <?= $f_Brother ? 'checked' : '';?> >
+                  <div class="checkbox__body">
+                    <span class="checkbox__el">
+                      <svg class="checkbox__el-icon">
+                        <use xlink:href="/images/sprite.svg#checked"></use>
+                      </svg>
+                    </span>
+                    <span class="checkbox__text">Брат</span>
+                  </div>
+                </label>
+                <label class="checkbox form__checkbox form__checkbox--family-structure-sister">
+                  <input class="checkbox__input" type="checkbox" name="f_Sister" <?= $f_Sister ? 'checked' : '';?> >
+                  <div class="checkbox__body">
+                    <span class="checkbox__el">
+                      <svg class="checkbox__el-icon">
+                        <use xlink:href="/images/sprite.svg#checked"></use>
+                      </svg>
+                    </span>
+                    <span class="checkbox__text">Сестра</span>
+                  </div>
+                </label>
+              </div>
+              <div class="form__item-family-list">
+                <div class="form__item-family-item form__item-family-item--father form__item-family-item--hidden">
+                  <input class="form__input " id="personal_family_structure_father" name="f_Personal_family_structure_father" value="<?= $f_Personal_family_structure_father; ?>" maxlength="255" size="50" type="text" placeholder="Введите имя Папы">
+                </div>
+                <div class="form__item-family-item form__item-family-item--mother form__item-family-item--hidden">
+                  <input class="form__input " id="personal_family_structure_mother" name="f_Personal_family_structure_mother" value="<?= $f_Personal_family_structure_mother; ?>" maxlength="255" size="50" type="text" placeholder="Введите имя Мамы">
+                </div>
+                <div class="form__item-family-item form__item-family-item--brother form__item-family-item--hidden">
+                  <input class="form__input " id="personal_family_structure_brother-1" name="f_Personal_family_structure_brother_1" value="<?= $f_Personal_family_structure_brother_1; ?>" maxlength="255" size="50" type="text" placeholder="Введите имя Брата">
+                  <div class="form__item-family-item-btn-wrapper">
+                    <button class="form__item-family-item-btn form__item-family-item-btn--remove" type="button">-</button>
+                    <button class="form__item-family-item-btn form__item-family-item-btn--add" type="button">+</button>
+                  </div>
+                </div>
+                <div class="form__item-family-item form__item-family-item--brother form__item-family-item--hidden">
+                  <input class="form__input " id="personal_family_structure_brother-2" name="f_Personal_family_structure_brother_2" value="<?= $f_Personal_family_structure_brother_2; ?>" maxlength="255" size="50" type="text" placeholder="Введите имя Брата 2">
+                  <div class="form__item-family-item-btn-wrapper">
+                    <button class="form__item-family-item-btn form__item-family-item-btn--remove" type="button">-</button>
+                    <button class="form__item-family-item-btn form__item-family-item-btn--add" type="button">+</button>
+                  </div>
+                </div>
+                <div class="form__item-family-item form__item-family-item--brother form__item-family-item--hidden">
+                  <input class="form__input " id="personal_family_structure_brother-3" name="f_Personal_family_structure_brother_3" value="<?= $f_Personal_family_structure_brother_3; ?>" maxlength="255" size="50" type="text" placeholder="Введите имя Брата 3">
+                  <div class="form__item-family-item-btn-wrapper">
+                    <button class="form__item-family-item-btn form__item-family-item-btn--remove" type="button">-</button>
+                    <button class="form__item-family-item-btn form__item-family-item-btn--add" type="button">+</button>
+                  </div>
+                </div>
+                <div class="form__item-family-item form__item-family-item--brother form__item-family-item--hidden">
+                  <input class="form__input " id="personal_family_structure_brother-4" name="f_Personal_family_structure_brother_4" value="<?= $f_Personal_family_structure_brother_4; ?>" maxlength="255" size="50" type="text" placeholder="Введите имя Брата 4">
+                  <div class="form__item-family-item-btn-wrapper">
+                    <button class="form__item-family-item-btn form__item-family-item-btn--remove" type="button">-</button>
+                    <button class="form__item-family-item-btn form__item-family-item-btn--add" type="button">+</button>
+                  </div>
+                </div>
+                <div class="form__item-family-item form__item-family-item--brother form__item-family-item--hidden">
+                  <input class="form__input " id="personal_family_structure_brother-5" name="f_Personal_family_structure_brother_5" value="<?= $f_Personal_family_structure_brother_5; ?>" maxlength="255" size="50" type="text" placeholder="Введите имя Брата 5">
+                  <div class="form__item-family-item-btn-wrapper">
+                    <button class="form__item-family-item-btn form__item-family-item-btn--remove" type="button">-</button>
+                    <button class="form__item-family-item-btn form__item-family-item-btn--add" type="button">+</button>
+                  </div>
+                </div>
+                <div class="form__item-family-item form__item-family-item--brother form__item-family-item--hidden">
+                  <input class="form__input " id="personal_family_structure_brother-6" name="f_Personal_family_structure_brother_6" value="<?= $f_Personal_family_structure_brother_6; ?>" maxlength="255" size="50" type="text" placeholder="Введите имя Брата 6">
+                  <div class="form__item-family-item-btn-wrapper">
+                    <button class="form__item-family-item-btn form__item-family-item-btn--remove" type="button">-</button>
+                    <button class="form__item-family-item-btn form__item-family-item-btn--add" type="button">+</button>
+                  </div>
+                </div>
+                <div class="form__item-family-item form__item-family-item--brother form__item-family-item--hidden">
+                  <input class="form__input " id="personal_family_structure_brother-7" name="f_Personal_family_structure_brother_7" value="<?= $f_Personal_family_structure_brother_7; ?>" maxlength="255" size="50" type="text" placeholder="Введите имя Брата 7">
+                  <div class="form__item-family-item-btn-wrapper">
+                    <button class="form__item-family-item-btn form__item-family-item-btn--remove" type="button">-</button>
+                    <button class="form__item-family-item-btn form__item-family-item-btn--add" type="button">+</button>
+                  </div>
+                </div>
+                <div class="form__item-family-item form__item-family-item--brother form__item-family-item--hidden">
+                  <input class="form__input " id="personal_family_structure_brother-8" name="f_Personal_family_structure_brother_8" value="<?= $f_Personal_family_structure_brother_8; ?>" maxlength="255" size="50" type="text" placeholder="Введите имя Брата 8">
+                  <div class="form__item-family-item-btn-wrapper">
+                    <button class="form__item-family-item-btn form__item-family-item-btn--remove" type="button">-</button>
+                    <button class="form__item-family-item-btn form__item-family-item-btn--add" type="button">+</button>
+                  </div>
+                </div>
+                <div class="form__item-family-item form__item-family-item--brother form__item-family-item--hidden">
+                  <input class="form__input " id="personal_family_structure_brother-9" name="f_Personal_family_structure_brother_9" value="<?= $f_Personal_family_structure_brother_9; ?>" maxlength="255" size="50" type="text" placeholder="Введите имя Брата 9">
+                  <div class="form__item-family-item-btn-wrapper">
+                    <button class="form__item-family-item-btn form__item-family-item-btn--remove" type="button">-</button>
+                    <button class="form__item-family-item-btn form__item-family-item-btn--add" type="button">+</button>
+                  </div>
+                </div>
+                <div class="form__item-family-item form__item-family-item--brother form__item-family-item--hidden">
+                  <input class="form__input " id="personal_family_structure_brother-10" name="f_Personal_family_structure_brother_10" value="<?= $f_Personal_family_structure_brother_10; ?>" maxlength="255" size="50" type="text" placeholder="Введите имя Брата 10">
+                  <div class="form__item-family-item-btn-wrapper">
+                    <button class="form__item-family-item-btn form__item-family-item-btn--remove" type="button">-</button>
+                    <button class="form__item-family-item-btn form__item-family-item-btn--add" type="button">+</button>
+                  </div>
+                </div>
+                <div class="form__item-family-item form__item-family-item--sister form__item-family-item--hidden">
+                  <input class="form__input " id="personal_family_structure_sister-1" name="f_Personal_family_structure_sister_1" value="<?= $f_Personal_family_structure_sister_1; ?>" maxlength="255" size="50" type="text" placeholder="Введите имя Сестры">
+                  <div class="form__item-family-item-btn-wrapper">
+                    <button class="form__item-family-item-btn form__item-family-item-btn--remove" type="button">-</button>
+                    <button class="form__item-family-item-btn form__item-family-item-btn--add" type="button">+</button>
+                  </div>
+                </div>
+                <div class="form__item-family-item form__item-family-item--sister form__item-family-item--hidden">
+                  <input class="form__input " id="personal_family_structure_sister-2" name="f_Personal_family_structure_sister_2" value="<?= $f_Personal_family_structure_sister_2; ?>" maxlength="255" size="50" type="text" placeholder="Введите имя Сестры 2">
+                  <div class="form__item-family-item-btn-wrapper">
+                    <button class="form__item-family-item-btn form__item-family-item-btn--remove" type="button">-</button>
+                    <button class="form__item-family-item-btn form__item-family-item-btn--add" type="button">+</button>
+                  </div>
+                </div>
+                <div class="form__item-family-item form__item-family-item--sister form__item-family-item--hidden">
+                  <input class="form__input " id="personal_family_structure_sister-3" name="f_Personal_family_structure_sister_3" value="<?= $f_Personal_family_structure_sister_3; ?>" maxlength="255" size="50" type="text" placeholder="Введите имя Сестры 3">
+                  <div class="form__item-family-item-btn-wrapper">
+                    <button class="form__item-family-item-btn form__item-family-item-btn--remove" type="button">-</button>
+                    <button class="form__item-family-item-btn form__item-family-item-btn--add" type="button">+</button>
+                  </div>
+                </div>
+                <div class="form__item-family-item form__item-family-item--sister form__item-family-item--hidden">
+                  <input class="form__input " id="personal_family_structure_sister-4" name="f_Personal_family_structure_sister_4" value="<?= $f_Personal_family_structure_sister_4; ?>" maxlength="255" size="50" type="text" placeholder="Введите имя Сестры 4">
+                  <div class="form__item-family-item-btn-wrapper">
+                    <button class="form__item-family-item-btn form__item-family-item-btn--remove" type="button">-</button>
+                    <button class="form__item-family-item-btn form__item-family-item-btn--add" type="button">+</button>
+                  </div>
+                </div>
+                <div class="form__item-family-item form__item-family-item--sister form__item-family-item--hidden">
+                  <input class="form__input " id="personal_family_structure_sister-5" name="f_Personal_family_structure_sister_5" value="<?= $f_Personal_family_structure_sister_5; ?>" maxlength="255" size="50" type="text" placeholder="Введите имя Сестры 5">
+                  <div class="form__item-family-item-btn-wrapper">
+                    <button class="form__item-family-item-btn form__item-family-item-btn--remove" type="button">-</button>
+                    <button class="form__item-family-item-btn form__item-family-item-btn--add" type="button">+</button>
+                  </div>
+                </div>
+                <div class="form__item-family-item form__item-family-item--sister form__item-family-item--hidden">
+                  <input class="form__input " id="personal_family_structure_sister-6" name="f_Personal_family_structure_sister_6" value="<?= $f_Personal_family_structure_sister_6; ?>" maxlength="255" size="50" type="text" placeholder="Введите имя Сестры 6">
+                  <div class="form__item-family-item-btn-wrapper">
+                    <button class="form__item-family-item-btn form__item-family-item-btn--remove" type="button">-</button>
+                    <button class="form__item-family-item-btn form__item-family-item-btn--add" type="button">+</button>
+                  </div>
+                </div>
+                <div class="form__item-family-item form__item-family-item--sister form__item-family-item--hidden">
+                  <input class="form__input " id="personal_family_structure_sister-7" name="f_Personal_family_structure_sister_7" value="<?= $f_Personal_family_structure_sister_7; ?>" maxlength="255" size="50" type="text" placeholder="Введите имя Сестры 7">
+                  <div class="form__item-family-item-btn-wrapper">
+                    <button class="form__item-family-item-btn form__item-family-item-btn--remove" type="button">-</button>
+                    <button class="form__item-family-item-btn form__item-family-item-btn--add" type="button">+</button>
+                  </div>
+                </div>
+                <div class="form__item-family-item form__item-family-item--sister form__item-family-item--hidden">
+                  <input class="form__input " id="personal_family_structure_sister-8" name="f_Personal_family_structure_sister_8" value="<?= $f_Personal_family_structure_sister_8; ?>" maxlength="255" size="50" type="text" placeholder="Введите имя Сестры 8">
+                  <div class="form__item-family-item-btn-wrapper">
+                    <button class="form__item-family-item-btn form__item-family-item-btn--remove" type="button">-</button>
+                    <button class="form__item-family-item-btn form__item-family-item-btn--add" type="button">+</button>
+                  </div>
+                </div>
+                <div class="form__item-family-item form__item-family-item--sister form__item-family-item--hidden">
+                  <input class="form__input " id="personal_family_structure_sister-9" name="f_Personal_family_structure_sister_9" value="<?= $f_Personal_family_structure_sister_9; ?>" maxlength="255" size="50" type="text" placeholder="Введите имя Сестры 9">
+                  <div class="form__item-family-item-btn-wrapper">
+                    <button class="form__item-family-item-btn form__item-family-item-btn--remove" type="button">-</button>
+                    <button class="form__item-family-item-btn form__item-family-item-btn--add" type="button">+</button>
+                  </div>
+                </div>
+                <div class="form__item-family-item form__item-family-item--sister form__item-family-item--hidden">
+                  <input class="form__input " id="personal_family_structure_sister-10" name="f_Personal_family_structure_sister_10" value="<?= $f_Personal_family_structure_sister_10; ?>" maxlength="255" size="50" type="text" placeholder="Введите имя Сестры 10">
+                  <div class="form__item-family-item-btn-wrapper">
+                    <button class="form__item-family-item-btn form__item-family-item-btn--remove" type="button">-</button>
+                    <button class="form__item-family-item-btn form__item-family-item-btn--add" type="button">+</button>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="form__item tpl-field">
+              <label class="form__item-name" for="personal_removal">Готов ли к переезду</label>
+              <div class="select form__select form__select--removal">
+                <?=nc_list_select ("Are_you_ready_to_move", "Are_you_ready_to_move", $f_Are_you_ready_to_move_id,"","", "<select  class='select__el' name='f_Are_you_ready_to_move'><option data-placeholder='true' value=''>-- Выбрать --</option>", "<option value='\$value_id' \$value_selected>\$value_name</option>")?>    
+                  
+              </div>
+            </div>
+            
+            <div class="form__item tpl-field">
+              <label class="form__item-name" for="personal__degree_compliance">Страна переезда</label>
+              <div class="select form__select select--search">
+                <?= nc_multilist_field('Country_of_relocation', 'class="select__el"', 'select', ($class_id ? $class_id : $classID), false, nc_array_to_string($f_Country_of_relocation_id, $arfloor)); ?>                      
+              </div>
+            </div>
+            
+            <div class="form__item form__item--add-photos tpl-field">
+              <div class="form__item-name" for="personal_removal">Фото для анкеты</div>
+              <?= $f_Photo_questionnaire->form() ?>
+              <!--<div class="form__item form__item--add-photos">
+                <div class="upload upload--image form__upload-img">
+                  <input class="upload__input" id="personal_photo_gallery-1" name="f_Photo_questionnaire_file[]" multiple type="file" accept="image/png, image/jpg, image/jpeg">
+                  <label class="upload__body" for="personal_photo_gallery-1">
+                    <img class="upload__preview" src="#" alt="">
+                    <button class="upload__clear" type="button">Очистить</button>
+                  </label>
+                </div>
+              </div>-->
+            </div>
+            
+            
+            
+            <div class="form__item form__item--upload tpl-field">
+              <div class="upload upload--default form__upload">
+                <input class="upload__input" id="nc-upload-input-479" value="<?= $f_Photo_avatar;?>" data-name="<?= $f_Photo_avatar_name;?>" name="f_Photo_avatar" type="file" accept="image/png, image/jpg, image/jpeg, .pdf">
+                <label class="upload__body" for="nc-upload-input-479">
+            
+                  <div class="upload__preview"></div>
+                  <div class="upload__text">
+                    <div class="upload__text-title">Фото для аватара</div>
+                    <div class="upload__text-description upload__text-description--unselected">png. jpeg. pdf. (до 5 мб)</div>
+                    <div class="upload__text-description upload__text-description--selected">Вы можете изменить фото для аватара</div>
+                  </div>
+                  <div class="upload__button">Обзор</div>
+                  
+                </label>
+              </div>
+            </div>
+            
+            <div class="form__item form__item--upload tpl-field">
+              <div class="upload upload--default form__upload">
+                <input class="upload__input" id="nc-upload-input-480" value="<?= $f_Birthcertificates;?>" data-name="<?= $f_Birthcertificates_name;?>" name="f_Birthcertificates" type="file" accept="image/png, image/jpg, image/jpeg, .pdf">
+                <label class="upload__body" for="nc-upload-input-480">
+                  <div class="upload__preview"></div>
+                  <div class="upload__text">
+                    <div class="upload__text-title">Свидетельство о рождении</div>
+                    <div class="upload__text-description upload__text-description--unselected">png. jpeg. pdf. (до 5 мб)</div>
+                    <div class="upload__text-description upload__text-description--selected">Вы можете изменить свидетельство о рождении</div>
+                  </div>
+                  <div class="upload__button">Обзор</div>
+                </label>
+              </div>
+            </div>
+            <div class="form__item form__item--upload tpl-field">
+              <div class="upload upload--default form__upload">
+                <input class="upload__input" id="nc-upload-input-481" value="<?= $f_Another_document_Jewishness;?>" data-name="<?= $f_Another_document_Jewishness_name;?>" name="f_Another_document_Jewishness" type="file" accept="image/png, image/jpg, image/jpeg, .pdf">
+                <label class="upload__body" for="nc-upload-input-481">
+                  <div class="upload__preview"></div>
+                  <div class="upload__text">
+                    <div class="upload__text-title">Иной документ подтверждающий еврейство</div>
+                    <div class="upload__text-description upload__text-description--unselected">png. jpeg. pdf. (до 5 мб)</div>
+                    <div class="upload__text-description upload__text-description--selected">Вы можете изменить документ</div>
+                  </div>
+                  <div class="upload__button">Обзор</div>
+                </label>
+              </div>
+            </div>
+            <div class="form__item tpl-field">
+              <label class="form__item-name" for="f_Phone">Телефон</label>
+              <input class="form__input tpl-field-input" name="f_Phone" maxlength="255" size="50" type="tel" id="f_Phone" data-value="<?= $f_Phone;?>" placeholder="+7" required>
+            </div>
+            <div class="form__item tpl-field">
+              <label class="form__item-name" for="">Email</label>
+              <input class="form__input tpl-field-input" name="f_Email" maxlength="255" size="50" type="email" id="f_Email" value="<?= $f_Email;?>" placeholder="Укажите email" required>
+            </div>
+            <div class="form__item tpl-field">
+              <label class="form__item-name" for="">Ваш раввин</label>
+              <input class="form__input tpl-field-input" name="f_Your_ravin" maxlength="255" size="50" type="text" id="" value="<?= $f_Your_ravin;?>" placeholder="Укажите вашего раввина" >
+            </div>
+            <div class="form__item tpl-field">
+              <label class="form__item-name" for="">Контактные данные раввина</label>
+              <input class="form__input tpl-field-input" name="f_Your_ravin_contact" maxlength="255" size="50" type="text" id="" value="<?= $f_Your_ravin_contact;?>" placeholder="Укажите контактные данные " >
+            </div>
+            <div class="form__item tpl-field">
+              <label class="form__item-name" for="">Ваша синагога</label>
+              <input class="form__input tpl-field-input" name="f_Your_sinagoga" maxlength="255" size="50" type="text" id="" value="<?= $f_Your_sinagoga;?>" placeholder="Укажите вашу синагогу" >
+            </div>
+            
+          </fieldset>
+        </div>
+      </div>
+      <div class="form__body-section">
+        <div class="form__body-container">
+          <div id="profile_preferences" class="form__body-title">Предпочтения</div>
+          <fieldset class="form__fieldset">
+            <div class="form__item tpl-field">
+              <label class="form__item-name" for="preferences_gender">Пол</label>
+              <div id="preferencesGenderSelect" class="select form__select">
+                <?=nc_list_select ("Search_gender", "Search_gender", $f_Search_gender_id,"","", "<select  class='select__el' name='f_Search_gender' ><option data-placeholder='true' value=''>-- Выбрать --</option>", "<option value='\$value_id' \$value_selected>\$value_name</option>")?>    
+                  
+              </div>
+            </div>
+            <div class="form__item tpl-field">
+              <label class="form__item-name" for="">Рост</label>
+              <div class="form__item-range">
+                <input class="form__input tpl-field-input" name="f_Search_height_start" min="0" step="any" max="200" maxlength="12" size="12" type="number" id="preferences_height_start" value="<?= $f_Search_height_start;?>" placeholder="ОТ">
+                <span class="form__item-range-separator">—</span>
+                <input class="form__input tpl-field-input" name="f_Search_height_end" min="0" step="any" max="200" maxlength="12" size="12" type="number" id="preferences_height_end" value="<?= $f_Search_height_end;?>" placeholder="ДО">
+              </div>
+            </div>
+            <div class="form__item tpl-field">
+              <label class="form__item-name" for="">Возраст</label>
+              <div class="form__item-range">
+                <input class="form__input tpl-field-input" name="f_Search_age_start" min="0" step="any" max="200" maxlength="12" size="12" type="number" id="preferences_age_start" value="<?= $f_Search_age_start;?>" placeholder="ОТ">
+                <span class="form__item-range-separator">—</span>
+                <input class="form__input tpl-field-input" name="f_Search_age_end" min="0" step="any" max="200" maxlength="12" size="12" type="number" id="preferences_age_end" value="<?= $f_Search_age_end;?>" placeholder="ДО">
+              </div>
+            </div>
+            
+           
+            <div class="form__item tpl-field">
+              <label class="form__item-name" for="preferences_place_pbirth">Место рождения</label>
+              <input class="form__input tpl-field-input" name="f_Search_place_of_birth" maxlength="255" size="50" type="text" id="preferences_place_pbirth" value="<?= $f_Search_place_of_birth;?>" placeholder="Укажите место рождения" >
+            </div>
+            <div class="form__item tpl-field">
+              <label class="form__item-name" for="preferences_country">Страна проживания</label>
+              <div class="select select--search form__select">
+                <?= nc_multilist_field('Search_country', 'class="select__el select__el--check"', 'select', ($class_id ? $class_id : $classID), false, nc_array_to_string($f_Search_country_id, $arfloor)); ?>    
+              
+              </div>
+            </div>
+            
+            <div class="form__item tpl-field">
+              <label class="form__item-name" for="preferences_confess">Принадлежность к конфессии</label>
+              <div class="select form__select">
+                <?= nc_multilist_field('Search_belonging_denomination', 'class="select__el"', 'select', ($class_id ? $class_id : $classID), false, nc_array_to_string($f_Search_belonging_denomination_id, $arfloor)); ?>      
+              </div>
+            </div>
+            <div class="form__item tpl-field">
+              <label class="form__item-name" for="preferences_education">Образование</label>
+              <div class="select form__select">
+                <?= nc_multilist_field('Search_education', 'class="select__el"', 'select', ($class_id ? $class_id : $classID), false, nc_array_to_string($f_Search_education_id, $arfloor)); ?>      
+              </div>
+            </div>
+            <div class="form__item tpl-field">
+              <label class="form__item-name" for="preferences_marriage">Состоял/а ли ранее в браке</label>
+              <div class="select form__select">
+                <?= nc_multilist_field('Search_was_previously_married', 'class="select__el"', 'select', ($class_id ? $class_id : $classID), false, nc_array_to_string($f_Search_was_previously_married_id, $arfloor)); ?>       
+              </div>
+            </div>
+            
+            <div class="form__item tpl-field">
+              <label class="form__item-name" for="preferences_childs">Количество детей</label>
+              <div class="select form__select">
+                <?= nc_multilist_field('Search_number_of_children', 'class="select__el"', 'select', ($class_id ? $class_id : $classID), false, nc_array_to_string($f_Search_number_of_children_id, $arfloor)); ?>      
+               
+              </div>
+            </div>
+            <div class="form__item tpl-field">
+              <label class="form__item-name" for="preferences_removal">Готов ли к переезду</label>
+              <div class="select form__select form__select--removal">
+                <?= nc_multilist_field('Search_are_you_ready_to_move', 'class="select__el"', 'select', ($class_id ? $class_id : $classID), false, nc_array_to_string($f_Search_are_you_ready_to_move_id, $arfloor)); ?>      
+                
+                  <!--<?
+                  $nc_core->db->query("SELECT * FROM `Classificator_Are_you_ready_to_move`", ARRAY_A );
+                  $arr = $nc_core->db->last_result;
+             
+                  if (!empty($arr)) {?>
+                  <select class="select__el" name="f_Search_are_you_ready_to_move[]" multiple="multiple">
+                    <option data-placeholder="true" value="">-- Выбрать --</option>
+                    <? foreach ($arr as $row) {
+                          echo '<option '.(in_array($row['Are_you_ready_to_move_ID'], $f_Search_are_you_ready_to_move_id) ? "selected" : "").' value="'.$row['Are_you_ready_to_move_ID'].'">'.$row['Are_you_ready_to_move_Name'].'</option>';
+                    }?>
+                  </select>    
+                  <?}?>-->
+              </div>
+            </div>
+        
+            <div class="form__item form__item--2col tpl-field">
+              <label class="form__item-name" for="">Заметка для шадхана </label>
+              <textarea class="form__textarea" name="f_Search_for_shadhan"  placeholder="Введите текст заметки"><?= $f_Search_for_shadhan;?></textarea>
+             
+            </div>
+          </fieldset>
+        </div>
+      </div>
+      
+      
+      <div class="form__body-section">
+        <div class="form__body-container">
+          <div id="profile_shadhans" class="form__body-title">Шадханы</div>
+   
+          <div class="">
+            <ul class="shadhans lk-questionnaire__shadhans">  
+              <? if($current_user['Type_id'] === 2): ?>  
+              <a class="shadhans__item" href="/my/shadhany/shadhan_<?= $f_User_ID;?>.html">
+                <div class="shadhans__item-avatar">
+                  <img class="shadhans__item-avatar-img js-lazy" data-src="<?= $nc_core->user->get_by_id($f_User_ID, "Photo_avatar" ); ?>" alt="">
+                </div>
+                <div class="shadhans__item-body">
+                  <div class="shadhans__item-name"><?= $nc_core->user->get_by_id($f_User_ID, "Name" ); ?></div>
+                  <div class="shadhans__item-address"><?= $nc_core->user->get_by_id($f_User_ID, "Country" ); ?></div>
+                </div>
+              </a>
+              <? endif; ?>  
+              <? if($f_Shadhan_1): ?>  
+              <a class="shadhans__item" href="/my/shadhany/shadhan_<?= $f_Shadhan_1;?>.html">
+                <div class="shadhans__item-avatar">
+                  <img class="shadhans__item-avatar-img js-lazy" data-src="<?= $nc_core->user->get_by_id($f_Shadhan_1, "Photo_avatar" ); ?>" alt="">
+                </div>
+                <div class="shadhans__item-body">
+                  <div class="shadhans__item-name"><?= $nc_core->user->get_by_id($f_Shadhan_1, "Name" ); ?></div>
+                  <div class="shadhans__item-address"><?= $nc_core->user->get_by_id($f_Shadhan_1, "Country" ); ?></div>
+                </div>
+              </a>
+              <? endif; ?>
+              <? if($f_Shadhan_2): ?>  
+              <a class="shadhans__item " href="/my/shadhany/shadhan_<?= $f_Shadhan_2;?>.html">
+                <div class="shadhans__item-avatar">
+                  <img class="shadhans__item-avatar-img js-lazy" data-src="<?= $nc_core->user->get_by_id($f_Shadhan_2, "Photo_avatar" ); ?>" alt="">
+                </div>
+                <div class="shadhans__item-body">
+                  <div class="shadhans__item-name"><?= $nc_core->user->get_by_id($f_Shadhan_2, "Name" ); ?></div>
+                  <div class="shadhans__item-address"><?= $nc_core->user->get_by_id($f_Shadhan_2, "Country" ); ?></div>
+                </div>
+              </a>
+              <? endif; ?>
+              <? if($f_Shadhan_3): ?>  
+              <a class="shadhans__item " href="/my/shadhany/shadhan_<?= $f_Shadhan_3;?>.html">
+                <div class="shadhans__item-avatar">
+                  <img class="shadhans__item-avatar-img js-lazy" data-src="<?= $nc_core->user->get_by_id($f_Shadhan_3, "Photo_avatar" ); ?>" alt="">
+                </div>
+                <div class="shadhans__item-body">
+                  <div class="shadhans__item-name"><?= $nc_core->user->get_by_id($f_Shadhan_3, "Name" ); ?></div>
+                  <div class="shadhans__item-address"><?= $nc_core->user->get_by_id($f_Shadhan_3, "Country" ); ?></div>
+                </div>
+              </a>
+              <? endif; ?>  
+            </ul>
+          </div>
+    
+          
+        </div>
+      </div>
+      
+      
+    </div>
+    <div class="form__footer">
+      <button class="form__submit button button--fill" type="submit">Сохранить изменения</button>
+       
+       <? if($f_User_ID === $current_user['User_ID'] || $f_Shadhan_1 === $current_user['User_ID'] || $f_Shadhan_2 === $current_user['User_ID'] || $f_Shadhan_3 === $current_user['User_ID']): ?>
+          <a class="form__reset lk-questionnaire__goback-link" href="<?=$checkedLink?>"><?=$f_Checked==1?"выключить":"включить"?></a>
+       <? endif;?> 
+    </div>
+    
+  </form>
+  
+ 
+  <? $f_delete_true =  nc_object_path(204, $f_Message_ID, 'drop', 'html', false, array('nc_token' => $nc_core->token->get()));?>
+  <?= nc_objects_list( 28, 29, "&nc_ctpl=254&IDCandidate=$f_Message_ID&FIOCandidate=$f_Name&dropLink=".$f_delete_true."" ); ?>
+
+
+</div>
+<?/* Служебная часть */    echo nc_finishing_RecordTemplate(ob_get_clean(), $inside_admin, $classID, $f_RowID, $parent_message, $cc, $cc_env["Class_Name"], $no_cache_marks);}/* Конец служебной части */?>

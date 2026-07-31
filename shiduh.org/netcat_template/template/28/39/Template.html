@@ -1,0 +1,66 @@
+<!-- Header -->%Header
+
+<?
+if(!$current_user['User_ID']) {
+    header('Location: https://'.$_SERVER['HTTP_HOST'].'');
+    exit();
+}
+?>
+<section class="lk-body ">
+  <div class="lk-body__wrapper wrapper">
+    <?= $this->partial('aside_profile') ?>
+    <section class="lk-rules">
+      <div class="lk-rules__wrapper">
+        <div class="lk-head lk-rules__head">
+          <h1 class="lk-head__title">Rules</h1>
+        </div>
+        <div class="lk-rules__body">
+          <ol class="lk-rules__list num-list">
+            <li class="num-list__item">
+            If the shadchan confirms a candidate, this means that he knows the candidate to the extent that allows him to approve to the extent that this Jewish candidate has serious intentions; the data described in his questionnaire are at least not outright false. At the same time confirmation does not mean that the shadchan has seen the candidate's documents.
+
+            </li>
+            <li class="num-list__item">
+            It is prohibited to give candidate A the contact information of candidate B without the personal consent of candidate B. 
+
+            </li>
+            <li class="num-list__item">
+            	It is forbidden to show anyone candidates from the database without the purpose of shidduch. 
+
+            </li>
+            <li class="num-list__item">
+            It is forbidden to give your login and password to anyone. 
+
+            </li>
+            <li class="num-list__item"> 
+             If as a result of communication with the candidate, certain requirements are revealed that he did not include in his application form, the shadchan must invite the candidate to enter these  requirements in the appropriate section of the application  form. 
+
+            </li>
+            <li class="num-list__item">
+            If one of the shadchans believes that the actions of another shadchan are not correct for that reason or another, it is necessary to inform the administrator about this, who will take appropriate measures depending on the situation. In order to avoid conflicts, it is forbidden to express claims personally to the assured shadchan. 
+
+            </li>
+            <li class="num-list__item"> 
+            	In order to advertise our site, we ask the shadchans to report the names and wedding date to the administrator (after the wedding) if the shidduch is made with even minimal help from our site . If the newlyweds agree to post information about their wedding on the website, the shadchan is required to tell us the date and location of the wedding and the wedding photo of the newlyweds.          
+            </li>
+          </ol>
+        </div>
+      </div>
+    </section>
+
+      
+      
+      
+      
+
+
+
+
+
+
+<!-- /Header -->
+
+<!-- Footer -->      <?= $this->partial('lk-footer-mobile') ?>
+  </div>
+</section>
+%Footer<!-- /Footer -->

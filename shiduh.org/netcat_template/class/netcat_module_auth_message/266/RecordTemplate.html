@@ -1,0 +1,97 @@
+<?/* Служебная часть */for ($f_RowNum = 0; $f_RowNum < $rowCount; $f_RowNum++) {    if($fetch_row[$f_RowNum] instanceof Iterator) {        extract($fetch_row[$f_RowNum]->to_array(), EXTR_PREFIX_ALL, "f");    } else {        extract($fetch_row[$f_RowNum], EXTR_PREFIX_ALL, "f");    }    foreach($iteration_RecordTemplate[$f_RowNum] as $value) {        extract($value);    }    eval($cc_env["convert2txt"]);    ob_start();/* Конец служебной части */?>
+<? if($f_RowNum == '0'): ?>
+<!--<div class="lk-messages-write__history-message">  <?= htmlspecialchars_decode($f_Message);?>  </div>-->
+<div style="display:flex;" class="lk-messages-write__history-item <?=($current_user['User_ID']==$f_UserID ? "nc_msg_text nc_msg_out" : "nc_msg_text")?>">
+  <div class="lk-messages-write__history-item-head">
+    <a class="lk-messages-write__history-item-name" href="" title=""><?= $nc_core->user->get_by_id($f_UserID, 'Name') ?: $f_Author; ?></a>
+    <div class="lk-messages-write__history-item-date" data-time="<?=$f_Created_year;?>-<?=$f_Created_month;?>-<?=$f_Created_day;?> <?=$f_Created_hours;?>:<?=$f_Created_minutes;?>:00 GMT+0000"><?=$f_Created_day.".".$f_Created_month.".".$f_Created_year." - ".$f_Created_hours.":".$f_Created_minutes?></div>
+  </div>
+  <div class="lk-messages-write__history-item-text">
+  <?= htmlspecialchars_decode($f_Message);?> 
+  <?= ($f_shiduchCandidate && !$f_shiduchCandidateFor) ? htmlspecialchars_decode('<br/><a href="/my/candidate/candidate_'.$f_shiduchCandidate.'.html">ID '.$f_shiduchCandidate.'</a>') : ''; ?>
+  <?= ($f_shiduchCandidate && $f_shiduchCandidateFor) ? htmlspecialchars_decode('<br/><a href="/my/candidate/candidate_'.$f_shiduchCandidate.'.html">ID '.$f_shiduchCandidate.'</a> с <a href="/my/candidate/candidate_'.$f_shiduchCandidateFor.'.html">ID '.$f_shiduchCandidateFor.'</a>') : ''; ?>
+  </div>
+  <? if ($f_image->count()): ?>
+  <div class="lk-messages-write__history-message-gallery">
+    <div class="lk-messages-write__history-message-gallery-swiper swiper">
+      <div class="swiper-wrapper">
+      <? foreach($f_image->to_array() as &$file): ?>
+      <a
+        class="lk-messages-write__history-message-gallery-slide swiper-slide"
+        href="<?= $file['path']; ?>"
+        data-glightbox
+      >
+        <img
+          class="lk-messages-write__history-message-gallery-swiper-img js-lazy"
+          data-src="<?= $file['path']; ?>"
+          alt=""
+        />
+      </a>
+      <? endforeach; ?>  
+      </div>
+      <div class="swiper-navigation swiper-navigation--angle-icon lk-questionnaire__gallery-swiper-nav">
+        <button class="swiper-navigation__button swiper-navigation__button--prev">
+          <svg class="swiper-navigation__icon">
+            <use xlink:href="/images/sprite.svg#angle2"></use>
+          </svg>
+        </button>
+        <button class="swiper-navigation__button swiper-navigation__button--next">
+          <svg class="swiper-navigation__icon">
+            <use xlink:href="/images/sprite.svg#angle2"></use>
+          </svg>
+        </button>
+      </div>
+    </div>
+  </div>
+  <? endif;?>
+</div>
+<? else: ?>
+<? if($f_RowNum == '1'): ?>
+<div class="lk-messages-write__history-list">
+<? endif; ?>
+<div class="lk-messages-write__history-item <?=($current_user['User_ID']==$f_UserID ? "nc_msg_text nc_msg_out" : "nc_msg_text")?>">
+  <div class="lk-messages-write__history-item-head">
+    <a class="lk-messages-write__history-item-name" href="" title=""><?= $nc_core->user->get_by_id($f_UserID, 'Name') ?: $f_Author; ?></a>
+    <div class="lk-messages-write__history-item-date" data-time="<?=$f_Created_year;?>-<?=$f_Created_month;?>-<?=$f_Created_day;?> <?=$f_Created_hours;?>:<?=$f_Created_minutes;?>:00 GMT+0000"><?=$f_Created_day.".".$f_Created_month.".".$f_Created_year." - ".$f_Created_hours.":".$f_Created_minutes?></div>
+  </div>
+  <div class="lk-messages-write__history-item-text">
+  <?= htmlspecialchars_decode($f_Message);?> 
+  <?= ($f_shiduchCandidate && !$f_shiduchCandidateFor) ? htmlspecialchars_decode('<br/><a href="/my/candidate/candidate_'.$f_shiduchCandidate.'.html">ID '.$f_shiduchCandidate.'</a>') : ''; ?>
+  <?= ($f_shiduchCandidate && $f_shiduchCandidateFor) ? htmlspecialchars_decode('<br/><a href="/my/candidate/candidate_'.$f_shiduchCandidate.'.html">ID '.$f_shiduchCandidate.'</a> с <a href="/my/candidate/candidate_'.$f_shiduchCandidateFor.'.html">ID '.$f_shiduchCandidateFor.'</a>') : ''; ?>
+  </div>
+  <? if ($f_image->count()): ?>
+  <div class="lk-messages-write__history-message-gallery">
+    <div class="lk-messages-write__history-message-gallery-swiper swiper">
+      <div class="swiper-wrapper">
+      <? foreach($f_image->to_array() as &$file): ?>
+      <a
+        class="lk-messages-write__history-message-gallery-slide swiper-slide"
+        href="<?= $file['path']; ?>"
+        data-glightbox
+      >
+        <img
+          class="lk-messages-write__history-message-gallery-swiper-img js-lazy"
+          data-src="<?= $file['path']; ?>"
+          alt=""
+        />
+      </a>
+      <? endforeach; ?>  
+      </div>
+      <div class="swiper-navigation swiper-navigation--angle-icon lk-questionnaire__gallery-swiper-nav">
+        <button class="swiper-navigation__button swiper-navigation__button--prev">
+          <svg class="swiper-navigation__icon">
+            <use xlink:href="/images/sprite.svg#angle2"></use>
+          </svg>
+        </button>
+        <button class="swiper-navigation__button swiper-navigation__button--next">
+          <svg class="swiper-navigation__icon">
+            <use xlink:href="/images/sprite.svg#angle2"></use>
+          </svg>
+        </button>
+      </div>
+    </div>
+  </div>
+  <? endif;?>
+</div>
+<? endif; ?>
+<?/* Служебная часть */    echo nc_finishing_RecordTemplate(ob_get_clean(), $inside_admin, $classID, $f_RowID, $parent_message, $cc, $cc_env["Class_Name"], $no_cache_marks);}/* Конец служебной части */?>

@@ -1,0 +1,14 @@
+<article class="news-full">
+    <?= $f_AdminButtons; ?>
+    <h1 class="news-title tpl-text-header4">
+        <?= nc_edit_inline('Name', $f_RowID, $cc_env['Sub_Class_ID']); ?>
+    </h1>
+    <div class="news-date tpl-text-alt-paragraph">
+        <?= $f_Date_day ?> <?= $months_number_to_text[(int)$f_Date_month] ?> <?= $f_Date_year ?>
+    </div>
+    <div class="news-body tpl-text-default-paragraph">
+        <div class="news-text"><?= nc_edit_inline('Text', $f_RowID, $cc_env['Sub_Class_ID']); ?></div>
+        <div class="news-image"><?= nc_image_edit_inline('Image', $f_RowID, $cc_env['Sub_Class_ID']); ?></div>
+    </div>
+</article>
+<?= nc_area('news_'.$message); ?>

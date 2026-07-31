@@ -1,0 +1,20 @@
+<!-- FormPrefix --><?php require_once $nc_parent_field_path; ?>
+<?php $shops = array(); ?>
+
+<?= ($searchForm ? "
+    <div id='nc_admin_filter'>
+      <fieldset>
+        <legend>" . NETCAT_MODERATION_FILTER . "</legend>
+        $searchForm
+      </fieldset>
+    </div>
+    " : "" ); ?><!-- /FormPrefix -->
+
+<!-- RecordTemplate --><b>Название:</b> <?= $f_Name; ?><br>
+<b>Адрес:</b> <?= $f_Address; ?><br>
+<b>Телефоны:</b> <?= $f_Phones; ?><br>
+<b>Рабочее время:</b> <?= $f_WorkingTime; ?><br>
+<b>Координаты:</b> <?= $f_Coordinates; ?>
+<hr><!-- /RecordTemplate -->
+
+<!-- FormSuffix --><? require_once $nc_parent_field_path; ?><!-- /FormSuffix -->

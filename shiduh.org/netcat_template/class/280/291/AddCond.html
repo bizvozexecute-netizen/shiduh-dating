@@ -1,0 +1,7 @@
+<?php
+$idUser = $current_user['User_ID'];  
+  if ($db->get_var("SELECT Message_ID FROM Message280 WHERE (Candidate1 = '$f_Candidate1' AND Candidate2 = '$f_Candidate2' AND User_ID = '$idUser') OR (Candidate1 = '$f_Candidate2' AND Candidate2 = '$f_Candidate1' AND User_ID = '$idUser')")) {
+    $warnText = "Такой шидух уже существует";
+    $posting = 0;
+  }
+?>

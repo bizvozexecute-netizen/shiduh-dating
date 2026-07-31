@@ -1,0 +1,34 @@
+<?/* Служебная часть */for ($f_RowNum = 0; $f_RowNum < $rowCount; $f_RowNum++) {    if($fetch_row[$f_RowNum] instanceof Iterator) {        extract($fetch_row[$f_RowNum]->to_array(), EXTR_PREFIX_ALL, "f");    } else {        extract($fetch_row[$f_RowNum], EXTR_PREFIX_ALL, "f");    }    foreach($iteration_RecordTemplate[$f_RowNum] as $value) {        extract($value);    }    eval($cc_env["convert2txt"]);    ob_start();/* Конец служебной части */?>
+<?= $f_AdminButtons; ?>
+<a href='<?= $fullLink; ?>' title='<?= $f_Name; ?>' class='object-item' <?= $styles; ?>>
+    <?php if ($f_Image) { ?>
+        <div class='item-image'>
+            <div class="image">
+                <?= $f_Image->as_img(array('alt' => $f_Name)); ?>
+            </div>
+        </div>
+    <?php } ?>
+    <div class='item-info'>
+        <div class="object-item-title tpl-text-header4">
+            <?= nc_edit_inline('Name', $f_RowID, $cc_env['Sub_Class_ID']); ?>
+        </div>
+        <?php
+        if (date("Ymd") === $f_Date_year . $f_Date_month . $f_Date_day) {
+            $dt = "Сегодня, {$f_Date_hours}:{$f_Date_minutes}";
+        } elseif (date("Ymd", strtotime("yesterday")) === $f_Date_year . $f_Date_month . $f_Date_day) {
+            $dt = "Вчера, {$f_Date_hours}:{$f_Date_minutes}";
+        } else {
+            $dt = "{$f_Date_day} {$months_number_to_text[(int)$f_Date_month]} {$f_Date_year}, ";
+            $dt .= "{$f_Date_hours}:{$f_Date_minutes}";
+        }
+        ?>
+        <div class="object-secondary-title tpl-text-header6 tpl-color-brand">
+            <?php if ($admin_mode): ?>
+                <?= nc_edit_inline('Date', $f_RowID, $cc_env['Sub_Class_ID']); ?>
+            <?php else: ?>
+                <span title='<?= date('d.m.Y H:i', strtotime($f_Date)); ?>'><?= $dt; ?></span>
+            <?php endif; ?>
+        </div>
+    </div>
+</a>
+<?/* Служебная часть */    echo nc_finishing_RecordTemplate(ob_get_clean(), $inside_admin, $classID, $f_RowID, $parent_message, $cc, $cc_env["Class_Name"], $no_cache_marks);}/* Конец служебной части */?>

@@ -1,0 +1,15 @@
+<?
+//if (!$f_ToUser || $f_ToUser==$AUTH_USER_ID || !$nc_core->get_settings('pm_allow', 'auth')) {
+//  $warnText = 'Ошибка отправки сообщения';
+//  $posting = 0;
+//}
+if (!$f_ToUser || $f_ToUser==$AUTH_USER_ID) {
+  $warnText = 'Error sending the message';
+  $posting = 0;
+}
+if($nc_core->user->get_by_id($f_ToUser, "Type" ) === 'Кандидат' && $nc_core->user->get_by_id($AUTH_USER_ID, "Type" ) === 'Кандидат') {
+ $warnText = 'Error sending the message candidate to candidate';
+ $posting = 0;
+}
+$f_Status = 0;
+?>

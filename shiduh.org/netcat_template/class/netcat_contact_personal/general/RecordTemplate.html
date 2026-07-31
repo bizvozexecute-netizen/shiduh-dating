@@ -1,0 +1,53 @@
+<?/* Служебная часть */for ($f_RowNum = 0; $f_RowNum < $rowCount; $f_RowNum++) {    if($fetch_row[$f_RowNum] instanceof Iterator) {        extract($fetch_row[$f_RowNum]->to_array(), EXTR_PREFIX_ALL, "f");    } else {        extract($fetch_row[$f_RowNum], EXTR_PREFIX_ALL, "f");    }    foreach($iteration_RecordTemplate[$f_RowNum] as $value) {        extract($value);    }    eval($cc_env["convert2txt"]);    ob_start();/* Конец служебной части */?>
+<div<?= $styles; ?>>
+<div class="contacts-object">
+    <?= $f_AdminButtons; ?>
+    <?php if ($admin_mode || $f_Image): ?>
+        <div class="contacts-object-image <?= $cc_settings['widePhoto'] === 'on' ? "wide-image" : "square-image " . ($cc_settings['roundedPhoto'] === 'on' ? " rounded " : null); ?>">
+            <div class="image">
+                <?= $f_Image->as_img(); ?>
+            </div>
+        </div>
+    <?php endif; ?>
+    <?php if ($admin_mode || $f_Name || $f_SubName): ?>
+            <?php if ($admin_mode || $f_Name): ?>
+                <div class="tpl-text-header4">
+                    <?= nc_edit_inline('Name', $f_RowID, $cc_env['Sub_Class_ID']); ?>
+                </div>
+            <?php endif; ?>
+            <?php if ($admin_mode || $f_SubName): ?>
+                <div class="tpl-text-alt-paragraph">
+                    <?= nc_edit_inline('SubName', $f_RowID, $cc_env['Sub_Class_ID']); ?>
+                </div>
+            <?php endif; ?>
+    <?php endif; ?>
+    <?php if ($admin_mode || $f_Phone || $f_Email): ?>
+            <?php if ($admin_mode || $f_Phone): ?>
+                <div class="tpl-text-default-paragraph">
+                    <strong>Телефон: </strong>
+                    <a href="tel:<?= nc_normalize_phone_number($f_Phone); ?>">
+                        <?= nc_edit_inline('Phone', $f_RowID, $cc_env['Sub_Class_ID']); ?>
+                    </a>
+                </div>
+            <?php endif; ?>
+            <?php if ($admin_mode || $f_Email): ?>
+                <div class="tpl-text-default-paragraph">
+                    <strong>Почта:</strong>
+                    <a href="mailto:<?= $f_Email; ?>">
+                        <?= nc_edit_inline('Email', $f_RowID, $cc_env['Sub_Class_ID']); ?>
+                    </a>
+                </div>
+            <?php endif; ?>
+    <?php endif; ?>
+    <?php if ($admin_mode || $f_Social): ?>
+        <div class="contacts-object-socials tpl-text-<?= $cc_settings['iconSize']; ?> <?= ($admin_mode ? 'tpl-adm-text' : '' ); ?>">
+            <?php if ($admin_mode): ?>
+                <?= nc_edit_inline('Social', $f_RowID, $cc_env['Sub_Class_ID']); ?>
+            <?php else: ?>
+                <?= nc_social_icons($f_Social, "<a href='%URL' class='tpl-icon-pad " . $icon_class . "' title='%NAME' target='_blank'>%ICON</a>"); ?>
+            <?php endif; ?>
+        </div>
+    <?php endif; ?>
+</div>
+</div>
+<?/* Служебная часть */    echo nc_finishing_RecordTemplate(ob_get_clean(), $inside_admin, $classID, $f_RowID, $parent_message, $cc, $cc_env["Class_Name"], $no_cache_marks);}/* Конец служебной части */?>

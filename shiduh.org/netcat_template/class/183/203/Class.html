@@ -1,0 +1,31 @@
+<!-- FormPrefix --><div class="lk-main__blog">
+                <div class="lk-head lk-main__blog-head">
+                  <h2 class="lk-head__title">Блог</h2>
+                  <a class="lk-head__right-link" href="/my/blog/" title="">Посмотреть все</a>
+                </div>
+                <div class="lk-main__blog-body">
+                  <div class="lk-main__blog-body-list"><!-- /FormPrefix -->
+
+<!-- RecordTemplate --><?
+$arrayMonth = array("января", "февраля", "марта", "апреля", "мая", "июня", "июля", "августа", "сентября", "октября", "ноября", "декабря");
+?>
+
+
+<div class="avatar avatar--text lk-main__item">
+  <picture class="avatar__picture">
+    <img class="avatar__img js-lazy" data-src="<?= $f_autor_ID ? nc_objects_list(11, 18, "&nc_ctpl=249&ItemID=$f_autor_ID" ) : $nc_core->user->get_by_id($f_User_ID, "Photo_avatar" ); ?>" alt="">
+  </picture>  
+  <div class="avatar__body">
+    <div class="avatar__date"><?= $f_newsDate_day; ?> <?= $arrayMonth[(int)$f_newsDate_month - 1] ?> <?= $f_newsDate_year; ?> г.</div>
+    <div class="avatar__text">
+      <div class="avatar__text-value">
+        <a class="avatar__autor" href="<?=$fullLink?>" title=""><?= $f_newsTitle; ?></a> 
+      </div>
+    </div>
+  </div>
+</div><!-- /RecordTemplate -->
+
+<!-- FormSuffix --></div>
+                  <a class="lk-main__blog-body-more" href="/my/blog/" title="">Посмотреть все</a>
+                </div>
+              </div><!-- /FormSuffix -->

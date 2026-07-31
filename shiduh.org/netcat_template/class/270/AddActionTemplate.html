@@ -1,0 +1,98 @@
+<?
+// получаем объект nc_core
+$nc_core = nc_Core::get_object();
+if($f_Checked) {
+    //отправка сообщения шадханам о том что их кандидат в избранном
+    $candidateDate = date("Y-m-d H:i:s");    
+    $nc_core->db->query("SELECT * FROM Message204 WHERE Message_ID = $f_Candidate");
+    $arr = $nc_core->db->last_result;
+    $candidateName = $arr[0]->Name;
+    $candidateUserID = 1;
+    $shadhanID = $arr[0]->User_ID;
+
+    
+    $candidateTheme = 'Вашего кандидата добавили в список Избранное ';   
+    $candidateMessage = '';
+    $userLink = '';
+
+    //если добавил шадхан
+    if($nc_core->user->get_by_id($AUTH_USER_ID, "Type_id" ) == 2) {
+      $userLink = 'https://shiduh.org/my/shadhany/shadhan_'.$AUTH_USER_ID.'.html';
+
+      $candidateMessage = 'Уважаемый Шадхан! <br>
+  Вашего <a href="https://shiduh.org/my/candidate/candidate_'.$f_Candidate.'.html">кандидата</a> '.$f_Candidate.'  <a href="'.$userLink.'">шадхан</a> добавил в Избранное. <br>
+  Попробуйте предложить новую идею шидуха!  <br>
+  Команда One Soul желает Сията деШмая и плодотворных шидухов!';
+    } elseif($nc_core->user->get_by_id($AUTH_USER_ID, "Type_id" ) == 1) {
+    //если добавил кандидат
+      $nc_core->db->query("SELECT * FROM Message204 WHERE User_ID = $AUTH_USER_ID");
+      $arr2 = $nc_core->db->last_result;
+      $msgId = $arr2[0]->Message_ID;
+      $userLink = 'https://shiduh.org/my/candidate/candidate_'.$msgId.'.html';  
+
+      $candidateMessage = 'Уважаемый Шадхан!  <br>
+  Вашего <a href="https://shiduh.org/my/candidate/candidate_'.$f_Candidate.'.html">кандидата</a> '.$f_Candidate.'  <a href="'.$userLink.'">кандидат</a> добавил в Избранное. <br>
+  Попробуйте предложить новую идею шидуха!  <br>
+  Команда One Soul желает Сията деШмая и плодотворных шидухов!';  
+    }
+
+    //если анкета создана шадханом
+    if($nc_core->user->get_by_id($shadhanID, "Type_id" ) == 2){
+        sendEmail($shadhanID, $candidateTheme, $candidateMessage);
+        $nc_core->db->query("INSERT INTO `Message6` 
+                  (`Checked`, `ToUser`, `Subject`, `Message`, `User_ID`, `Subdivision_ID`, `Sub_Class_ID`, `Created`, `Status`) 
+                  VALUES 
+                  ('1', '$shadhanID', '$candidateTheme', '$candidateMessage', '$candidateUserID', '28', '29', '$candidateDate', '0') "); 
+    }   
+    
+    if ($arr[0]->Shadhan_1) {
+       $shadhanID = $arr[0]->Shadhan_1;
+       sendEmail($shadhanID, $candidateTheme, $candidateMessage);
+       $nc_core->db->query("INSERT INTO `Message6` 
+                    (`Checked`, `ToUser`, `Subject`, `Message`, `User_ID`, `Subdivision_ID`, `Sub_Class_ID`, `Created`, `Status`) 
+                    VALUES 
+                    ('1', '$shadhanID', '$candidateTheme', '$candidateMessage', '$candidateUserID', '28', '29', '$candidateDate', '0') "); 
+    }
+    if ($arr[0]->Shadhan_2) {
+       $shadhanID = $arr[0]->Shadhan_2;
+       sendEmail($shadhanID, $candidateTheme, $candidateMessage);
+       $nc_core->db->query("INSERT INTO `Message6` 
+                    (`Checked`, `ToUser`, `Subject`, `Message`, `User_ID`, `Subdivision_ID`, `Sub_Class_ID`, `Created`, `Status`) 
+                    VALUES 
+                    ('1', '$shadhanID', '$candidateTheme', '$candidateMessage', '$candidateUserID', '28', '29', '$candidateDate', '0') "); 
+    }
+    if ($arr[0]->Shadhan_3) {
+       $shadhanID = $arr[0]->Shadhan_3;
+       sendEmail($shadhanID, $candidateTheme, $candidateMessage);
+       $nc_core->db->query("INSERT INTO `Message6` 
+                    (`Checked`, `ToUser`, `Subject`, `Message`, `User_ID`, `Subdivision_ID`, `Sub_Class_ID`, `Created`, `Status`) 
+                    VALUES 
+                    ('1', '$shadhanID', '$candidateTheme', '$candidateMessage', '$candidateUserID', '28', '29', '$candidateDate', '0') "); 
+    }
+    
+    //если анкета создана кандидатоам
+    $shadhanID = $arr[0]->User_ID;
+    if($nc_core->user->get_by_id($shadhanID, "Type_id" ) == 1){
+        
+        $candidateTheme = 'Вас добавили в список избранное';   
+        $candidateMessage = 'Уважаемый кандидат! <br>
+Ваша анкета была добавлена в Избранное <a href="'.$userLink.'">пользователем</a>! Свяжитесь с Вашим шадханом, чтобы узнать подробности <br>
+С уважением,<br>
+Команда One Soul';
+        sendEmail($shadhanID, $candidateTheme, $candidateMessage);
+        $nc_core->db->query("INSERT INTO `Message6` 
+                  (`Checked`, `ToUser`, `Subject`, `Message`, `User_ID`, `Subdivision_ID`, `Sub_Class_ID`, `Created`, `Status`) 
+                  VALUES 
+                  ('1', '$shadhanID', '$candidateTheme', '$candidateMessage', '$candidateUserID', '28', '29', '$candidateDate', '0') "); 
+    }   
+    
+}
+if($inside_admin) {
+    ob_end_clean();
+    header('Location: '.$goBackLink.'&inside_admin=1');
+    exit;
+} else { 
+	echo ($IsChecked ? NETCAT_MODERATION_MSG_OBJADD : NETCAT_MODERATION_MSG_OBJADDMOD);
+	echo "<br /><br />".$goBack;
+}
+?>

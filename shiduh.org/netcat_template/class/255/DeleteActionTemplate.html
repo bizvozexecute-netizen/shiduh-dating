@@ -1,0 +1,26 @@
+<?
+if($inside_admin) {
+    ob_end_clean();
+    header('Location: '.$goBackLink.'&inside_admin=1');
+    exit;
+} else { ?>
+<section class="lk-messages">
+            <div class="lk-messages__wrapper">
+              
+            <div class="lk-head lk-messages__head">
+              <h1 class="lk-head__title"><?
+if (is_array($message)){
+    echo NETCAT_MODERATION_MSG_OBJSDELETED;
+} else {
+    echo NETCAT_MODERATION_MSG_OBJDELETED;
+}	
+?></h1>
+            </div>
+              <div class="" >
+                <a class="lk-questionnaire__goback-link" href="/my/" title=""><?= NETCAT_MODERATION_BACKTOSECTION ?></a>
+              </div>            
+              
+            </div>
+          </section><?
+}
+?>

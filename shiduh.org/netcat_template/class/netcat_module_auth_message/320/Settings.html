@@ -1,0 +1,15 @@
+<?
+if ($uid) header("Location: ".$cc_env['addLink']."?uid=".$uid);
+
+$ignore_parent = true;
+
+$query_select = 'u.'.$AUTHORIZE_BY.' AS Author ';
+$query_join = 'LEFT JOIN User AS u ON a.User_ID = u.User_ID';
+
+// Показываем только запросы на удаление анкет
+$query_where = 'a.Message = "женился / вышел замуж" OR a.Message = "не актуально по личным соображениям" OR a.Message = "не нравиться платформа"';
+$query_group = 'a.User_ID, a.Subject, a.Message';  // ← убирает дубли
+
+// запрет кэширования
+$cc_env['Cache_Access_ID'] = 2;
+?>

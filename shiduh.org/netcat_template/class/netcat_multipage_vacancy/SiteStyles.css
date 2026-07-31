@@ -1,0 +1,26 @@
+& { min-height: 1em; }
+/* item */
+.vacancy-item { border-bottom: 1px solid var(--tpl-color-foreground-accent-lightest, #e3f2fd); display: flex; }
+.vacancy-item:last-child { border-bottom: none; }
+.vacancy-item .item-info { margin-right: auto; }
+.vacancy-item .item-info .title { text-decoration: none; display:inline-block; }
+.vacancy-item .item-info .description { color: var(--tpl-color-foreground-accent); }
+.vacancy-item .item-salary { font-weight: 600; color: var(--tpl-color-brand-dark); }
+@nc-list-object (max-width: 500px) {
+  .vacancy-item { flex-direction: column; }
+}
+@nc-list-object (min-width: 500px) {
+  .vacancy-item { flex-direction: row; }
+}
+@nc-list-object (max-width: 400px) {
+  .vacancy-item .item-salary { text-align: left; margin-left: 0; }
+}
+.vacancy-item .no-salary { color: var(--tpl-color-foreground-accent); }
+/* full */
+.vacancy-full .item-salary { font-weight: 600; color: var(--tpl-color-brand-dark); padding: 0.5rem 0; }
+.vacancy-full .item-salary .no-salary { color: var(--tpl-color-foreground-accent); }
+.vacancy-full .item-details { padding-bottom: 2rem; }
+.vacancy-full .send-email-block { border: 7px solid var(--tpl-color-brand); padding: 2rem; text-align: center; }
+.vacancy-full .icon-email { line-height: 1; color: var(--tpl-color-brand); font-size: 1.2em; margin-right: 1rem; width: 1.2em; height: 1.2em; }
+.vacancy-full .icon-email svg { width: 1em; height: 1em; }
+.vacancy-full .icon-email svg path { fill: var(--tpl-color-brand); }

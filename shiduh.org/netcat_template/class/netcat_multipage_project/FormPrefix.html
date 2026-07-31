@@ -1,0 +1,8 @@
+<?= $f_AdminCommon; ?>
+<?php
+$styles = array();
+$styles[] = "--tpl-object-item--image-padding-top: " . $padding_top;
+if ($cc_settings['textPaddingValue']) {
+    $styles[] = "--tpl-object-item--text-padding: " . $cc_settings['textPaddingValue'] . $cc_settings['textPaddingUnit'];
+}
+?>

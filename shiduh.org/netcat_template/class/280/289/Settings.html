@@ -1,0 +1,6 @@
+<?php
+$idUser = $current_user['User_ID'];
+if($action !== 'full' && $candidateID) {
+   $query_where .= " a.Candidate1 = $candidateID OR  a.Candidate2 = $candidateID";
+}
+?>

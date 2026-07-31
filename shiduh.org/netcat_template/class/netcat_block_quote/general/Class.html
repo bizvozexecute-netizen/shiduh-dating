@@ -1,0 +1,40 @@
+<!-- FormPrefix --><?= $f_AdminCommon; ?>
+<?php if ($totRows > 0): ?>
+<section
+    class="template-quotes tpl-text-default <?= $cc_settings['quotes'] === 'on' ? 'literal-quotes' : ''; ?> photo-<?= $cc_settings['image_position']; ?>">
+    <?php endif; ?><!-- /FormPrefix -->
+
+<!-- RecordTemplate --><?= $f_AdminButtons; ?>
+    <div
+        class="quotes-object <?= $cc_settings['image_position'] !== 'none' ? "image-{$cc_settings['image_position']}" : ""; ?> ">
+        <div class="quotes-author">
+            <?php if (($admin_mode || $f_Image) && $cc_settings['image_position'] !== 'none'): ?>
+                <div class="quotes-icon">
+                    <?= $f_Image->resize(80, 80, nc_ImageTransform::RESIZE_TO_BEST_FIT_WITH_CROP)->as_img(); ?>
+                </div>
+            <?php endif; ?>
+            <?php if ($admin_mode || $f_Author || $_Caption): ?>
+                <div class="quotes-name">
+                    <?php if ($admin_mode || $f_Author): ?>
+                        <div class="author tpl-text-default-small">
+                            <?= nc_edit_inline('Author', $f_RowID, $cc_env['Sub_Class_ID']); ?>
+                        </div>
+                    <?php endif; ?>
+                    <?php if ($admin_mode || $f_Caption): ?>
+                        <div class="caption tpl-text-default-alt">
+                            <?= nc_edit_inline('Caption', $f_RowID, $cc_env['Sub_Class_ID']); ?>
+                        </div>
+                    <?php endif; ?>
+                </div>
+            <?php endif; ?>
+        </div>
+
+        <div class="tpl-text-default-paragraph quotes-text <?= $cc_settings['quotes'] ? "show-quotes" : ""; ?>">
+            <?= nc_edit_inline('Text', $f_RowID, $cc_env['Sub_Class_ID']); ?>
+        </div>
+
+    </div><!-- /RecordTemplate -->
+
+<!-- FormSuffix --><?php if ($totRows > 0): ?>
+</section>
+<? endif; ?><!-- /FormSuffix -->

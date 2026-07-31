@@ -1,0 +1,2 @@
+& { min-height: 1em; }
+.advantages-object { display: flex; flex-direction: column; justify-content: stretch; text-decoration: none; color: inherit; }

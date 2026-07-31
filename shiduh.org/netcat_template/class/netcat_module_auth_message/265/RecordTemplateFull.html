@@ -1,0 +1,90 @@
+<? $idUserProfile = $f_User_ID === $current_user['User_ID'] ? $f_ToUser : $f_User_ID; ?>
+<?
+                        $urlProfile = '';
+                        $headTitle = '';
+                        if($idUserProfile == 119 || $idUserProfile == 1) { 
+                        
+                        } elseif($nc_core->user->get_by_id($idUserProfile, "Type_id" ) == '2') {
+                            $urlProfile = '/my/shadhany/shadhan_'.$idUserProfile.'.html';
+                            $headTitle = 'Сообщение от шадхана';
+                        } elseif($nc_core->user->get_by_id($idUserProfile, "Type_id" ) == '3') {
+                            $urlProfile = '/my/ravviny/ravvin_'.$idUserProfile.'.html';
+                            $headTitle = 'Сообщение от раввина';
+                        } elseif($nc_core->user->get_by_id($idUserProfile, "Type_id" ) == '4') {
+                            $urlProfile = '/my/psihologi/psiholog_'.$idUserProfile.'.html';
+                            $headTitle = 'Сообщение от психолога';
+                        } else {
+                          $nc_core->db->query("SELECT * FROM Message204 WHERE User_ID =  $idUserProfile", ARRAY_A );
+                          $arr = $nc_core->db->last_result;
+
+                          if (!empty($arr)) {
+                              foreach ($arr as $row) {
+                                  // выводятся значения из 11 столбца
+
+                                  $urlProfile = $row["Keyword"] ? '/my/candidate/'.$row["Keyword"].'.html' : '/my/candidate/candidate_'.$row["Message_ID"].'.html';
+                                  $headTitle = 'Сообщение от кандидата';
+                              }
+                          }
+                        }
+                        
+                        ?>
+<section class="lk-messages-write lk-messages-write--theme">
+            <div class="lk-messages-write__wrapper">
+              <div class="lk-head lk-messages-write__head">
+                <h1 class="lk-head__title"> <? $f_User_ID == 119 ? 'One Soul' : 'ID: '.$idUserProfile; ?> <?= $f_User_ID == 119 ? 'One Soul' : $headTitle;?> </h1>
+                <a class="lk-messages-write__head-back" href="/my/message/" title="">Назад</a>
+              </div>
+              <div class="lk-messages-write__body">
+                <div class="lk-messages-write__history ">
+                  <div class="lk-messages-write__history-head">
+                    <div class="lk-messages-write__history-avatar">
+                      <img class="lk-messages-write__history-avatar-img js-lazy" data-src="<?= $nc_core->user->get_by_id($idUserProfile, "Photo_avatar") ? $nc_core->user->get_by_id($idUserProfile, "Photo_avatar") : ($nc_core->user->get_by_id($idUserProfile, "Gender_id") == 1 ? '/images/avatar/man.png' : '/images/avatar/woman.png'); ?>" alt="">
+                      <div class="lk-messages-write__history-avatar-wrap">
+                        
+                        <a class="lk-messages-write__history-avatar-name" href="<?= $urlProfile; ?>" title=""><?= $nc_core->user->get_by_id($idUserProfile, "Name" ); ?> </a>
+                        <!--<div class="lk-messages-write__history-avatar-date"><?=$f_Created_day.".".$f_Created_month.".".$f_Created_year." - ".$f_Created_hours.":".$f_Created_minutes?></div>-->
+                      </div>
+                    </div>
+                  </div>
+                  <? if($f_name || $f_email): ?>
+                  <div class="lk-messages-write__history-message">
+                      <?= $f_name ? 'ФИО: '.$f_name : '';?><br> <?= $f_email ? 'Email: '.$f_email : '';?>
+                  </div>
+                  <? endif; ?>
+                  
+                  
+<?
+$userID = $current_user['User_ID'];
+$db->query("UPDATE Message$classID SET Status=1 WHERE ToUser = $userID AND User_ID = $f_User_ID or ToUser = $userID AND User_ID = $f_ToUser"); 
+if ($f_RowID && $f_UserID !== $current_user['User_ID']) {
+
+    //if($current_user['User_ID'] == $f_ToUser) { 
+    //    $db->query("UPDATE Message$classID SET Status=1 WHERE ToUser = $f_ToUser AND User_ID = $f_User_ID"); 
+    //}
+    //echo s_list_class($sub, $cc, "&show_all=1&m_link=$fullLink&full_msg_id=$f_RowID&curPos=$curPos&group_id=".($f_Parent_Message_ID ? $f_Parent_Message_ID : $f_RowID), 1);
+    echo nc_objects_list($sub, $cc, "&show_messages_by_id_user=$f_User_ID&nc_ctpl=266&disable_message=$f_Message_ID"  );
+} else {
+    
+    //echo s_list_class($sub, $cc, "&show_all=1&m_link=$fullLink&full_msg_id=$f_RowID&curPos=$curPos&group_id=".($f_Parent_Message_ID ? $f_Parent_Message_ID : $f_RowID), 1);
+    echo nc_objects_list($sub, $cc, "&show_messages_by_id_user=$f_ToUser&nc_ctpl=266&disable_message=$f_Message_ID"  );
+}
+
+$uid = $f_UserID;
+$f_Parent_Message_ID = ($f_Parent_Message_ID ? $f_Parent_Message_ID : $f_RowID);
+
+
+if (isset($show_all)) {
+        ?><button class="lk-messages-write__history-button" style="display:inline-block;">Спрятать остальные сообщения по данной теме</button></div><?
+} else {
+        ?><button class="lk-messages-write__history-button" style="display:inline-block;">Показать все сообщения по данной теме</button></div><?
+}
+         
+echo $addForm;
+//echo ( $f_ToUser ? $addForm : "");
+?>
+
+
+                  
+                </div>
+            </div>
+          </section>

@@ -1,0 +1,11 @@
+<?php if ($cc_settings['mapCode'] && $cc_settings['mapPosition'] === 'end'): ?>
+    <div class="contacts-map contacts-object"><?= $cc_settings['mapCode']; ?></div>
+<?php endif; ?>
+
+<?php if ($admin_mode && !$cc_settings['mapCode'] && $cc_settings['mapPosition'] === 'end'): ?>
+    <?= $nc_core->ui->alert->info('Не указан код карты. Укажите код в настройках инфоблока или выберите другой шаблон'); ?>
+<?php endif; ?>
+
+<?php if ($totRows > $recNum): ?>
+<?= nc_browse_messages($cc_env, 10); ?>
+<?php endif; ?>

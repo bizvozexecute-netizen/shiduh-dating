@@ -1,0 +1,42 @@
+%Header
+<?
+if(!$current_user['User_ID']) {
+    header('Location: https://'.$_SERVER['HTTP_HOST'].'');
+    exit();
+}
+if($current_user['Type_id'] !== 2) {
+    header('Location: https://'.$_SERVER['HTTP_HOST'].'');
+    exit();
+}
+
+?>
+
+<section class="lk-body ">
+  <div class="lk-body__wrapper wrapper">
+    <?= $this->partial('aside_profile') ?>
+    
+    <section class="lk-add-candidate">
+            <div class="lk-add-candidate__wrapper">
+              <div class="lk-head lk-add-candidate__head">
+                <h1 class="lk-head__title">Добавить Кандидата</h1>
+              </div>
+              <div class="lk-add-candidate__body">
+                <div class="lk-add-candidate__tabs">
+                  <a class="lk-add-candidate__tabs-item lk-add-candidate__tabs-item--active" href="#" title="" data-target="addcandidate_about">О кандидате</a>
+                  <a class="lk-add-candidate__tabs-item" href="#" title="" data-target="addcandidate_preferences">О предпочтениях кандидата</a>
+            
+                </div>
+          
+          
+        
+
+      
+      
+      
+      
+
+
+
+
+
+

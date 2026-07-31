@@ -1,0 +1,18 @@
+<?php
+// Подключение к БД
+global $db;
+
+// Получаем ID кандидата и пользователя
+$idCandidate = (int) $IDCandidate;
+$idUser = (int) $AUTH_USER_ID; // Или получи ID текущего пользователя другим способом
+
+// Проверяем, есть ли уже такая запись
+$exists = $db->get_var("SELECT COUNT(*) FROM Message270 WHERE Candidate = $idCandidate AND User_ID = $idUser");
+
+if ($exists) {
+    $posting = 0;
+    return;
+} else {
+    $posting = 1;
+}
+?>

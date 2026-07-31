@@ -1,0 +1,124 @@
+<section class="lk-questionnaire lk-questionnaire--shadhan">
+  <div class="lk-questionnaire__wrapper">
+  
+     
+  
+    <div class="lk-head lk-questionnaire__head">
+      <div class="lk-questionnaire__head-row">
+        <h1 class="lk-head__title lk-questionnaire__head-title"><?= $f_Name; ?></h1>
+        <a class="lk-questionnaire__head-exit" href="<?= $_SERVER['HTTP_REFERER'] ? $_SERVER['HTTP_REFERER'] : '/my/psihologi/'; ?>" title="">Назад</a>
+      </div>
+      
+      <div class="lk-questionnaire__head-redistration-date">Дата регистрации: <?= $f_Created_day; ?>.<?= $f_Created_month; ?>.<?= $f_Created_year; ?></div>
+      <div class="lk-questionnaire__head-info-list">
+        <div class="lk-questionnaire__head-subtitle">Психолог, <?= $f_Date_of_birth_year < 2024 && $f_Date_of_birth_year !== '0000' ? get_age($f_Date_of_birth)   : ''; ?> <?= num2word(get_age($f_Date_of_birth), array('год', 'года', 'лет'));?></div>
+      
+        <!--<? if($f_Success_ravin):?>
+        <div class="lk-questionnaire__head-subtitle lk-questionnaire__head-subtitle--check">Подтвержден раввином</div>
+        <? else: ?>
+        <div class="lk-questionnaire__head-subtitle lk-questionnaire__head-subtitle--uncheck">Не подтвержден раввином</div>
+        <? endif; ?>-->
+      </div>
+      
+    </div>
+    <div class="lk-questionnaire__body">
+      <div class="lk-questionnaire__body-main">
+        <!--<div class="lk-questionnaire__body-main-title title title--lk">
+            <span>Рейтинг: <?= $f_Account >= 100 ? 100 : $f_Account; ?></span>
+            <span>Количество кандидатов: <?= nc_objects_list( 23, 22, "&nc_ctpl=222&Shadhan=$f_UserID" ); ?></span>
+        </div>-->
+        <div class="lk-questionnaire__body-table">
+          <div class="lk-questionnaire__body-table-row">
+            <div class="lk-questionnaire__body-table-cell lk-questionnaire__body-table-cell--key"><b>Ф.И.О.:</b></div>
+            <div class="lk-questionnaire__body-table-cell lk-questionnaire__body-table-cell--value"><?= $f_Name; ?></div>
+          </div>
+          <div class="lk-questionnaire__body-table-row">
+            <div class="lk-questionnaire__body-table-cell lk-questionnaire__body-table-cell--key"><b>Пол:</b></div>
+            <div class="lk-questionnaire__body-table-cell lk-questionnaire__body-table-cell--value"><?= $f_Gender; ?></div>
+          </div>
+          <div class="lk-questionnaire__body-table-row">
+            <div class="lk-questionnaire__body-table-cell lk-questionnaire__body-table-cell--key"><b>Дата рождения:</b></div>
+            <div class="lk-questionnaire__body-table-cell lk-questionnaire__body-table-cell--value"><?= $f_Date_of_birth_day; ?>.<?= $f_Date_of_birth_month; ?>.<?= $f_Date_of_birth_year; ?> (<?= $f_Date_of_birth_year < 2024 && $f_Date_of_birth_year !== '0000' ? get_age($f_Date_of_birth) : ''; ?> <?= num2word(get_age($f_Date_of_birth), array('год', 'года', 'лет'));?>)</div>
+          </div>
+          <div class="lk-questionnaire__body-table-row">
+            <div class="lk-questionnaire__body-table-cell lk-questionnaire__body-table-cell--key"><b>Место рождения:</b></div>
+            <div class="lk-questionnaire__body-table-cell lk-questionnaire__body-table-cell--value"><?= $f_Place_of_birth; ?></div>
+          </div>
+          <div class="lk-questionnaire__body-table-row">
+            <div class="lk-questionnaire__body-table-cell lk-questionnaire__body-table-cell--key"><b>Страна проживания:</b></div>
+            <div class="lk-questionnaire__body-table-cell lk-questionnaire__body-table-cell--value"><?= $f_Country; ?></div>
+          </div>
+          <div class="lk-questionnaire__body-table-row">
+            <div class="lk-questionnaire__body-table-cell lk-questionnaire__body-table-cell--key"><b>Телефон:</b></div>
+            <div class="lk-questionnaire__body-table-cell lk-questionnaire__body-table-cell--value"><?= $f_Phone; ?></div>
+          </div>
+          <div class="lk-questionnaire__body-table-row">
+            <div class="lk-questionnaire__body-table-cell lk-questionnaire__body-table-cell--key"><b>E-mail:</b></div>
+            <div class="lk-questionnaire__body-table-cell lk-questionnaire__body-table-cell--value"><?= $f_Email; ?></div>
+          </div>
+        </div>
+        <div class="lk-questionnaire__body-buttons">
+          <? if ($noIam) {
+                if ($pm_allow) { ?>
+          <a href='<?= nc_auth_messages_url($f_RowID) ?>' class="lk-questionnaire__body-write button button--write">
+            <svg class="button__icon">
+              <use xlink:href="/images/sprite.svg#letter"></use>
+            </svg>
+            <span class="button__text">Написать</span>
+          </a>
+          <?
+            }
+          }?>  
+          <?= nc_objects_list( 23, 22, "&nc_ctpl=217&Shadhan=$f_UserID" ); ?>
+          
+        </div>
+        
+      </div>
+      <picture class="lk-questionnaire__body-picture">
+        <img class="lk-questionnaire__body-img js-lazy" data-src="<?= $f_Photo_avatar; ?>" alt="">
+      </picture>
+    </div>
+    <? if($current_user['User_ID'] == '119'): ?>
+    <?=( $warnText ? "<div class='warnText'>$warnText</div>" : NULL )?>
+    <div class="lk-questionnaire__form-section">
+      <form class=" form--lk-questionnaire-shadhan" name='adminForm' id='adminForm' enctype='multipart/form-data' method='post' action='<?= $SUB_FOLDER ?><?= $HTTP_ROOT_PATH ?>message.php'>
+        <div id='nc_moderate_form'>
+        <div class='nc_clear'></div>
+        <input name='admin_mode' type='hidden' value='<?= $admin_mode ?>' />
+        <?= $nc_core->token->get_input() ?>
+        <input name='catalogue' type='hidden' value='<?= $catalogue ?>' />
+        <input name='cc' type='hidden' value='<?= $cc ?>' />
+        <input name='sub' type='hidden' value='<?= $sub ?>' />
+        <input name='message' type='hidden' value='<?= $message ?>' />
+        <input name='posting' type='hidden' value='1' />
+        <input name='curPos' type='hidden' value='<?= $curPos ?>' />
+        <input name='f_Parent_Message_ID' type='hidden' value='<?= $f_Parent_Message_ID ?>' />
+        <?= nc_form_moderate('change', $admin_mode, 1, $systemTableID, $current_cc, (isset($f_Checked) ? $f_Checked  : null), $f_Priority , $f_Keyword, $f_ncTitle, $f_ncKeywords, $f_ncDescription ) ?>
+        </div>
+        <input type="hidden" name="partial" value="1" />  
+        <div class="form__body">
+          <input type="hidden" name="f_Success_ravin" value="0">
+          <label class="checkbox form__checkbox">
+            <input class="checkbox__input"  type="checkbox" name="f_Success_ravin" value="1" <?= $f_Success_ravin ? 'checked="checked"' : ''; ?> >
+            <div class="checkbox__body">
+              <span class="checkbox__el">
+                <svg class="checkbox__el-icon">
+                  <use xlink:href="/images/sprite.svg#checked"></use>
+                </svg>
+              </span>
+              <span class="checkbox__text">Подтвержден Раввином</span>
+            </div>
+          </label>
+        </div>
+        <div class="form__footer">
+          <button class="form__submit button" type="submit">Сохранить изменения</button>
+          <a href="<?=$checkedLink?>" class="form__toggle-button button button--ghost" ><?=$f_Checked==1?"выключить":"включить"?></a>
+        </div>
+      </form>
+    </div>
+    <? endif; ?> 
+    <div class="lk-questionnaire__goback">
+      <a class="lk-questionnaire__goback-link" href="<?= $_SERVER['HTTP_REFERER'] ? $_SERVER['HTTP_REFERER'] : '/my/psihologi/'; ?>" title="">Вернуться назад</a>
+    </div>
+  </div>
+</section>

@@ -1,0 +1,26 @@
+<!-- FormPrefix --><?= $f_AdminCommon; ?><!-- /FormPrefix -->
+
+<!-- RecordTemplate --><li class="main-faq__accordion-item">
+                <div class="main-faq__accordion-item-head">
+                  <div class="main-faq__accordion-item-head-text appearance-container">
+                    <span class="appearance"><?= $f_name; ?></span>
+                  </div>
+                </div>
+                <div class="main-faq__accordion-item-body appearance-container">
+                  <div class="main-faq__accordion-item-body-content appearance">
+                    <div style="text-align: center;"> <?= $f_text; ?> </div>
+                    <button class="main-faq__button button button--registration">
+                      <div class="button__icon-wrapper">
+                        <svg class="button__icon">
+                          <use xlink:href="/images/sprite.svg#user-plus"></use>
+                        </svg>
+                      </div> Регистрация
+                    </button>
+                  </div>
+                </div>
+                <svg class="main-faq__accordion-item-toggle">
+                  <use xlink:href="/images/sprite.svg#angle"></use>
+                </svg>
+              </li><!-- /RecordTemplate -->
+
+<!-- FormSuffix --><!-- /FormSuffix -->

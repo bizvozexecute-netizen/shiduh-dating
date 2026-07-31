@@ -1,0 +1,38 @@
+<!-- FormPrefix --><!-- /FormPrefix -->
+
+<!-- RecordTemplate --><?
+$arrayMonth = array("января", "февраля", "марта", "апреля", "мая", "июня", "июля", "августа", "сентября", "октября", "ноября", "декабря");
+?>
+
+<div class="avatar avatar--text lk-main__item">
+  <? if($current_user['Type_id'] == 2): ?>  
+  <picture class="avatar__picture">
+    <img class="avatar__img js-lazy" data-src="<?= $f_Photo_avatar ? $f_Photo_avatar : ($f_Gender_id == 1 ? '/images/avatar/man.png' : '/images/avatar/woman.png'); ?>" alt="">
+  </picture>
+  <? endif;?>
+  <div class="avatar__body">
+    <div class="avatar__date"><?= $f_Date_of_birth_day; ?> <?= $arrayMonth[(int)$f_Date_of_birth_month - 1] ?> <?= $f_Date_of_birth_year; ?> г.</div>
+    <div class="avatar__text">
+      <div class="avatar__text-value">
+        <a class="avatar__autor" href="<?=$fullLink?>" title="">
+        <? if($current_user['Type_id'] == 2): ?>  
+        <?= $f_Name; ?>
+        <? else: ?>
+        ID: <?= $f_Message_ID; ?>
+        <? endif;?>
+        </a> &nbsp; 
+        
+      </div>
+    </div>
+  </div>
+  <? if($f_User_ID === $current_user['User_ID']): ?>
+  <a href="/my/edit-anket/?object=<?= $f_Message_ID;?>" class="avatar__write-short button button--write-short">
+    <svg class="button__icon">
+      <use xlink:href="/images/sprite.svg#write"></use>
+    </svg>
+  </a>
+  <? endif; ?>
+  
+</div><!-- /RecordTemplate -->
+
+<!-- FormSuffix --><!-- /FormSuffix -->

@@ -1,0 +1,96 @@
+.nc-infoblock-object .nc-infoblock-insert {
+    display: none;
+}
+
+ul {
+    margin: 0;
+    padding: 0;
+}
+
+ul > li {
+    list-style: none;
+}
+
+a {
+    text-decoration: none;
+    color: var(--tpl-color-foreground-main);
+    display: block;
+}
+
+a:hover {
+    color: var(--tpl-color-foreground-accent);
+}
+
+.menu-item {
+    break-inside: avoid;
+}
+
+.menu-item-link {
+    display: flex;
+    align-items: center;
+    flex-wrap: nowrap;
+    max-width: 100%;
+}
+
+.menu-item-active > span, .menu-item-active > a {
+    color: var(--tpl-color-brand);
+}
+
+.menu-item-text {
+    flex: 1;
+}
+
+.menu-item-symbol {
+    margin-left: 0.2em;
+    /* прячем стрелки до инициализации nc_visibility_dropdown, чтобы не было видно
+       поворота стрелок (возможно исходно неправильного) */
+    visibility: hidden;
+    height: 1em;
+    width: 1em;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.menu-item-symbol svg {
+    height: 0.9em;
+    width: 0.9em;
+}
+
+.menu-item-symbol svg path {
+    fill: var(--tpl-color-foreground-main);
+}
+
+/* Классы, добавляющиеся после инициализации миксинов видимости — теперь мы можем показать
+   индикаторы (уже знаем направления стрелок) */
+.tpl-dropdown-to-top .menu-item-symbol,
+.tpl-dropdown-to-right .menu-item-symbol,
+.tpl-dropdown-to-bottom .menu-item-symbol,
+.tpl-accordion-trigger .menu-item-symbol {
+    visibility: visible;
+}
+
+/* Поворачивающиеся индикаторы — шеврон, треугольник. (Исходная стрелка направлена вниз.) */
+.tpl-dropdown-to-right > .menu-item-link > .menu-item-symbol-rotate svg {
+    transform: rotate(270deg);
+}
+
+.tpl-dropdown-to-top > .menu-item-link > .menu-item-symbol-rotate svg,
+.tpl-accordion-trigger-opened > .menu-item-link > .menu-item-symbol-rotate svg {
+    transform: rotate(180deg);
+}
+
+.tpl-accordion-trigger .menu-item-symbol-rotate svg {
+    transition: transform 0.3s;
+}
+
+/* Альтернативные индикаторы (плюс/минус)  */
+.menu-item-symbol-alternate svg:nth-child(2),
+.tpl-accordion-trigger-opened > .menu-item-link > .menu-item-symbol-alternate svg:nth-child(1) {
+    display: none;
+}
+
+.tpl-accordion-trigger-opened > .menu-item-link > .menu-item-symbol-alternate svg:nth-child(2) {
+    display: inline;
+}

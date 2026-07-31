@@ -1,0 +1,54 @@
+<!-- FormPrefix --><!-- /FormPrefix -->
+
+<!-- RecordTemplate --><form class="form  tpl-module-auth-registration-form" name="adminForm" id="adminForm" enctype="multipart/form-data" method="post" action='<?= $SUB_FOLDER ?><?= $HTTP_ROOT_PATH ?>message.php'>
+    <input name='admin_mode' type='hidden' value='<?= $admin_mode ?>' />
+    <?= $nc_core->token->get_input() ?>
+    <input name='catalogue' type='hidden' value='<?= $catalogue ?>' />
+    <input name='cc' type='hidden' value='<?= $cc ?>' />
+    <input name='sub' type='hidden' value='<?= $sub ?>' /><input name='message' type='hidden' value='<?= $f_Message_ID; ?>' />
+    <input name='posting' type='hidden' value='1' />
+    <input name='curPos' type='hidden' value='<?= $curPos ?>' />
+    <input name='f_Parent_Message_ID' type='hidden' value='<?= $f_Parent_Message_ID ?>' />
+    <?= nc_form_moderate('change', $admin_mode, 0, $systemTableID, $current_cc, (isset($f_Checked) ? $f_Checked  : null), $f_Priority , $f_Keyword, $f_ncTitle, $f_ncKeywords, $f_ncDescription ) ?>
+    <input type="hidden" name="partial" value="1" />
+    
+    <? if($f_Shadhan_1 === $Shadhan || $f_Shadhan_2 === $Shadhan || $f_Shadhan_3 === $Shadhan): ?>
+      <? if($f_Shadhan_1 === $Shadhan): ?>
+      <input name='f_Shadhan_1' type='hidden' value='' />
+      <? endif; ?> 
+      <? if($f_Shadhan_2 === $Shadhan): ?>
+      <input name='f_Shadhan_2' type='hidden' value='' />
+      <? endif; ?> 
+      <? if($f_Shadhan_3 === $Shadhan): ?>
+      <input name='f_Shadhan_3' type='hidden' value='' />
+      <? endif; ?> 
+      <button class="form__submit button button--plus form__submit-remove-shadhan" type="submit">
+        
+        <span class="button__text"><?= ($current_user['Type_id'] == 1) ? 'Отключить Шадхана': 'Удалить у ID '.$f_Message_ID; ?></span>
+      </button>
+    <? else: ?>
+      <? if($f_Shadhan_1 && $f_Shadhan_2 && $f_Shadhan_3): ?>  
+         Добавлено максимальное кол-во шадханов, удалите других шадханов, чтобы добавить нового
+      <? else: ?>
+        <? if(!$f_Shadhan_1): ?>
+        <input name='f_Shadhan_1' type='hidden' value='<?= $Shadhan; ?>' />
+        <? endif; ?>
+        <? if($f_Shadhan_1 && !$f_Shadhan_2): ?>
+        <input name='f_Shadhan_2' type='hidden' value='<?= $Shadhan; ?>' />
+        <? endif; ?>
+        <? if($f_Shadhan_1 && $f_Shadhan_2 && !$f_Shadhan_3): ?>
+        <input name='f_Shadhan_3' type='hidden' value='<?= $Shadhan; ?>' />
+        <? endif; ?>
+        <input name='addShadhan' type='hidden' value='<?= $Shadhan; ?>' />
+        <button class="form__submit button button--plus form__submit-add-shadhan" type="submit">
+          <svg class="button__icon">
+            <use xlink:href="/images/sprite.svg#plus"></use>
+          </svg>
+          <span class="button__text"><?= ($current_user['Type_id'] == 1) ? 'Выбрать Шадхана': 'Добавить ID '.$f_Message_ID; ?></span>
+        </button>
+      <? endif; ?>
+    <? endif; ?>
+    
+  </form><!-- /RecordTemplate -->
+
+<!-- FormSuffix --><!-- /FormSuffix -->

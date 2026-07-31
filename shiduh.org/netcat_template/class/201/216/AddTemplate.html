@@ -1,0 +1,47 @@
+<form class="form form--lk-profile-candidate-delete tpl-module-auth-registration-form " action="<?= $SUB_FOLDER ?><?= $HTTP_ROOT_PATH ?>add.php" autocomplete="off">
+
+<input name='admin_mode' type='hidden' value='<?= $admin_mode ?>' />
+<?= $nc_core->token->get_input() ?>
+<input name='catalogue' type='hidden' value='<?= $catalogue ?>' />
+<input name='cc' type='hidden' value='<?= $cc ?>' />
+<input name='sub' type='hidden' value='<?= $sub ?>' /><input name='posting' type='hidden' value='1' />
+<input name='curPos' type='hidden' value='<?= $curPos ?>' />
+<input name='f_Parent_Message_ID' type='hidden' value='<?= $f_Parent_Message_ID ?>' />
+<?= nc_form_moderate('add', $admin_mode, 0, $systemTableID, $current_cc, (isset($f_Checked) ? $f_Checked  : null), $f_Priority , $f_Keyword, $f_ncTitle, $f_ncKeywords, $f_ncDescription ) ?> 
+
+              <div class="form__body">
+              <div class="form__body-section">
+                <div class="form__body-container">
+                <input type="hidden" name="f_name" value="ФИО Кандидата: <?= $FIOCandidate;?>">
+                <input type="hidden" name="f_info" value="ID Анкеты: <?= $IDCandidate;?>">
+                <input type="hidden" name="f_id_candidate" value="<?= $IDCandidate;?>">
+                  <div id="profile_delete" class="form__body-title">Удаление анкеты</div>
+                  <fieldset class="form__fieldset">
+                    <div class="form__item form__item--2col tpl-field">
+                      <label class="form__item-name" for="profile_delete_reasons">Выберите причину удаления</label>
+                      <div class="select form__select">
+                        <select class="select__el" name="f_Profile_delete_reasons">
+                          <option data-placeholder="true" value="" disabled>-- Выбрать --</option>
+                          <option value="женился / вышел замуж" id="">женился / вышел замуж</option>
+                          <option value="не актуально по личным соображениям " id="">не актуально по личным соображениям </option>
+                          <option value="не нравиться платформа" id="">не нравиться платформа</option>
+                         
+                        </select>
+                      </div>
+                    </div>
+                  </fieldset>
+                </div>
+              </div>
+             </div>
+                  <button class="form__submit button button--fill" type="submit">Удалить анкету</button>
+                  
+               
+            </form>
+
+
+
+
+
+
+
+

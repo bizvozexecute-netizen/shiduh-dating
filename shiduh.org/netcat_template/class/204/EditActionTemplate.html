@@ -1,0 +1,77 @@
+<?
+if($f_Checked) {
+    //отправка сообщения шадханам об изменние анкеты кандидата
+    $candidateDate = date("Y-m-d H:i:s");
+    $nc_core->db->query("SELECT * FROM Message204 WHERE Message_ID = $message");
+    $arr = $nc_core->db->last_result;
+    $candidateName = $arr[0]->Name;
+    $candidateUserID = 1;
+    
+    //если выбрали шадхана
+    if($addShadhan) {
+        $candidateTheme = 'Шадхан был выбран кандидатом ';    
+        $candidateMessage = 'Уважаемый шадхан! <br>
+Кандидат '.$message.' выбрал Вас в качестве шадхана ✡️ <br> 
+Перейдите по <a href="https://shiduh.org/my/candidate/candidate_'.$message.'.html">ссылке</a>, чтобы ознакомиться с анкетой кандидата и свяжитесь с ним, чтобы помочь ему в обретении семьи. <br>
+Команда One Soul желает Сията деШмая и плодотворных шидухов!';
+        $shadhanID = $addShadhan;
+        sendEmail($shadhanID, $candidateTheme, $candidateMessage);
+        $nc_core->db->query("INSERT INTO `Message6` 
+                        (`Checked`, `ToUser`, `Subject`, `Message`, `User_ID`, `Subdivision_ID`, `Sub_Class_ID`, `Created`, `Status`) 
+                        VALUES 
+                        ('1', '$shadhanID', '$candidateTheme', '$candidateMessage', '$candidateUserID', '28', '29', '$candidateDate', '0') "); 
+
+    } else {
+        $candidateTheme = 'Кандидат '.$message.' внес изменения в анкету';    
+        $candidateMessage = 'Уважаемый шадхан! <br>
+Кандидат '.$message.' '.$addShadhan.' внес изменения в свою анкету ✡️ <br> 
+Перейдите по <a href="https://shiduh.org/my/candidate/candidate_'.$message.'.html">ссылке</a>, чтобы ознакомиться с новыми параметрами в анкете кандидата. <br>
+Команда One Soul желает Сията деШмая и плодотворных шидухов!';
+
+        if ($arr[0]->Shadhan_1) {
+           $shadhanID = $arr[0]->Shadhan_1;
+           sendEmail($shadhanID, $candidateTheme, $candidateMessage);
+           $nc_core->db->query("INSERT INTO `Message6` 
+                        (`Checked`, `ToUser`, `Subject`, `Message`, `User_ID`, `Subdivision_ID`, `Sub_Class_ID`, `Created`, `Status`) 
+                        VALUES 
+                        ('1', '$shadhanID', '$candidateTheme', '$candidateMessage', '$candidateUserID', '28', '29', '$candidateDate', '0') "); 
+        }
+        if ($arr[0]->Shadhan_2) {
+           $shadhanID = $arr[0]->Shadhan_2;
+           sendEmail($shadhanID, $candidateTheme, $candidateMessage);
+           $nc_core->db->query("INSERT INTO `Message6` 
+                        (`Checked`, `ToUser`, `Subject`, `Message`, `User_ID`, `Subdivision_ID`, `Sub_Class_ID`, `Created`, `Status`) 
+                        VALUES 
+                        ('1', '$shadhanID', '$candidateTheme', '$candidateMessage', '$candidateUserID', '28', '29', '$candidateDate', '0') "); 
+        }
+        if ($arr[0]->Shadhan_3) {
+           $shadhanID = $arr[0]->Shadhan_3;
+           sendEmail($shadhanID, $candidateTheme, $candidateMessage);
+           $nc_core->db->query("INSERT INTO `Message6` 
+                        (`Checked`, `ToUser`, `Subject`, `Message`, `User_ID`, `Subdivision_ID`, `Sub_Class_ID`, `Created`, `Status`) 
+                        VALUES 
+                        ('1', '$shadhanID', '$candidateTheme', '$candidateMessage', '$candidateUserID', '28', '29', '$candidateDate', '0') "); 
+        }
+    }
+    
+                    
+    
+}
+if($inside_admin) {
+    ob_end_clean();
+    header('Location: '.$goBackLink.'&inside_admin=1');
+    exit;
+} else { 
+    if($nc_core->user->get_by_id($f_User_ID, "Type_id" ) !== 1) {
+        header('Location: '.$subLink.'?srchPat%5B0%5D=&age%5B0%5D=0&age%5B1%5D=100&srchPat%5B16%5D=&srchPat%5B13%5D=0&srchPat%5B14%5D=300&srchPat%5B17%5D=&srchPat%5B22%5D=&srchPat%5B24%5D=&srchPat%5B25%5D=&srchPat%5B18%5D=&srchPat%5B20%5D=&srchPat%5B26%5D=&srchPat%5B22%5D=');
+        exit;
+    }
+    echo '<div class="lk-profile__body-message lk-profile__body-message--success">Данные изменены</div>';
+	echo ' <a class="lk-profile__password-updated-goback" href="/my/" title="">
+                  <svg class="lk-profile__password-updated-goback-icon">
+                    <use xlink:href="/images/sprite.svg#arrow"></use>
+                  </svg>На главную кабинета</a>';
+	//echo NETCAT_MODERATION_MSG_OBJCHANGED;
+	//echo "<br /><br />".$goBack;
+}
+?>

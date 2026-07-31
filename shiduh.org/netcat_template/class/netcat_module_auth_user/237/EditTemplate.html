@@ -1,0 +1,99 @@
+<?=( $warnText ? "<div class='warnText'>$warnText</div>" : NULL )?>
+<form name='adminForm' id='adminForm' class='form form--lk-profile-shadhan nc-form' enctype='multipart/form-data' method='post' action='<?= $SUB_FOLDER ?><?= $HTTP_ROOT_PATH ?>message.php'>
+<div id='nc_moderate_form'>
+<div class='nc_clear'></div>
+<input name='admin_mode' type='hidden' value='<?= $admin_mode ?>' />
+<?= $nc_core->token->get_input() ?>
+<input name='catalogue' type='hidden' value='<?= $catalogue ?>' />
+<input name='cc' type='hidden' value='<?= $cc ?>' />
+<input name='sub' type='hidden' value='<?= $sub ?>' /><input name='message' type='hidden' value='<?= $message ?>' />
+<input name='posting' type='hidden' value='1' />
+<input name='curPos' type='hidden' value='<?= $curPos ?>' />
+<input name='f_Parent_Message_ID' type='hidden' value='<?= $f_Parent_Message_ID ?>' />
+<?= nc_form_moderate('change', $admin_mode, 1, $systemTableID, $current_cc, (isset($f_Checked) ? $f_Checked  : null), $f_Priority , $f_Keyword, $f_ncTitle, $f_ncKeywords, $f_ncDescription ) ?>
+</div>
+
+<? if (nc_field_check_admin_perm()) { ?>
+<div class='nc-field nc-field-type-int'><?= nc_int_field('Account', "maxlength='12' size='12'", ($class_id ? $class_id : $classID), 1) ?></div>
+<? } ?>
+
+<div class="form__body">
+  <div class="form__body-section">
+    <div class="form__body-container">
+      <div id="profile_personal_data" class="form__body-title">Личные данные</div>
+      <fieldset class="form__fieldset">
+        <div class="form__item form__item--2col ">
+          <label class="form__item-name" for="personal_name">Ф.И.О.</label>
+          <input class="form__input tpl-field-input" id="personal_name" name="f_Name" maxlength="255" size="50" type="text" value="<?= $f_Name; ?>" placeholder="Ваше ФИО" required>
+        </div>
+        <div class="form__item">
+          <label class="form__item-name" for="personal_gender">Пол</label>
+          <div class="select form__select">
+            <?=nc_list_select ("Sex", "Gender", $f_Gender,"","", "<select required class='select__el' name='f_Gender'><option data-placeholder='true' value=''>-- Выбрать --</option>", "<option value='\$value_id' \$value_selected>\$value_name</option>")?>
+          </div>
+        </div>
+        
+        <div class="form__item ">
+          <label class="form__item-name" for="personal_date_birth">Дата рождения</label>
+          
+          <input class="form__input" id="personal_date_birth" name="f_Date_of_birth" type="date" placeholder="Укажите дату" value="<?= $f_Date_of_birth_year; ?>-<?= $f_Date_of_birth_month; ?>-<?= $f_Date_of_birth_day; ?>" required>
+          <input id="personal_date_birth_day" type="hidden" name="f_Date_of_birth_day" maxlength="2" size="2" class="form__input-date-day " value="<?= $f_Date_of_birth_day; ?>" placeholder="ДД" />
+          <input id="personal_date_birth_month" type="hidden" name="f_Date_of_birth_month" class="form__input-date-month " value="<?= $f_Date_of_birth_month; ?>" placeholder="ММ" />
+          <input id="personal_date_birth_year" type="hidden" name="f_Date_of_birth_year" class="form__input-date-year " value="<?= $f_Date_of_birth_year; ?>" placeholder="ГГГГ" />
+          <input id="personal_date_birth_hours" type="hidden" name="f_Date_of_birth_hours" class="" value="00" placeholder="чч" />
+          <input id="personal_date_birth_minutes" type="hidden" name="f_Date_of_birth_minutes" class="" value="00" placeholder="мм" />
+          <input id="personal_date_birth_seconds" type="hidden" name="f_Date_of_birth_seconds" class="" value="00" placeholder="сс" />
+          
+        </div>
+        <div class="form__item ">
+          <label class="form__item-name" for="personal_place_pbirth">Место рождения</label>
+          <input class="form__input tpl-field-input" name="f_Place_of_birth" maxlength="255" size="50" type="text" id="personal_place_pbirth" value="<?= $f_Place_of_birth; ?>" placeholder="Укажите место рождения" required>
+        </div>
+        <div class="form__item ">
+          <label class="form__item-name" for="personal_country">Страна проживания</label>
+          <div class="select form__select form__select--country">
+            <?=nc_list_select ("Country", "Country", $f_Country,"","", "<select id='f_Country'  class='select__el' name='f_Country'><option data-placeholder='true' value=''>-- Выбрать --</option>", "<option value='\$value_id' \$value_selected>\$value_name</option>")?>  
+
+          </div>
+        </div>
+        <div class="form__item ">
+          <label class="form__item-name" for="f_Phone">Телефон</label>
+          <input class="form__input tpl-field-input" name="f_Phone" maxlength="255" size="50" type="tel" id="f_Phone" data-value="<?= $f_Phone; ?>" placeholder="Укажите номер" required>
+        </div>
+        <div class="form__item">
+          <label class="form__item-name" for="f_Email">Ваш E-mail</label>
+          <input class="form__input tpl-field-input"  id="f_Email" name="f_Email" maxlength="255" size="50" type="email" data-format="email" value="<?= $f_Email; ?>" placeholder="Укажите e-mail" required>
+          <div class="form__item-subscription-wrapper">
+            <div id="nc_auth_wait" class="form__item-subscription form__item-subscription--loading nc_auth_login_check nc_auth_check" style="display: none;">Пожалуйста, подождите</div>
+            <div id="nc_auth_login_ok" class="form__item-subscription form__item-subscription--success nc_auth_login_check nc_auth_check_success" style="display: none;">Логин свободен</div>
+            <div id="nc_auth_login_fail" class="form__item-subscription form__item-subscription--error nc_auth_login_check nc_auth_check_error" style="display: none;">Логин занят</div>
+            <div id="nc_auth_login_incorrect" class="form__item-subscription form__item-subscription--error nc_auth_login_check nc_auth_check_error" style="display: none;">Логин содержит запрещенные символы</div>
+          </div>
+        </div>
+        <div class="form__item form__item--upload tpl-field">
+          <div class="upload upload--default upload--selected form__upload">
+            <input class="upload__input" id="nc-upload-input-479" value="<?= $f_Photo_avatar;?>" data-name="<?= $f_Photo_avatar_name;?>" name="f_Photo_avatar" type="file" accept="image/png, image/jpg, image/jpeg, .pdf">
+            <label class="upload__body" for="nc-upload-input-479">
+              <div class="upload__preview" ></div>
+              <div class="upload__text">
+                <div class="upload__text-title">Фото для анкеты</div>
+                <div class="upload__text-description upload__text-description--unselected">png. jpeg. pdf. (до 5 мб)</div>
+                <div class="upload__text-description upload__text-description--selected">Вы можете изменить фото для анкеты</div>
+              </div>
+              <div class="upload__button">Изменить</div>
+            </label>
+          </div>
+        </div>
+        
+      </fieldset>
+    </div>
+  </div>
+  </div>
+  <div class="form__footer">
+  <button class="form__submit button button--fill" type="submit">Сохранить изменения</button>
+
+</div>
+
+
+
+</form>

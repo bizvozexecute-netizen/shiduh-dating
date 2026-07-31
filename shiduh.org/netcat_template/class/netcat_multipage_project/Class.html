@@ -1,0 +1,28 @@
+<!-- FormPrefix --><?= $f_AdminCommon; ?>
+<?php
+$styles = array();
+$styles[] = "--tpl-object-item--image-padding-top: " . $padding_top;
+if ($cc_settings['textPaddingValue']) {
+    $styles[] = "--tpl-object-item--text-padding: " . $cc_settings['textPaddingValue'] . $cc_settings['textPaddingUnit'];
+}
+?><!-- /FormPrefix -->
+
+<!-- RecordTemplate --><div class='object-item' style="<?= implode(";", $styles); ?>">
+    <?= $f_AdminButtons; ?>
+    <a href='<?= $fullLink; ?>'>
+        <?php if ($f_Image) { ?>
+            <div class="item-image">
+                <div class="image">
+                    <?= $f_Image->as_img(array('alt' => $f_Name)); ?>
+                </div>
+            </div>
+        <?php } ?>
+        <div class='item-name tpl-text-header4'>
+            <?= nc_edit_inline('Name', $f_RowID, $cc_env['Sub_Class_ID']); ?>
+        </div>
+    </a>
+</div><!-- /RecordTemplate -->
+
+<!-- FormSuffix --><?php if ($totRows > $recNum): ?>
+  <?= nc_browse_messages($cc_env, 10); ?>
+<?php endif; ?><!-- /FormSuffix -->

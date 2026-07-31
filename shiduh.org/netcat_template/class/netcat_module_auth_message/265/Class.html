@@ -1,0 +1,112 @@
+<!-- FormPrefix --><?
+//echo $f_AdminCommon;
+//echo $query_from;
+if (!$AUTH_USER_ID) {
+    echo "Access error";
+    exit;
+}
+$usersWriteTo = [];
+?>
+   <section class="lk-messages">
+            <div class="lk-messages__wrapper">
+              <form class="lk-messages__body-form form form--lk-messages">
+                <div class="lk-head lk-messages__head lk-messages__head--border">
+                  <h1 class="lk-head__title">Сообщения</h1>
+                </div>
+                <div class="lk-messages__bar" style="display:none;">
+                  <a class="lk-messages__bar-link lk-messages__bar-link--message <?=(isset($outbox) ? "" : "lk-messages__bar-link--active")?>" href="./" title="">
+                    <svg class="lk-messages__bar-link-icon">
+                      <use xlink:href="/images/sprite.svg#letter"></use>
+                    </svg> Входящие </a>
+                  <a class="lk-messages__bar-link lk-messages__bar-link--send <?=(isset($outbox) ? "lk-messages__bar-link--active" : "")?>" href="?outbox" title="">
+                    <svg class="lk-messages__bar-link-icon">
+                      <use xlink:href="/images/sprite.svg#send"></use>
+                    </svg> Исходящие </a>
+                  <button class="lk-messages__bar-delete form__submit" style="display:none;" type="submit">
+                    <svg class="lk-messages__bar-delete-icon">
+                      <use xlink:href="/images/sprite.svg#delete"></use>
+                    </svg> Удалить </button>
+                </div>
+                <div class="lk-messages__body">
+<?
+if ($totRows) {
+} else {
+?>
+Нет сообщений
+<?
+}
+?><!-- /FormPrefix -->
+
+<!-- RecordTemplate --><? if($current_user['User_ID'] !== $f_Hidden_message_1 && $current_user['User_ID'] !== $f_Hidden_message_2) { ?>
+
+<? if(!in_array($f_User_ID, $usersWriteTo) && $current_user['User_ID'] !== $f_User_ID) {
+$usersWriteTo[] = $f_User_ID;
+//$usersWriteTo[] = $f_ToUser;
+$idUserProfile = $f_User_ID === $current_user['User_ID'] ? $f_ToUser : $f_User_ID;
+?>
+<div class="lk-messages__item <?=!$f_Status ? ' lk-messages__item--active': '';?>" href='<?= $fullLink; ?>'>
+  <a href='<?= $fullLink; ?>'  class="lk-messages__item-name">
+    <img class="lk-messages__item-name-img js-lazy" data-src="<?= $nc_core->user->get_by_id($idUserProfile, "Photo_avatar") ? $nc_core->user->get_by_id($idUserProfile, "Photo_avatar") : ($nc_core->user->get_by_id($idUserProfile, "Gender_id") == 1 ? '/images/avatar/man.png' : '/images/avatar/woman.png'); ?>" alt="">
+    <span class="lk-messages__item-name-text"><?= $nc_core->user->get_by_id($idUserProfile, 'Name'); ?></span>
+  </a>  
+
+  <div href='<?= $fullLink; ?>' class="lk-messages__item-theme" title="" style="
+  max-height: 200px;
+    margin: 0; /* Убираем внешний отступ */
+    -webkit-line-clamp: 2; /* Число отображаемых строк */
+    display: -webkit-box; /* Включаем флексбоксы */
+    -webkit-box-orient: vertical; /* Вертикальная ориентация */
+    overflow: hidden; /* Обрезаем всё за пределами блока */
+"> <?= htmlspecialchars_decode($f_Message); ?>  </div>
+  <a href='<?= $fullLink; ?>'  class="lk-messages__item-date" data-time="<?=$f_Created_year;?>-<?=$f_Created_month;?>-<?=$f_Created_day;?> <?=$f_Created_hours;?>:<?=$f_Created_minutes;?>:00 GMT+0000"> <?=$f_Created_day.".".$f_Created_month.".".$f_Created_year." - ".$f_Created_hours.":".$f_Created_minutes?> </a>
+  <a href="/my/delete-message/?ID=<?=$current_user['User_ID'];?>&ToUser=<?= $f_ToUser; ?>&User_ID=<?= $f_User_ID; ?>"  class="lk-messages__item-delete">
+  Delete
+  </a>
+</div>
+<?
+} elseif(!in_array($f_ToUser, $usersWriteTo) && !in_array($f_User_ID, $usersWriteTo)) {
+$usersWriteTo[] = $f_ToUser;
+$idUserProfile = $f_ToUser;
+?>
+<div class="lk-messages__item " href='<?= $fullLink; ?>'>
+  <a href='<?= $fullLink; ?>'  class="lk-messages__item-name">
+    <img class="lk-messages__item-name-img js-lazy" data-src="<?= $nc_core->user->get_by_id($idUserProfile, "Photo_avatar") ? $nc_core->user->get_by_id($idUserProfile, "Photo_avatar") : ($nc_core->user->get_by_id($idUserProfile, "Gender_id") == 1 ? '/images/avatar/man.png' : '/images/avatar/woman.png'); ?>" alt="">
+    <span class="lk-messages__item-name-text"><?= $nc_core->user->get_by_id($idUserProfile, 'Name'); ?></span>
+  </a>  
+
+  <div href='<?= $fullLink; ?>' class="lk-messages__item-theme" title="" style="
+  max-height: 200px;
+    margin: 0; /* Убираем внешний отступ */
+    -webkit-line-clamp: 2; /* Число отображаемых строк */
+    display: -webkit-box; /* Включаем флексбоксы */
+    -webkit-box-orient: vertical; /* Вертикальная ориентация */
+    overflow: hidden; /* Обрезаем всё за пределами блока */
+"> <?= htmlspecialchars_decode($f_Message); ?>  </div>
+  <a href='<?= $fullLink; ?>'  class="lk-messages__item-date" data-time="<?=$f_Created_year;?>-<?=$f_Created_month;?>-<?=$f_Created_day;?> <?=$f_Created_hours;?>:<?=$f_Created_minutes;?>:00 GMT+0000"> <?=$f_Created_day.".".$f_Created_month.".".$f_Created_year." - ".$f_Created_hours.":".$f_Created_minutes?> </a>
+  <a href="/my/delete-message/?ID=<?=$current_user['User_ID'];?>&ToUser=<?= $f_ToUser; ?>&User_ID=<?= $f_User_ID; ?>"  class="lk-messages__item-delete">
+  Удалить
+  </a>
+</div>
+<?
+} 
+?>
+
+<? } ?><!-- /RecordTemplate -->
+
+<!-- FormSuffix -->  
+   <div class="lk-messages__load-more">
+                    <button class="lk-messages__load-more-btn" type="button">Показать ещё</button>
+                  </div>
+                </div>
+              </form>
+            </div>
+          </section>
+    
+  <script>
+[...document.querySelectorAll('.lk-messages__item-date')].forEach(el => {
+    var date = new Date(el.getAttribute('data-time').replace(/-/g, "/"));
+    el.innerHTML = `${("0" + date.getDate()).slice(-2)}.${("0" + (date.getMonth() + 1)).slice(-2)}.${date.getFullYear()} - ${("0" + date.getHours()).slice(-2)}:${("0" + date.getMinutes()).slice(-2)}`;
+    //el.innerHTML = date;
+});
+
+</script><!-- /FormSuffix -->

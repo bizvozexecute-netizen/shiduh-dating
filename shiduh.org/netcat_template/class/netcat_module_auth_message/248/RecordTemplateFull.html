@@ -1,0 +1,49 @@
+<section class="lk-messages-write lk-messages-write--theme">
+            <div class="lk-messages-write__wrapper">
+              <div class="lk-head lk-messages-write__head">
+                <h1 class="lk-head__title"> <?= $f_Subject;?> </h1>
+                <a class="lk-messages-write__head-back" href="/en/my/message/" title="">Back</a>
+              </div>
+              <div class="lk-messages-write__body">
+                <div class="lk-messages-write__history ">
+                  <div class="lk-messages-write__history-head">
+                    <div class="lk-messages-write__history-avatar">
+                      <img class="lk-messages-write__history-avatar-img js-lazy" data-src="<?= $nc_core->user->get_by_id($f_User_ID, "Photo_avatar" ); ?>" alt="">
+                      <div class="lk-messages-write__history-avatar-wrap">
+                        <a class="lk-messages-write__history-avatar-name" href="" title=""><?=$f_Author?> </a>
+                        <div class="lk-messages-write__history-avatar-date"><?=$f_Created_day.".".$f_Created_month.".".$f_Created_year." - ".$f_Created_hours.":".$f_Created_minutes?></div>
+                      </div>
+                    </div>
+                  </div>
+                  <? if($f_name || $f_email): ?>
+                  <div class="lk-messages-write__history-message">
+                      <?= $f_name ? 'ФИО: '.$f_name : '';?><br> <?= $f_email ? 'Email: '.$f_email : '';?>
+                  </div>
+                  <? endif; ?>
+                  <div class="lk-messages-write__history-message"> <?= htmlspecialchars_decode($f_Message);?>  </div>
+                  
+<?
+if ($f_RowID) {
+    opt(!$f_Status && $current_user['User_ID'] == $f_ToUser && $db->query("UPDATE Message$classID SET Status=1 WHERE Message_ID=$f_RowID"), NULL);
+    echo s_list_class($sub, $cc, "&show_all=1&m_link=$fullLink&full_msg_id=$f_RowID&curPos=$curPos&group_id=".($f_Parent_Message_ID ? $f_Parent_Message_ID : $f_RowID), 1);
+}
+
+$uid = $f_UserID;
+$f_Parent_Message_ID = ($f_Parent_Message_ID ? $f_Parent_Message_ID : $f_RowID);
+
+
+if (isset($show_all)) {
+        ?><button class="lk-messages-write__history-button" style="display:inline-block;">Hide the rest of the messages on this topic</button></div><?
+} else {
+        ?><button class="lk-messages-write__history-button" style="display:inline-block;">Show all posts on this topic</button></div><?
+}
+         
+
+echo ( $f_ToUser ? $addForm : "");
+?>
+
+
+                  
+                </div>
+            </div>
+          </section>

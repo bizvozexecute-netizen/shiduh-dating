@@ -1,0 +1,26 @@
+<?php
+
+/** @var string $selector */
+/** @var array $settings */
+
+// Использует css-переменные:
+// --tpl-mixin-layout-child-indent-left, --tpl-mixin-layout-max-width (устанавливаются в netcat_layout_width)
+// --tpl-mixin-margin-left, -right (устанавливаются в netcat_margin)
+
+$width_without_margins = 'calc(100% - var(--tpl-mixin-margin-left, 0px) - var(--tpl-mixin-margin-right, 0px))';
+$properties = array(
+    // !important приходится добавлять из-за миксина netcat_layout_width...
+    "max-width: $width_without_margins !important",
+    "width: $width_without_margins !important",
+    // !important приходится добавлять из-за миксина netcat_margin...
+    "margin-left: var(--tpl-mixin-margin-left, 0px) !important",
+);
+
+if (nc_array_value($settings, 'background_only')) {
+    // NB: для calc() всегда нужны единицы: '0px', а не '0'
+    $padding_left = "var(--tpl-mixin-layout-child-indent-left, 0px) - var(--tpl-mixin-margin-left, 0px)";
+    $properties[] = "padding-left: calc($padding_left)";
+    $properties[] = "padding-right: calc(100% - var(--tpl-mixin-layout-max-width, 100%) - $padding_left)";
+}
+
+return "$selector {\n" . join(";\n", $properties) . "\n}\n";

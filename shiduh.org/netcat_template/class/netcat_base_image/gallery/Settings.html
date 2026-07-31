@@ -1,0 +1,14 @@
+<?php
+$styles = array();
+
+$size = $cc_settings['objectSize'];
+if ($cc_settings['objectSize'] === 'custom') {
+    $size = $cc_settings['customSize'];
+}
+$size = str_replace(array("-", "by"), array(".", ":"), $size); // для старых значений шаблона
+list($w, $h) = explode(":", str_replace(",", ".", $size));
+$padding_top = str_replace(",", ".", ($h / $w) * 100) . "%";
+
+$styles[] = "--tpl-image-padding-top: " . $padding_top . "";
+$styles = " style='" . implode("; ", $styles) . "'";
+?>

@@ -1,0 +1,139 @@
+<!-- FormPrefix --><section class="lk-shiduch">
+            <div class="lk-shiduch__wrapper">
+              <div class="lk-head lk-shiduch__head">
+                <h1 class="lk-head__title">История шидуха</h1>
+              </div>
+              <div class="lk-shiduch__table lk-shiduch__table--history lk-table">
+                <div class="lk-table__head">
+                  <div class="lk-table__row">
+                    <div class="lk-table__cell lk-table__cell--avatar-small">Фото</div>
+                    <div class="lk-table__cell lk-table__cell--name">ФИО</div>
+                    <div class="lk-table__cell lk-table__cell--avatar-small">Фото</div>
+                    <div class="lk-table__cell lk-table__cell--name">ФИО</div>
+                    <div class="lk-table__cell lk-table__cell--shadhans">Шадханы</div>
+                  </div>
+                </div>
+                <div class="lk-table__body"><!-- /FormPrefix -->
+
+<!-- RecordTemplate --><?
+if($nc_core->user->get_by_id($f_User_ID, 'Checked')):
+  $now = time(); // текущее время (метка времени)
+  $your_date = strtotime($f_Created_year.'-'.$f_Created_month.'-'.$f_Created_day); // какая-то дата в строке (1 января 2017 года)
+  $datediff = $now - $your_date; // получим разность дат (в секундах)
+
+  $daysSumm = floor($datediff / (60 * 60 * 24));
+?>
+<div class="lk-table__row">
+  <?= nc_objects_list(27, 28, "&idsCandidate=$f_Candidate1,$f_Candidate2&nc_ctpl=282" ); ?>
+  <div class="lk-table__cell lk-table__cell--shadhans">
+    <div class="lk-table__cell-key">Шадхан</div>
+    <div class="lk-table__cell-val">
+      <a class="lk-table__cell-shadhan" href="/my/shadhany/shadhan_<?= $f_User_ID;?>.html" title="">
+        <img class="lk-table__cell-shadhan-img js-lazy" style="object-fit:cover;"  data-src="<?= $nc_core->user->get_by_id($f_User_ID, "Photo_avatar" ); ?>" alt="">
+      </a>  
+      <? nc_objects_list(27, 28, "&idsCandidate=$f_Candidate1,$f_Candidate2&nc_ctpl=283" ); ?>
+    </div>
+  </div>
+  <div class="lk-table__cell lk-table__cell--manage">
+    <?= nc_objects_list(27, 28, "&idsCandidate=$f_Candidate1,$f_Candidate2&nc_ctpl=288" ); ?>
+    <a href="<?=$dropLink?>" class="form form--lk-delete-shiduch-history-row lk-table__form-delete-row lk-table__form-delete-row--desktop" action="">
+      <div class="form__item">
+        <button class="form__item-delete form__submit">
+          <svg class="form__item-delete-icon">
+            <use xlink:href="/images/sprite.svg#delete"></use>
+          </svg>
+          <span class="form__item-delete-text">Удалить</span>
+        </button>
+      </div>
+    </a>
+  </div>
+</div>
+<form class="lk-table__shiduch-info  form-change-post" enctype='multipart/form-data' method='post' action='<?= $SUB_FOLDER ?><?= $HTTP_ROOT_PATH ?>message.php'>
+<div id='nc_moderate_form'>
+<div class='nc_clear'></div>
+<input name='admin_mode' type='hidden' value='<?= $admin_mode ?>' />
+<?= $nc_core->token->get_input() ?>
+<input name='catalogue' type='hidden' value='<?= $catalogue ?>' />
+<input name='cc' type='hidden' value='<?= $cc ?>' />
+<input name='sub' type='hidden' value='<?= $sub ?>' /><input name='message' type='hidden' value='<?= $f_Message_ID; ?>' />
+<input name='posting' type='hidden' value='1' />
+<input name='curPos' type='hidden' value='<?= $curPos ?>' />
+<input name='f_Parent_Message_ID' type='hidden' value='<?= $f_Parent_Message_ID ?>' />
+<?= nc_form_moderate('change', $admin_mode, 0, $systemTableID, $current_cc, (isset($f_Checked) ? $f_Checked  : null), $f_Priority , $f_Keyword, $f_ncTitle, $f_ncKeywords, $f_ncDescription ) ?>
+</div>
+
+<input class="" name="f_Candidate1" type="hidden" value="<?= $f_Candidate1;?>" placeholder="" required>
+<input class="" name="f_Candidate2" type="hidden" value="<?= $f_Candidate2;?>" placeholder="" required>      
+
+
+  <div class="lk-table__shiduch-info-item lk-table__shiduch-info-item--islike">
+    <div class="islike islike--full lk-table__shiduch-info-islike">
+      <label class="islike__item islike__item--success">
+
+        <input class="islike__input" type="radio" name="f_choose" value="1" <?= $f_choose === 'Понравился' ? 'checked="checked"':''; ?>>
+        <div class="islike__icon-wrap">
+          <svg class="islike__icon">
+            <use xlink:href="/images/sprite.svg#lk-heart-2"></use>
+          </svg>
+        </div>
+        <span class="islike__text">Понравился</span>
+      </label>
+      <label class="islike__item islike__item--fail">
+        <input class="islike__input" type="radio" name="f_choose" value="2" <?= $f_choose === 'Не понравился' ? 'checked="checked"':''; ?>>
+        <div class="islike__icon-wrap">
+          <svg class="islike__icon">
+            <use xlink:href="/images/sprite.svg#lk-heart-3"></use>
+          </svg>
+        </div>
+        <span class="islike__text">Не понравился</span>
+      </label>
+    </div>
+  </div>
+  <label class="lk-table__shiduch-info-item">
+
+    <input class="lk-table__shiduch-info-item-input" type="radio" name="f_choose" value="3" <?= $f_choose === 'Встречи' ? 'checked="checked"':''; ?>>
+    <div class="lk-table__shiduch-info-icon-wrapper">
+      <svg class="lk-table__shiduch-info-icon">
+        <use xlink:href="/images/sprite.svg#lk-shiduch--table"></use>
+      </svg>
+    </div>
+    <span class="lk-table__shiduch-info-item-text">Встречи</span>
+  </label>
+  <label class="lk-table__shiduch-info-item">
+    
+    <input class="lk-table__shiduch-info-item-input" type="radio" name="f_choose" value="4" <?= $f_choose === 'Шидух' ? 'checked="checked"':''; ?>>
+    <div class="lk-table__shiduch-info-icon-wrapper">
+      <svg class="lk-table__shiduch-info-icon lk-table__shiduch-info-icon--stroke">
+        <use xlink:href="/images/sprite.svg#lk-shiduch--hearts"></use>
+      </svg>
+    </div>
+    <span class="lk-table__shiduch-info-item-text">Шидух</span>
+  </label>
+  <label class="lk-table__shiduch-info-item">
+
+    <input class="lk-table__shiduch-info-item-input" type="radio" name="f_choose" value="5" <?= $f_choose === 'Обручение' ? 'checked="checked"':''; ?>>
+    <div class="lk-table__shiduch-info-icon-wrapper">
+      <svg class="lk-table__shiduch-info-icon">
+        <use xlink:href="/images/sprite.svg#lk-shiduch--rings"></use>
+      </svg>
+    </div>
+    <span class="lk-table__shiduch-info-item-text">Обручение</span>
+  </label>
+  <label class="lk-table__shiduch-info-item">
+
+    <input class="lk-table__shiduch-info-item-input" type="radio" name="f_choose" value="6" <?= $f_choose === 'Хупа' ? 'checked="checked"':''; ?>>
+    <div class="lk-table__shiduch-info-icon-wrapper">
+      <svg class="lk-table__shiduch-info-icon">
+        <use xlink:href="/images/sprite.svg#lk-shiduch--hoop"></use>
+      </svg>
+    </div>
+    <span class="lk-table__shiduch-info-item-text">Хупа</span>
+  </label>
+</form>
+<?= nc_objects_list( 77, 86, "&Shiduch=$f_Message_ID" ); ?>
+<? endif;?><!-- /RecordTemplate -->
+
+<!-- FormSuffix --></div>
+              </div>
+               </div>
+          </section><!-- /FormSuffix -->

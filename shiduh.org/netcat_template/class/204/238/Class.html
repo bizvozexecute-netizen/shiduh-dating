@@ -1,0 +1,374 @@
+<!-- FormPrefix --><? if(count($_GET["srchPat"])): ?>
+<section class="lk-search-candidate-result">
+  <div class="lk-search-candidate-result__wrapper">
+    <div class="lk-head lk-search-candidate-result__head">
+      <h1 class="lk-head__title">Search results </h1>
+      <div class="lk-head__subtitle">More detailed information on the questionnaires can be obtained from the candidate's Shadkhan</div>
+    </div>
+    
+    <div class="lk-search-candidate-result__manage">
+      <div class="lk-search-candidate-result__manage-sort">
+        <div class="lk-search-candidate-result__manage-sort-text">Sort: </div>
+        <button id="sortNew" class="lk-search-candidate-result__manage-sort-button lk-search-candidate-result__manage-sort-button--active">New questionnaires</button>
+    
+      </div>
+      <a class="lk-search-candidate-result__manage-search" href="/en/my/candidate/" title="">
+        <span class="lk-search-candidate-result__manage-search-text">Search</span>
+        <svg class="lk-search-candidate-result__manage-search-icon">
+          <use xlink:href="/images/sprite.svg#search"></use>
+        </svg>
+      </a>
+    </div>
+    
+    <div class="lk-search-candidate-result__body">
+      <div class="lk-search-candidate-result__table">
+        <div class="lk-search-candidate-result__table-head">
+          <div class="lk-search-candidate-result__table-cell lk-search-candidate-result__table-cell--photo">Photo</div>  
+          <div class="lk-search-candidate-result__table-cell lk-search-candidate-result__table-cell--id">ID</div>
+          <div class="lk-search-candidate-result__table-cell lk-search-candidate-result__table-cell--country">Country</div>
+          <div class="lk-search-candidate-result__table-cell lk-search-candidate-result__table-cell--city">City</div>
+          <div class="lk-search-candidate-result__table-cell lk-search-candidate-result__table-cell--age">Age</div>
+          <div class="lk-search-candidate-result__table-cell lk-search-candidate-result__table-cell--shadhans">Shadkhany</div>
+        </div>
+        <div class="lk-search-candidate-result__table-body js-scroll-list">
+<? else: ?>
+<section class="lk-search-candidate">
+  <div class="lk-search-candidate__wrapper">
+    <div class="lk-head lk-search-candidate__head">
+      <h1 class="lk-head__title">Search candidates</h1>
+      <div class="lk-head__subtitle">More detailed information on the questionnaires can be obtained from the candidate's Shadkhan</div>
+    </div>
+    <form class="form--lk-search-candidate " name="adminForm" id="adminForm" enctype="multipart/form-data" method="GET" action="">
+      <div class="form__body">
+        <div class="form__body-section">
+          <div class="form__body-container">
+            <div id="addcandidate_about" class="form__body-title">Specify the search parameters</div>
+            <fieldset class="form__fieldset">
+            
+              <div class="form__item tpl-field">
+                <label class="form__item-name" for="">ID анкеты</label>
+                <input class="form__input tpl-field-input" name="id_candidate"  type="text" id="" placeholder="Укажите ID анкеты" >
+              </div>   
+              <? if($current_user['Type_id'] == 2): ?>
+              <div class="form__item tpl-field">
+                <label class="form__item-name" for="">ФИО</label>
+                <input class="form__input tpl-field-input" name="name"  type="text" id="" placeholder="Укажите ФИО" >
+              </div>  
+              <? endif; ?>
+              
+              <div class="form__item tpl-field">
+                <label class="form__item-name" for="search_gender">Gender</label>
+                <div class="select form__select">
+                  <select class="select__el" name="srchPat[0]">
+                    <option data-placeholder="true" value="" disabled>-- Choose --</option>
+                    <option id="" value="" selected>No matter</option>
+                    <option id="" value="1">Man</option>
+                    <option id="" value="2" >Woman</option>
+                  </select>  
+                  
+                </div>
+              </div>
+              <div class="form__item tpl-field">
+                <label class="form__item-name" for="search_age_start">Age</label>
+                <div class="form__item-range">
+                  <input class="form__input tpl-field-input" name="age[0]" min="0" step="any" max="200" maxlength="12" size="12" type="number" id="search_age_start" value="0" placeholder="FROM" required>
+                  <span class="form__item-range-separator">—</span>
+                  <input class="form__input tpl-field-input" name="age[1]" min="1" step="any" max="200" maxlength="12" size="12" type="number" id="search_age_end" value="100" placeholder="UNTIL" required>
+                </div>
+              </div>
+              <div class="form__item tpl-field">
+                <label class="form__item-name" for="search_country">Country</label>
+                <div class="select select--search form__select">
+                  <?
+                  $nc_core->db->query("SELECT * FROM `Classificator_Country` ORDER BY Value", ARRAY_A );
+                  $arr = $nc_core->db->last_result;
+                  if (!empty($arr)) {?>
+                  <select class="select__el select__el--check" name="country[]" multiple>
+                    <option data-placeholder="true" value="" disabled>-- Choose --</option>
+                    <? foreach ($arr as $row) {
+                          echo '<option '.($f_Country_id === $row['Country_ID'] ? "selected" : "").' value="'.$row['Country_ID'].'">'.$row['Value'].'</option>';
+                    }?>
+                  </select>    
+                  <?}?>   
+                  
+                  
+                </div>
+              </div>
+              <div class="form__item tpl-field">
+                <label class="form__item-name" for="search_country">City</label>
+                <input class="form__input tpl-field-input" name="srchPat[16]"  type="text" id="" placeholder="Specify the city" >
+                <!--<div class="select form__select form__select--city select--search">
+                  <?= nc_objects_list( $sub, $cc, "&nc_ctpl=242" ); ?>
+                </div>-->
+              </div>
+              <div class="form__item tpl-field">
+                <label class="form__item-name" for="search_height_start">Height</label>
+                <div class="form__item-range">
+                  <input class="form__input tpl-field-input" name="srchPat[13]" min="0" step="any" max="250" maxlength="12" size="12" type="number" id="search_height_start" value="" placeholder="FROM" >
+                  <span class="form__item-range-separator">—</span>
+                  <input class="form__input tpl-field-input" name="srchPat[14]" min="0" step="any" max="250" maxlength="12" size="12" type="number" id="search_height_end" value="250" placeholder="UNTIL" >
+                </div>
+              </div>
+              <div class="form__item tpl-field">
+                <label class="form__item-name" for="search_jewishness">Jewishness</label>
+                <div class="select form__select form__select--nation">
+                  <?
+                  $nc_core->db->query("SELECT * FROM `Classificator_Jewishness`", ARRAY_A );
+                  $arr = $nc_core->db->last_result;
+                  if (!empty($arr)) {?>
+                  <select class="select__el" name="Jewishness[]" >
+                    <option data-placeholder='true' value='' >-- Choose --</option>
+                    <? foreach ($arr as $row) {
+                          echo '<option '.($f_Jewishness === $row['Jewishness_ID'] ? "selected" : "").' value="'.$row['Jewishness_ID'].'">'.$row['Value'].'</option>';
+                    }?>
+                  </select>    
+                  <?}?>   
+                </div>
+              </div>
+              <div class="form__item tpl-field">
+                <label class="form__item-name" for="">Origin</label>
+                <div class="select form__select form__select--nation">
+                  <?
+                  $nc_core->db->query("SELECT * FROM `Classificator_Origin` ORDER BY Value", ARRAY_A );
+                  $arr = $nc_core->db->last_result;
+                  if (!empty($arr)) {?>
+                  <select class="select__el" name="Origin[]" multiple>
+                    <option data-placeholder="true" value="">-- Choose --</option>
+                    <? foreach ($arr as $row) {
+                          echo '<option '.($f_Jewishness === $row['Jewishness_ID'] ? "selected" : "").' value="'.$row['Jewishness_ID'].'">'.$row['Value'].'</option>';
+                    }?>
+                  </select>    
+                  <?}?>   
+                    
+                </div>
+              </div>
+              <div class="form__item tpl-field">
+                <label class="form__item-name" for="">Происхождение Мамы</label>
+                <div class="select form__select form__select--nation">
+                  <?
+                  $nc_core->db->query("SELECT * FROM `Classificator_Origin` ORDER BY Value", ARRAY_A );
+                  $arr = $nc_core->db->last_result;
+                  if (!empty($arr)) {?>
+                  <select class="select__el" name="Mother_Origin[]" multiple>
+                    <option data-placeholder="true" value="">-- Choose --</option>
+                    <? foreach ($arr as $row) {
+                          echo '<option '.($f_Jewishness === $row['Jewishness_ID'] ? "selected" : "").' value="'.$row['Jewishness_ID'].'">'.$row['Value'].'</option>';
+                    }?>
+                  </select>    
+                  <?}?>   
+                    
+                </div>
+              </div>
+              <div class="form__item tpl-field">
+                <label class="form__item-name" for="">>Происхождение Папы</label>
+                <div class="select form__select form__select--nation">
+                  <?
+                  $nc_core->db->query("SELECT * FROM `Classificator_Origin` ORDER BY Value", ARRAY_A );
+                  $arr = $nc_core->db->last_result;
+                  if (!empty($arr)) {?>
+                  <select class="select__el" name="Father_Origin[]" multiple>
+                    <option data-placeholder="true" value="">-- Choose --</option>
+                    <? foreach ($arr as $row) {
+                          echo '<option '.($f_Jewishness === $row['Jewishness_ID'] ? "selected" : "").' value="'.$row['Jewishness_ID'].'">'.$row['Value'].'</option>';
+                    }?>
+                  </select>    
+                  <?}?>   
+                    
+                </div>
+              </div>
+              
+              <div class="form__item tpl-field">
+                <label class="form__item-name" for="search__degree_compliance">Degree of compliance</label>
+              
+                <div class="select form__select">
+                  <?
+                  $nc_core->db->query("SELECT * FROM `Classificator_Degree_of_compliance` ORDER BY Value", ARRAY_A );
+                  $arr = $nc_core->db->last_result;
+                  if (!empty($arr)) {?>
+                  <select class="select__el" name='srchPat[18][]' multiple>
+                    <option data-placeholder="true" value="">-- Choose --</option>
+                    <? foreach ($arr as $row) {
+                          echo '<option '.($f_Jewishness === $row['Jewishness_ID'] ? "selected" : "").' value="'.$row['Jewishness_ID'].'">'.$row['Value'].'</option>';
+                    }?>
+                  </select>    
+                  <?}?>  
+                  
+                </div>
+              </div>
+              
+              <div class="form__item tpl-field">
+                <label class="form__item-name" for="search__Course_of_compliance">Течение соблюдения</label>
+              
+                <div class="select form__select">
+                  <?
+                  $nc_core->db->query("SELECT * FROM `Classificator_Course_of_compliance` ORDER BY Value", ARRAY_A );
+                  $arr = $nc_core->db->last_result;
+                  if (!empty($arr)) {?>
+                  <select class="select__el" name="Course_of_compliance[]" multiple>
+                    <option data-placeholder="true" value="">-- Choose --</option>
+                    <? foreach ($arr as $row) {
+                          echo '<option '.($f_Jewishness === $row['Course_of_compliance_ID'] ? "selected" : "").' value="'.$row['Course_of_compliance_ID'].'">'.$row['Value'].'</option>';
+                    }?>
+                  </select>    
+                  <?}?>  
+                  
+                </div>
+              </div>
+              
+   
+              
+              
+              
+              
+              <div class="form__item tpl-field">
+                <label class="form__item-name" for="search_education">Education</label>
+                <div class="select form__select">
+                  <?
+                  $nc_core->db->query("SELECT * FROM `Classificator_Education` ORDER BY `Education_Priority` ASC", ARRAY_A );
+                  $arr = $nc_core->db->last_result;
+                  if (!empty($arr)) {?>
+                  <select class="select__el" name="Education[]" multiple>
+                    <option data-placeholder="true" value="">-- Choose --</option>
+                    <? foreach ($arr as $row) {
+                          echo '<option '.($f_Jewishness === $row['Jewishness_ID'] ? "selected" : "").' value="'.$row['Jewishness_ID'].'">'.$row['Value'].'</option>';
+                    }?>
+                  </select>    
+                  <?}?>  
+                  
+                </div>
+              </div>
+              <div class="form__item tpl-field">
+                <label class="form__item-name" for="search_marriage">Семейное положение</label>
+                <div class="select form__select">
+                  <?=nc_list_select ("Marital_status", "Marital_status", $f_Marital_status_id,"","", "<select  class='select__el' name='Marital_status[]' multiple><option data-placeholder='true' value='' >-- Выбрать --</option>", "<option  value='\$value_id' \$value_selected>\$value_name</option>")?>  
+                
+                </div>
+              </div>
+              <div class="form__item tpl-field">
+                <label class="form__item-name" for="search_childs">Presence of children</label>
+                <div class="select form__select">
+                  
+                  <?
+                  $nc_core->db->query("SELECT * FROM `Classificator_Number_of_children`", ARRAY_A );
+                  $arr = $nc_core->db->last_result;
+                  if (!empty($arr)) {?>
+                  <select class="select__el" name="Number_of_children[]" multiple>
+                    <option data-placeholder="true" value="">-- Choose --</option>
+                    <? foreach ($arr as $row) {
+                          echo '<option '.($f_Jewishness === $row['Jewishness_ID'] ? "selected" : "").' value="'.$row['Jewishness_ID'].'">'.$row['Value'].'</option>';
+                    }?>
+                  </select>    
+                  <?}?>
+                </div>
+              </div>
+            </fieldset>
+          </div>
+        </div>
+      </div>
+      <button class="form__submit button button--fill" type="submit">Search candidate</button>
+    </form>
+  </div>
+</section>
+<? endif; ?><!-- /FormPrefix -->
+
+<!-- RecordTemplate --><?
+if($nc_core->user->get_by_id($f_User_ID, 'Checked') && $f_Checked):
+  $now = time(); // текущее время (метка времени)
+  $your_date = strtotime($f_Created_year.'-'.$f_Created_month.'-'.$f_Created_day); // какая-то дата в строке (1 января 2017 года)
+  $datediff = $now - $your_date; // получим разность дат (в секундах)
+
+  $daysSumm = floor($datediff / (60 * 60 * 24));
+  if(get_age($f_Date_of_birth) >= $_GET["age"][0]  && get_age($f_Date_of_birth) <= $_GET["age"][1]):
+?>
+<div class="lk-search-candidate-result__table-row" <? if($daysSumm <= 30): ?>data-new="true"<? endif; ?> >
+  <a href="<?=$fullLink?>"  class="lk-search-candidate-result__table-cell lk-search-candidate-result__table-cell--avatar js-scroll-link">
+    <div class="lk-search-candidate-result__table-cell-name">Фото</div>
+    <div class="lk-search-candidate-result__table-cell-value">
+      <picture class="lk-search-candidate-result__table-cell-picture">
+        <img class="lk-search-candidate-result__table-cell-picture-img js-lazy" data-src="<?= $f_Photo_avatar ? $f_Photo_avatar->resize(45, 45) : ($f_Gender_id == 1 ? '/images/avatar/man.png' : '/images/avatar/woman.png'); ?>" alt="">
+      </picture>
+    </div>
+  </a>  
+  <a href="<?=$fullLink?>"  class="lk-search-candidate-result__table-cell lk-search-candidate-result__table-cell--id js-scroll-link">
+    <div class="lk-search-candidate-result__table-cell-name">ID</div>
+    <div class="lk-search-candidate-result__table-cell-value">
+        <div class="lk-search-candidate-result__table-cell-value-check">
+          <svg class="lk-search-candidate-result__table-cell-value-check-item tooltip <? if($f_Success_docs):?>lk-search-candidate-result__table-cell-value-check-item--checked<? endif; ?>" data-tippy-content="Birth certificate <? if(!$f_Success_docs):?>not<? endif; ?>  confirmed">
+            <use xlink:href="/images/sprite.svg#check"></use>
+          </svg>
+          <svg class="lk-search-candidate-result__table-cell-value-check-item tooltip <? if($f_Success_ravin):?>lk-search-candidate-result__table-cell-value-check-item--checked<? endif; ?>" data-tippy-content="<? if($f_Success_ravin):?>Confirmed<? else: ?>Not confirmed<? endif; ?> a rabbi">
+            <use xlink:href="/images/sprite.svg#check"></use>
+          </svg>
+        </div>  
+        ID <?= $f_Message_ID;?>
+    </div>
+  </a>
+  <a href="<?=$fullLink?>"  class="lk-search-candidate-result__table-cell lk-search-candidate-result__table-cell--country js-scroll-link">
+    <div class="lk-search-candidate-result__table-cell-name">Country</div>
+    <div class="lk-search-candidate-result__table-cell-value"><?= $f_Country_value;?></div>
+  </a>
+  <a href="<?=$fullLink?>"  class="lk-search-candidate-result__table-cell lk-search-candidate-result__table-cell--city js-scroll-link">
+    <div class="lk-search-candidate-result__table-cell-name">City</div>
+    <div class="lk-search-candidate-result__table-cell-value"><?= $f_City;?></div>
+  </a>
+  <a href="<?=$fullLink?>"  class="lk-search-candidate-result__table-cell lk-search-candidate-result__table-cell--age js-scroll-link">
+    <div class="lk-search-candidate-result__table-cell-name">Age</div>
+    <div class="lk-search-candidate-result__table-cell-value"><?= $f_Date_of_birth_year < 2024 && $f_Date_of_birth_year !== '0000' ? get_age($f_Date_of_birth) : ''; ?></div>
+  </a>  
+  <div class="lk-search-candidate-result__table-cell lk-search-candidate-result__table-cell--shadhans">
+
+    <? if($nc_core->user->get_by_id($f_User_ID, "Type_id" ) === 2): ?>  
+    <a class="lk-search-candidate-result__table-shadhan" href="/en/my/shadhany/shadhan_<?= $f_User_ID;?>.html" title="">
+      <img class="lk-search-candidate-result__table-shadhan-img js-lazy" data-src="<?= $nc_core->user->get_by_id($f_User_ID, "Photo_avatar" ); ?>" alt="">
+    </a>
+    <? endif; ?>  
+    <? if($f_Shadhan_1): ?>  
+    <a class="lk-search-candidate-result__table-shadhan" href="/en/my/shadhany/shadhan_<?= $f_Shadhan_1;?>.html" title="">
+      <img class="lk-search-candidate-result__table-shadhan-img js-lazy" data-src="<?= $nc_core->user->get_by_id($f_Shadhan_1, "Photo_avatar" ); ?>" alt="">
+    </a>
+    <? endif; ?>
+    <? if($f_Shadhan_2): ?>  
+    <a class="lk-search-candidate-result__table-shadhan" href="/en/my/shadhany/shadhan_<?= $f_Shadhan_2;?>.html" title="">
+      <img class="lk-search-candidate-result__table-shadhan-img js-lazy" data-src="<?= $nc_core->user->get_by_id($f_Shadhan_2, "Photo_avatar" ); ?>" alt="">
+    </a>
+    <? endif; ?>
+    <? if($f_Shadhan_3): ?>  
+    <a class="lk-search-candidate-result__table-shadhan" href="/en/my/shadhany/shadhan_<?= $f_Shadhan_3;?>.html" title="">
+      <img class="lk-search-candidate-result__table-shadhan-img js-lazy" data-src="<?= $nc_core->user->get_by_id($f_Shadhan_3, "Photo_avatar" ); ?>" alt="">
+    </a>
+    <? endif; ?>
+    <? if($nc_core->user->get_by_id($f_User_ID, "Type_id" ) === 1 && !$f_Shadhan_1 && !$f_Shadhan_2 && !$f_Shadhan_3): ?>  
+    <span>—</span>
+    <? endif; ?>
+  </div>
+  <div class="lk-search-candidate-result__table-cell lk-search-candidate-result__table-cell--manage">
+    <? if($daysSumm <= 5): ?>   
+    <div class="lk-candidates__item-manage-new" style="opacity:1; margin-right:10px;">New</div>
+    <? endif; ?>  
+ 
+    <?= nc_objects_list(73, 77, "&IDCandidate=$f_Message_ID&nc_ctpl=273" ); ?>
+    <? if($f_User_ID !== $current_user['User_ID'] && $current_user['Type_id'] !== 1): ?>  
+    <a class="lk-search-candidate-result__table-write button button--write" href="<?= nc_auth_messages_url($f_User_ID); ?>" title="">
+      <svg class="button__icon">
+        <use xlink:href="/images/sprite.svg#letter"></use>
+      </svg>
+      <span class="button__text">Write</span>
+    </a>
+    <? endif; ?>
+  </div>
+</div>
+
+   <? endif; ?> 
+<? endif; ?><!-- /RecordTemplate -->
+
+<!-- FormSuffix --><? if(count($_GET["srchPat"])): ?>
+
+        </div>
+        <div class="lk-search-candidate-result__table-load-more">
+            <button class="lk-search-candidate-result__table-load-more-btn">Show more</button>
+          </div>
+      </div>
+    </div>
+  </div>
+</section>
+<? endif; ?><!-- /FormSuffix -->

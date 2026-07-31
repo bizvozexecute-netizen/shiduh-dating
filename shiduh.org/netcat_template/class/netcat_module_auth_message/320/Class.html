@@ -1,0 +1,135 @@
+<!-- FormPrefix --><?
+//echo $f_AdminCommon;
+//echo $query_from;
+if (!$AUTH_USER_ID) {
+    echo "Access error";
+    exit;
+}
+
+if($current_user['User_ID'] === '119' OR $current_user['User_ID'] === '1') {
+
+} else {
+    header('Location: https://'.$_SERVER['HTTP_HOST'].'');
+    exit();
+}
+
+$usersWriteTo = [];
+?>
+   <section class="lk-messages">
+            <div class="lk-messages__wrapper">
+              <form class="lk-messages__body-form form form--lk-messages">
+                <div class="lk-head lk-messages__head lk-messages__head--border">
+                  <h1 class="lk-head__title">Сообщения об удалении аккаунта</h1>
+                </div>
+                <div class="lk-messages__bar" style="display:none;">
+                  <a class="lk-messages__bar-link lk-messages__bar-link--message <?=(isset($outbox) ? "" : "lk-messages__bar-link--active")?>" href="./" title="">
+                    <svg class="lk-messages__bar-link-icon">
+                      <use xlink:href="/images/sprite.svg#letter"></use>
+                    </svg> Входящие </a>
+                  <a class="lk-messages__bar-link lk-messages__bar-link--send <?=(isset($outbox) ? "lk-messages__bar-link--active" : "")?>" href="?outbox" title="">
+                    <svg class="lk-messages__bar-link-icon">
+                      <use xlink:href="/images/sprite.svg#send"></use>
+                    </svg> Исходящие </a>
+                  <button class="lk-messages__bar-delete form__submit" style="display:none;" type="submit">
+                    <svg class="lk-messages__bar-delete-icon">
+                      <use xlink:href="/images/sprite.svg#delete"></use>
+                    </svg> Удалить </button>
+                </div>
+                <div class="lk-messages__body">
+<?
+if ($totRows) {
+} else {
+?>
+Нет сообщений
+<?
+}
+?><!-- /FormPrefix -->
+
+<!-- RecordTemplate --><?
+// ID кандидата из темы "Удалить анкету ID: 240"
+preg_match('/ID:\s*(\d+)/', $f_Subject, $m);
+$candidateId = $m[1] ?? null;
+
+// Проверяем существует ли ещё кандидат в БД
+$candidateExists = $candidateId
+  ? $db->get_var("SELECT `Message_ID` FROM `Message204` WHERE `Message_ID` = '" . intval($candidateId) . "'")
+  : false;
+  
+$candidateArr = $candidateId
+  ? $db->get_var("SELECT `Checked` FROM `Message204` WHERE `Message_ID` = '" . intval($candidateId) . "'")
+  : false;  
+
+// Ссылка удаления (генерим на лету с токеном)
+$deleteLink = $candidateId
+  ? nc_object_path(204, $candidateId, 'drop', 'html', false, ['nc_token' => $nc_core->token->get()])
+  : null;
+
+$senderName  = $nc_core->user->get_by_id($f_User_ID, 'Name');
+$senderType  = $nc_core->user->get_by_id($f_User_ID, 'Type_id');
+$senderLogin = $nc_core->user->get_by_id($f_User_ID, $AUTHORIZE_BY);
+$userLink = $senderType == 2 ? '/my/shadhany/shadhan_'.(int)$f_User_ID.'.html' : '/my/candidate/candidate_'.(int)$candidateId.'.html';
+?>
+
+<div class="lk-messages__item">
+
+  <a href='<?= $userLink; ?>'  class="lk-messages__item-name">
+    <img class="lk-messages__item-name-img js-lazy" data-src="<?= $nc_core->user->get_by_id($f_User_ID, "Photo_avatar") ? $nc_core->user->get_by_id($f_User_ID, "Photo_avatar") : ($nc_core->user->get_by_id($f_User_ID, "Gender_id") == 1 ? '/images/avatar/man.png' : '/images/avatar/woman.png'); ?>" alt="">
+    <span class="lk-messages__item-name-text">
+       <?= $nc_core->user->get_by_id($f_User_ID, 'Name'); ?> <br>
+       <?= $f_Created_day.'.'.$f_Created_month.'.'.$f_Created_year
+        .' — '.$f_Created_hours.':'.$f_Created_minutes ?>
+    </span>
+   
+  </a>  
+
+  
+  <div class="" style="display:flex; flex-direction:column; gap: 10px; flex:auto;">
+     <div class="lk-messages__item-candidate">
+      Кандидат: <a href="/my/candidate/candidate_<?= (int)$candidateId ?>.html" target="_blank" style="color: inherit;">
+        <strong><?= htmlspecialchars($f_name) ?></strong>
+      </a>
+      (ID: <?= (int)$candidateId ?>) 
+    </div>
+    <div class="">
+      Причина: <strong><?= htmlspecialchars($f_Message) ?></strong>
+    </div>
+    
+  </div>
+  
+  <div class="lk-messages__item-status" style="margin: 10px 0; ">
+      <?php if ($candidateExists): ?>
+      
+        <!--<span style="color: #c0392b; font-weight: bold;">Не удалён</span>-->
+        <?php if ($deleteLink): ?>
+        
+          <a href="<?= htmlspecialchars($deleteLink) ?>"
+             class="button button--fill"
+             onclick="return confirm('Удалить анкету <?= htmlspecialchars($f_name, ENT_QUOTES) ?>?')">
+            Удалить анкету
+          </a>
+        <?php endif; ?>
+      <?php else: ?>
+        <span style="color: #27ae60; font-weight: bold;">Удалён</span>
+      <?php endif; ?>
+    </div>
+ 
+
+</div><!-- /RecordTemplate -->
+
+<!-- FormSuffix -->  
+   <div class="lk-messages__load-more">
+                    <button class="lk-messages__load-more-btn" type="button">Показать ещё</button>
+                  </div>
+                </div>
+              </form>
+            </div>
+          </section>
+    
+  <script>
+[...document.querySelectorAll('.lk-messages__item-date')].forEach(el => {
+    var date = new Date(el.getAttribute('data-time').replace(/-/g, "/"));
+    el.innerHTML = `${("0" + date.getDate()).slice(-2)}.${("0" + (date.getMonth() + 1)).slice(-2)}.${date.getFullYear()} - ${("0" + date.getHours()).slice(-2)}:${("0" + date.getMinutes()).slice(-2)}`;
+    //el.innerHTML = date;
+});
+
+</script><!-- /FormSuffix -->

@@ -1,0 +1,12 @@
+<!-- FormPrefix --><? 
+$count = 0;
+$totRows;
+?><!-- /FormPrefix -->
+
+<!-- RecordTemplate --><? 
+if ($nc_core->user->get_by_id($f_User_ID, 'Checked') && $f_Checked):
+$count++;
+endif;
+?><!-- /RecordTemplate -->
+
+<!-- FormSuffix --><?= $count;?><!-- /FormSuffix -->

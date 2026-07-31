@@ -1,0 +1,14 @@
+<?= $f_AdminCommon; ?>
+<table class="tpl-table">
+    <?php $column_decor = json_decode($cc_settings['columnDecor']); ?>
+    <?php if (!$cc_settings['hideHeader']) { ?>
+        <?php $column_title = json_decode($cc_settings['columnTitle']); ?>
+        <thead>
+        <?php for ($col = 1; $col <= $cc_settings['columnCount']; $col++) { ?>
+            <th data-col="<?= $col ?>" class="tpl-text-thead <?= $column_decor[$col] ? $column_decor[$col]->header_align : ""; ?>">
+                <?= $column_title[$col]; ?>
+            </th>
+        <?php } ?>
+        </thead>
+    <?php } ?>
+    <tbody>

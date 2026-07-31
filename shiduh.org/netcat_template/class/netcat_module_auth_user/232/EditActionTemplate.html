@@ -1,0 +1,15 @@
+<?php
+if($inside_admin) {
+    ob_end_clean();
+    header('Location: '.$goBackLink.'&inside_admin=1');
+    exit;
+} else { 
+	echo '<div class="lk-profile__body-message lk-profile__body-message--success">';
+	nc_print_status("Profile data has been updated","ok");
+    echo '</div>';
+	echo ' <a class="lk-profile__password-updated-goback" href="/en/my/" title="">
+                  <svg class="lk-profile__password-updated-goback-icon">
+                    <use xlink:href="/images/sprite.svg#arrow"></use>
+                  </svg>On main</a>';
+}
+?>

@@ -1,0 +1,256 @@
+<div class="modal modal--lk-menu hystmodal" aria-hidden="true" data-scroll-lock-scrollable>
+  <div class="hystmodal__wrap">
+    <div class="modal__window hystmodal__window">
+      <button class="modal__close" data-hystclose>
+        <svg class="modal__close-icon">
+          <use xlink:href="/images/sprite.svg#close"></use>
+        </svg>
+      </button>
+      <div class="modal__body">
+        <aside class="lk-aside modal__lk-aside">
+          <div class="lk-aside__container">
+            <? if($current_user['Type_id'] === 1): ?>
+            <? $userID = $current_user['User_ID'] ;?>
+            <?= nc_objects_list( 23, 22, "&idUser=$userID&nc_ctpl=211" ); ?>
+            <? else: ?>  
+            <div class="lk-aside__head">
+              <picture class="lk-aside__avatar">
+                <img class="lk-aside__avatar-img js-lazy" data-src="<?= $current_user['Photo_avatar'] ? $current_user['Photo_avatar'] : ($current_user['Gender_id'] == 1 ? '/images/avatar/man.png' : '/images/avatar/woman.png');?>" alt="">
+              </picture>
+              <div class="lk-aside__name"><?= $current_user['Name'];?></div>
+              <div class="lk-aside__id">ID <?= $current_user['User_ID'];?></div>
+              
+              <a class="lk-aside__exit" href='/netcat/modules/auth/?logoff=1&REQUESTED_FROM=<?= $REQUEST_URI?>&REQUESTED_BY=<?= $REQUEST_METHOD?>' title="">
+                Exit
+              </a>
+              
+            </div>
+            <? endif; ?> 
+        
+            <nav class="lk-aside__nav">
+              <ul class="lk-aside__nav-list">
+                <li class="lk-aside__nav-item <?= $sub == 1 ? "lk-aside__nav-item--active" : ""; ?>">
+                  <a class="lk-aside__nav-link" href="/en/my/" title="">
+                    <div class="lk-aside__nav-link-icon-wrap">
+                      <svg class="lk-aside__nav-link-icon lk-aside__nav-link-icon--lk-home">
+                        <use xlink:href="/images/sprite.svg#lk-home"></use>
+                      </svg>
+                    </div>
+                    <span class="lk-aside__nav-link-text">Main</span>
+                  </a>
+                </li>
+                <li class="lk-aside__nav-item <?= $sub == 2 || $sub == 24 ? "lk-aside__nav-item--active" : ""; ?>">
+                  <a class="lk-aside__nav-link" href="<?= $current_user['Type_id'] === 1 ? '/en/my/modify/' : '/en/my/modify-shidhan/';?>" title="">
+                    <div class="lk-aside__nav-link-icon-wrap">
+                      <svg class="lk-aside__nav-link-icon lk-aside__nav-link-icon--lk-user">
+                        <use xlink:href="/images/sprite.svg#lk-user"></use>
+                      </svg>
+                    </div>
+                    <span class="lk-aside__nav-link-text">Profile</span>
+                  </a>
+                </li>
+                <li class="lk-aside__nav-item lk-aside__nav-item--fill  <?= $sub == 28 ? "lk-aside__nav-item--active" : ""; ?>">
+                  <a class="lk-aside__nav-link" href="/en/my/message/" title="">
+                    <div class="lk-aside__nav-link-icon-wrap">
+                      <svg class="lk-aside__nav-link-icon lk-aside__nav-link-icon--lk-chat">
+                        <use xlink:href="/images/sprite.svg#lk-chat"></use>
+                      </svg>
+                    </div>
+                    <span class="lk-aside__nav-link-text">Messages</span>
+                    <span class="lk-aside__nav-link-counter"><?= nc_auth_messages_new();?></span>
+                  </a>
+                </li>
+                <li class="lk-aside__nav-item <?= $sub == 22 ? "lk-aside__nav-item--active" : ""; ?>">
+                  <a class="lk-aside__nav-link" href="/en/my/shadhany/" title="">
+                    <div class="lk-aside__nav-link-icon-wrap">
+                      <svg class="lk-aside__nav-link-icon lk-aside__nav-link-icon--lk-3user">
+                        <use xlink:href="/images/sprite.svg#lk-3user"></use>
+                      </svg>
+                    </div>
+                    <span class="lk-aside__nav-link-text">Shadchans</span>
+                  </a>
+                </li>
+                <? if($current_user['Type_id'] === 1): ?>
+                <li class="lk-aside__nav-item <?= $sub == 71 ? "lk-aside__nav-item--active" : ""; ?>">
+                  <a class="lk-aside__nav-link" href="/en/my/moi-shadhany/" title="">
+                    <div class="lk-aside__nav-link-icon-wrap">
+                      <svg class="lk-aside__nav-link-icon lk-aside__nav-link-icon--lk-user-check">
+                        <use xlink:href="/images/sprite.svg#lk-user-check"></use>
+                      </svg>
+                    </div>
+                    <span class="lk-aside__nav-link-text">Мои шадханы</span>
+                  </a>
+                </li>
+                <? endif; ?>
+                <!--<li class="lk-aside__nav-item ">
+                  <a class="lk-aside__nav-link" href="" title="">
+                    <div class="lk-aside__nav-link-icon-wrap">
+                      <svg class="lk-aside__nav-link-icon lk-aside__nav-link-icon--lk-3user">
+                        <use xlink:href="/images/sprite.svg#lk-3user"></use>
+                      </svg>
+                    </div>
+                    <span class="lk-aside__nav-link-text">Выбрать щадхана</span>
+                  </a>
+                </li>-->
+                
+                
+                <? if($current_user['Type_id'] == 1 || $current_user['Type_id'] == 2): ?>
+                <li class="lk-aside__nav-item <?= $sub == 23 ? "lk-aside__nav-item--active" : ""; ?>">
+                  <a class="lk-aside__nav-link" href="/en/my/candidate/" title="">
+                    <div class="lk-aside__nav-link-icon-wrap">
+                      <svg class="lk-aside__nav-link-icon lk-aside__nav-link-icon--lk-category">
+                        <use xlink:href="/images/sprite.svg#lk-category"></use>
+                      </svg>
+                    </div>
+                    <span class="lk-aside__nav-link-text">Search Candidates</span>
+                  </a>
+                </li>
+                <? endif; ?>
+                
+                <? if($current_user['Type_id'] == 2): ?>
+                <li class="lk-aside__nav-item <?= $sub == 64 ? "lk-aside__nav-item--active" : ""; ?>">
+                  <a class="lk-aside__nav-link " href="/my/access-candidates/" title="">
+                    <div class="lk-aside__nav-link-icon-wrap">
+                      <svg class="lk-aside__nav-link-icon lk-aside__nav-link-icon--lk-check">
+                        <use xlink:href="/images/sprite.svg#lk-check"></use>
+                      </svg>
+                    </div>
+                    <span class="lk-aside__nav-link-text"> Доступ к анкетам </span>
+                    <span class="lk-aside__nav-link-counter"><?= nc_objects_list( 23, 22, "&Shadhan=$userID&nc_ctpl=257" ); ?></span>
+                  </a>
+                </li>
+                <? endif; ?>
+                
+                
+                <? if($current_user['Type_id'] == 1 || $current_user['Type_id'] == 2): ?>
+                <li class="lk-aside__nav-item <?= $sub == 73 ? "lk-aside__nav-item--active" : ""; ?>">
+                  <a class="lk-aside__nav-link" href="/en/my/favourites/" title="">
+                    <div class="lk-aside__nav-link-icon-wrap">
+                      <svg class="lk-aside__nav-link-icon lk-aside__nav-link-icon--lk-heart-2">
+                        <use xlink:href="/images/sprite.svg#lk-heart-2"></use>
+                      </svg>
+                    </div>
+                    <span class="lk-aside__nav-link-text"> Избранное </span>
+                    <span class="lk-aside__nav-link-counter"><?= nc_objects_list( 72,74, "&nc_ctpl=277" ); ?></span>
+                  </a>
+                </li>
+                <li class="lk-aside__nav-item lk-aside__nav-item--fill  <?= $sub == 68 ? "lk-aside__nav-item--active" : ""; ?>">
+                  <a class="lk-aside__nav-link" href="/en/my/ravviny/" title="">
+                    <div class="lk-aside__nav-link-icon-wrap">
+                      <svg class="lk-aside__nav-link-icon lk-aside__nav-link-icon--lk-ravins">
+                        <use xlink:href="/images/sprite.svg#lk-ravins"></use>
+                      </svg>
+                    </div>
+                    <span class="lk-aside__nav-link-text"> Раввины </span>
+                  </a>
+                </li>
+                <li class="lk-aside__nav-item <?= $sub == 69 ? "lk-aside__nav-item--active" : ""; ?>">
+                  <a class="lk-aside__nav-link" href="/en/my/psihologi/" title="">
+                    <div class="lk-aside__nav-link-icon-wrap">
+                      <svg class="lk-aside__nav-link-icon lk-aside__nav-link-icon--lk-psychology">
+                        <use xlink:href="/images/sprite.svg#lk-psychology"></use>
+                      </svg>
+                    </div>
+                    <span class="lk-aside__nav-link-text"> Психологи </span>
+                  </a>
+                </li>
+                <? endif; ?>  
+                
+                <li class="lk-aside__nav-item <?= $sub == 21 ? "lk-aside__nav-item--active" : ""; ?>">
+                  <a class="lk-aside__nav-link" href="/en/my/blog/" title="">
+                    <div class="lk-aside__nav-link-icon-wrap">
+                      <svg class="lk-aside__nav-link-icon lk-aside__nav-link-icon--lk-paper">
+                        <use xlink:href="/images/sprite.svg#lk-paper"></use>
+                      </svg>
+                    </div>
+                    <span class="lk-aside__nav-link-text">WIKIJEW</span>
+                  </a>
+                </li>
+                <li class="lk-aside__nav-item lk-aside__nav-item--fill ">
+                  <a class="lk-aside__nav-link" href="/en/about/" title="">
+                    <div class="lk-aside__nav-link-icon-wrap">
+                      <svg class="lk-aside__nav-link-icon lk-aside__nav-link-icon--lk-info">
+                        <use xlink:href="/images/sprite.svg#lk-info"></use>
+                      </svg>
+                    </div>
+                    <span class="lk-aside__nav-link-text">О нас</span>
+                  </a>
+                </li>
+                
+                <li class="lk-aside__nav-item lk-aside__nav-item--fill ">
+                  <a class="lk-aside__nav-link" href="/en/recomendation/" title="">
+                    <div class="lk-aside__nav-link-icon-wrap">
+                      <svg class="lk-aside__nav-link-icon lk-aside__nav-link-icon--lk-star">
+                        <use xlink:href="/images/sprite.svg#lk-star"></use>
+                      </svg>
+                    </div>
+                    <span class="lk-aside__nav-link-text">Нас рекомендуют</span>
+                  </a>
+                </li>
+                
+                
+                <li class="lk-aside__nav-item <?= $sub == 20 ? "lk-aside__nav-item--active" : ""; ?>">
+                  <a class="lk-aside__nav-link" href="/en/my/instruction/" title="">
+                    <div class="lk-aside__nav-link-icon-wrap">
+                      <svg class="lk-aside__nav-link-icon lk-aside__nav-link-icon--lk-instruction">
+                        <use xlink:href="/images/sprite.svg#lk-instruction"></use>
+                      </svg>
+                    </div>
+                    <span class="lk-aside__nav-link-text">Instruction</span>
+                  </a>
+                </li>
+                <li class="lk-aside__nav-item <?= $sub == 18 ? "lk-aside__nav-item--active" : ""; ?> ">
+                  <a class="lk-aside__nav-link" href="/en/my/rules/" title="">
+                    <div class="lk-aside__nav-link-icon-wrap">
+                      <svg class="lk-aside__nav-link-icon lk-aside__nav-link-icon--lk-bookmark">
+                        <use xlink:href="/images/sprite.svg#lk-bookmark"></use>
+                      </svg>
+                    </div>
+                    <span class="lk-aside__nav-link-text">Rules</span>
+                  </a>
+                </li>
+                
+                
+                <? if($current_user['User_ID'] == 119 || $current_user['User_ID'] == 1 || $current_user['User_ID'] == 43): ?>
+                <li class="lk-aside__nav-item <?= $sub == 75 ? "lk-aside__nav-item--active" : ""; ?>">
+                  <a class="lk-aside__nav-link" href="/en/my/add-article/" title="">
+                    <div class="lk-aside__nav-link-icon-wrap">
+                      <svg class="lk-aside__nav-link-icon lk-aside__nav-link-icon--lk-check">
+                        <use xlink:href="/images/sprite.svg#lk-check"></use>
+                      </svg>
+                    </div>
+                    <span class="lk-aside__nav-link-text"> Добавление статьи </span>
+                  </a>
+                </li>
+                <? endif; ?>
+                
+              </ul>
+            </nav>
+            <? if($current_user['Type_id'] === 2 && $current_user['User_ID'] != 1): ?>
+            <a class="lk-aside__my-candidates " href="/en/my/my-candidates/">
+            <? $userID = $current_user['User_ID'] ;?>
+              My candidates <span class="lk-aside__my-candidates-counter"><?= nc_objects_list( 23, 22, "&Shadhan=$userID&nc_ctpl=222" ); ?></span>
+     
+            </a>
+            <a href="/en/my/add_candidate/" class="lk-aside__to-candidate ">
+              <svg class="lk-aside__to-candidate-icon">
+                <use xlink:href="/images/sprite.svg#lk-paper2"></use>
+              </svg>
+              <span class="lk-aside__to-candidate-text">Add Candidate</span>
+            </a>
+            <? endif;?>
+            <div class="lk-aside__footer">
+              <div class="lk-aside__copyright">© One soul, <?php echo date("Y"); ?> y.</div>
+              <a class="lk-aside__agreement" href="/en/policy/" title="">User agreement</a>
+              <div class="lk-aside__footer-bottom">
+                <a class="lk-aside__footer-exit" href="/netcat/modules/auth/?logoff=1&REQUESTED_FROM=<?= $REQUEST_URI?>&REQUESTED_BY=<?= $REQUEST_METHOD?>" title="">Exit</a>
+                <a class="lk-aside__write" href="/en/my/message/add_soobscheniya.html?uid=119">Write to the admin</a>
+              </div>
+            </div>
+            
+          </div>
+        </aside>
+      </div>
+    </div>
+  </div>
+</div>

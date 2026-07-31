@@ -1,0 +1,54 @@
+<article class="object-item-full">
+    <div class="item-category tpl-text-alt-paragraph">
+        <?= nc_edit_inline('Category', $message, $cc_env['Sub_Class_ID']); ?>
+    </div>
+    <h1 class="item-title tpl-text-header1"><?= nc_edit_inline('Name', $message, $cc_env['Sub_Class_ID']); ?></h1>
+    <div class="item-period tpl-text-alt-paragraph">
+        <i class="far fa-calendar-alt"></i> <?= nc_edit_inline('Period', $f_RowID, $cc_env['Sub_Class_ID']); ?>
+    </div>
+    <?= $f_AdminButtons; ?>
+    <?php
+    $events_images = array();
+
+    if ($f_Image) {
+        $events_images[] = array(
+            'preview' => $f_Image->resize(250, 250),
+            'full'    => $f_Image,
+        );
+    }
+    foreach ($f_Slider->to_array() as $im) {
+        $events_images[] = array(
+            'preview' => $im->resize(250, 250),
+            'full'    => $im['path'],
+        );
+    }
+    ?>
+    <?php if ($events_images) { ?>
+        <div class="item-slider">
+            <div class='slider-big-image'><img src='<?= $events_images[0]['full']; ?>'/></div>
+            <?php if (count($events_images) > 1) { ?>
+                <div class='slider-preview-list'>
+                    <?php foreach ($events_images as $events_image) { ?>
+                        <a href='<?= $events_image['full']; ?>'><?= $events_image['preview']->as_img(); ?></a>
+                    <?php } ?>
+                </div>
+            <?php } ?>
+        </div>
+    <?php } ?>
+    <div class="item-info">
+        <div class="item-text tpl-text-default">
+            <?= nc_edit_inline('Text', $message, $cc_env['Sub_Class_ID']); ?>
+        </div>
+    </div>
+</article>
+<script type="text/javascript">
+    document.addEventListener("DOMContentLoaded", function () {
+        jQuery("#<?= $nc_block_id; ?> .slider-preview-list a").on("click", function (e) {
+            e.preventDefault();
+            jQuery("#<?= $nc_block_id; ?> .slider-preview-list a").removeClass('active');
+            jQuery(this).addClass('active');
+            let link = jQuery(this).attr("href");
+            jQuery("#<?= $nc_block_id; ?> .slider-big-image img").attr("src", link);
+        });
+    });
+</script>

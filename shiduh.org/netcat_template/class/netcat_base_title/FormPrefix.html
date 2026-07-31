@@ -1,0 +1,9 @@
+<?= $f_AdminCommon; ?>
+<?php
+$title = nc_infoblock_custom_setting_edit_inline('Text', $cc);
+if ($cc_settings['GrabTitleFromPage'] == 'on') {
+    $nc_core = nc_core::get_object();
+    $title = $nc_core->page->get_h1();
+}
+?>
+<<?= $cc_settings['Tag']; ?> class="<?= $cc_settings['Class']; ?>"><?= $title; ?></<?= $cc_settings['Tag']; ?>>

@@ -1,0 +1,32 @@
+<?/* Служебная часть */for ($f_RowNum = 0; $f_RowNum < $rowCount; $f_RowNum++) {    if($fetch_row[$f_RowNum] instanceof Iterator) {        extract($fetch_row[$f_RowNum]->to_array(), EXTR_PREFIX_ALL, "f");    } else {        extract($fetch_row[$f_RowNum], EXTR_PREFIX_ALL, "f");    }    foreach($iteration_RecordTemplate[$f_RowNum] as $value) {        extract($value);    }    eval($cc_env["convert2txt"]);    ob_start();/* Конец служебной части */?>
+<?= $f_AdminButtons; ?>
+    <div
+        class="quotes-object <?= $cc_settings['image_position'] !== 'none' ? "image-{$cc_settings['image_position']}" : ""; ?> ">
+        <div class="quotes-author">
+            <?php if (($admin_mode || $f_Image) && $cc_settings['image_position'] !== 'none'): ?>
+                <div class="quotes-icon">
+                    <?= $f_Image->resize(80, 80, nc_ImageTransform::RESIZE_TO_BEST_FIT_WITH_CROP)->as_img(); ?>
+                </div>
+            <?php endif; ?>
+            <?php if ($admin_mode || $f_Author || $_Caption): ?>
+                <div class="quotes-name">
+                    <?php if ($admin_mode || $f_Author): ?>
+                        <div class="author tpl-text-default-small">
+                            <?= nc_edit_inline('Author', $f_RowID, $cc_env['Sub_Class_ID']); ?>
+                        </div>
+                    <?php endif; ?>
+                    <?php if ($admin_mode || $f_Caption): ?>
+                        <div class="caption tpl-text-default-alt">
+                            <?= nc_edit_inline('Caption', $f_RowID, $cc_env['Sub_Class_ID']); ?>
+                        </div>
+                    <?php endif; ?>
+                </div>
+            <?php endif; ?>
+        </div>
+
+        <div class="tpl-text-default-paragraph quotes-text <?= $cc_settings['quotes'] ? "show-quotes" : ""; ?>">
+            <?= nc_edit_inline('Text', $f_RowID, $cc_env['Sub_Class_ID']); ?>
+        </div>
+
+    </div>
+<?/* Служебная часть */    echo nc_finishing_RecordTemplate(ob_get_clean(), $inside_admin, $classID, $f_RowID, $parent_message, $cc, $cc_env["Class_Name"], $no_cache_marks);}/* Конец служебной части */?>

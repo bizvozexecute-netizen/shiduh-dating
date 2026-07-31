@@ -1,0 +1,14 @@
+    <div class="lk-messages__load-more">
+                    <button class="lk-messages__load-more-btn" type="button">Show more</button>
+                  </div>
+                </div>
+              </form>
+            </div>
+          </section>
+    
+<script>
+[...document.querySelectorAll('.lk-messages__item-date')].forEach(el => {
+    var date = new Date(el.getAttribute('data-time').replace(/-/g, "/"));
+    el.innerHTML = `${("0" + date.getDate()).slice(-2)}.${("0" + (date.getMonth() + 1)).slice(-2)}.${date.getFullYear()} - ${("0" + date.getHours()).slice(-2)}:${("0" + date.getMinutes()).slice(-2)}`;
+});
+</script>

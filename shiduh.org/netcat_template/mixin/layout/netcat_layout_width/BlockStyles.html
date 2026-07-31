@@ -1,0 +1,96 @@
+<?php
+
+/** @var string $selector */
+/** @var string $list_selector */
+/** @var array $settings */
+
+// Использует css-переменные: --tpl-mixin-margin-left, --tpl-mixin-margin-right (устанавливаются в netcat_margin).
+// Устанавливает css-переменные:
+// --tpl-mixin-layout-child-indent-left (используются в netcat_width_full)
+// --tpl-mixin-layout-child-on-left (используется в netcat_width)
+
+$item_selector = "$list_selector > *";
+$item_reset_selector = "$item_selector > *";
+$properties = array(
+    $selector => array(),
+    $list_selector => array(
+        'display: flex',
+        'flex-direction: column',
+    ),
+    $item_selector => array(),
+    $item_reset_selector => array(),
+);
+
+$get_setting = function($setting) use ($settings) {
+    if (empty($settings[$setting])) {
+        return null;
+    }
+    return $settings[$setting] . (isset($settings[$setting . '_unit']) ? $settings[$setting . '_unit'] : '');
+};
+
+$add_property = function($selector, $setting, $css_property) use ($get_setting, &$properties) {
+    $value = $get_setting($setting);
+    if ($value) {
+        $properties[$selector][] = "$css_property: $value";
+    }
+    return $value;
+};
+
+
+$min_width = $get_setting('children_min_width');
+$max_width = $add_property($item_selector, 'children_max_width', 'max-width');
+
+if ($min_width) {
+    $properties[$item_selector][] = "min-width: calc($min_width - var(--tpl-mixin-margin-left, 0px) - var(--tpl-mixin-margin-right, 0px))";
+}
+
+if ($max_width) {
+    $properties[$item_selector][] = "--tpl-mixin-layout-max-width: $max_width";
+    $properties[$item_reset_selector][] = "--tpl-mixin-layout-max-width: 100%";
+} else {
+    $properties[$item_selector][] = "--tpl-mixin-layout-max-width: 100%";
+}
+
+if ($settings['children_alignment'] === 'center') {
+    // выравнивание по центру сделано не через align-items: center, а установкой margin,
+    // так как align-items также влияет на ширину блоков — с этим сложнее бороться
+    $properties[$item_selector][] = 'margin-left: auto';
+    $properties[$item_selector][] = 'margin-right: auto';
+    $properties[$item_selector][] = "width: 100%";
+    if ($min_width) {
+        $properties[$selector][] = "min-width: $min_width";
+    }
+    if ($max_width) {
+        // используется для выравнивания контента для блока с 100% шириной с контентом с шириной
+        // по настройкам этого миксина (netcat_width_full — опция background_only)
+        $indent = "calc((100% - $max_width) / 2)";
+        // NB: для calc() всегда нужны единицы: '0px', а не '0'
+        $properties[$item_selector][] = "--tpl-mixin-layout-child-indent-left: $indent";
+        $properties[$item_selector][] = "--tpl-mixin-layout-child-indent-right: $indent";
+        $properties[$item_reset_selector][] = "--tpl-mixin-layout-child-indent-left: 0px";
+        $properties[$item_reset_selector][] = "--tpl-mixin-layout-child-indent-right: 0px";
+        $properties[$item_selector][] = "width: calc(100% - var(--tpl-mixin-margin-left, 0px) - var(--tpl-mixin-margin-right, 0px))";
+    }
+} else {
+    $indent_left = $add_property($item_selector, 'children_indent_left', 'margin-left');
+    $properties[$item_selector][] = "--tpl-mixin-layout-child-indent-left: " . ($indent_left ?: "0px");
+    if ($indent_left) {
+        $properties[$item_reset_selector][] = "--tpl-mixin-layout-child-indent-left: 0px";
+    }
+    $properties[$list_selector][] = '--tpl-mixin-layout-child-on-left: 1';
+    $properties[$item_reset_selector][] = '--tpl-mixin-layout-child-on-left: 0';
+    if ($min_width) {
+        if ($indent_left) {
+            $properties[$selector][] = "min-width: calc($min_width + $indent_left)";
+        } else {
+            $properties[$selector][] = "min-width: $min_width";
+        }
+    }
+}
+
+$css = '';
+foreach ($properties as $selector => $values) {
+    $css .= "$selector {\n" . join(";\n", $values) . "\n}\n";
+}
+
+return $css;

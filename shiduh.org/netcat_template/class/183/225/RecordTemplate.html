@@ -1,0 +1,21 @@
+<?/* Служебная часть */for ($f_RowNum = 0; $f_RowNum < $rowCount; $f_RowNum++) {    if($fetch_row[$f_RowNum] instanceof Iterator) {        extract($fetch_row[$f_RowNum]->to_array(), EXTR_PREFIX_ALL, "f");    } else {        extract($fetch_row[$f_RowNum], EXTR_PREFIX_ALL, "f");    }    foreach($iteration_RecordTemplate[$f_RowNum] as $value) {        extract($value);    }    eval($cc_env["convert2txt"]);    ob_start();/* Конец служебной части */?>
+<?
+$arrayMonth = array("january", "february", "march", "april", "may", "june", "july", "august", "september", "october", "november", "december");
+?>
+
+<div class="news-item appearance-container main-news__item <?= ($f_RowID == $begRow) ? 'news-item--large' : ''; ?>">
+                <div class="news-item__wrapper appearance">
+                  <a class="news-item__head" href="<?=$fullLink?>" title="">
+                    <?= ($f_RowID == $begRow) ? '<span class="news-item__badge">Main</span>' : ''; ?>
+                    <img class="news-item__img js-lazy" data-src="<?= $f_RowID == $begRow ? $f_newsImage->resize(773, 773) : $f_newsImage->resize(370, 370) ?>" alt="">
+                  </a>
+                  <div class="news-item__info">
+                    <span class="news-item__date"><?= $f_newsDate_day; ?> <?= $arrayMonth[(int)$f_newsDate_month - 1] ?> <?= $f_newsDate_year; ?> y.</span> / <a style="color: inherit;" href="/en/news/?<?= $f_autor_ID ? 'autor='.$f_autor_ID : 'user='.$f_User_ID;?>"   class="news-item__autor"><?=listQuery("SELECT * FROM Message200 WHERE Message_ID=$f_autor_ID", '$data[name]') ?: $nc_core->user->get_by_id($f_User_ID, "Name" );?></a>
+                  </div>
+                  <a class="news-item__title" href="<?=$fullLink?>" title=""><?= $f_newsTitle; ?></a>
+                  <? if($f_newsSubTitle && $f_RowID == $begRow): ?>
+                  <div class="news-item__subtitle"><?= $f_newsSubTitle; ?></div>
+                  <? endif; ?>
+                </div>
+              </div>
+<?/* Служебная часть */    echo nc_finishing_RecordTemplate(ob_get_clean(), $inside_admin, $classID, $f_RowID, $parent_message, $cc, $cc_env["Class_Name"], $no_cache_marks);}/* Конец служебной части */?>

@@ -1,0 +1,62 @@
+<div class="nc-mixins-mixin-settings-netcat-layout-width">
+
+    <div>
+        <label>
+            Положение блоков:
+            <select name="mixin.settings.children_alignment" class="nc-mixins-mixin-settings-netcat-layout-width-alignment-select">
+                <option value="left">по левому краю</option>
+                <option value="center">по центру</option>
+            </select>
+        </label>
+    </div>
+
+    <div>
+        <label>
+            Минимальная ширина блоков:
+            <input type="number" class="nc--medium" name="mixin.settings.children_min_width" min="0"> пикс.
+            <input type="hidden" name="mixin.settings.children_min_width_unit" value="px">
+        </label>
+    </div>
+
+    <div>
+        <label>
+            Максимальная ширина блоков:
+            <input type="number" class="nc--medium" name="mixin.settings.children_max_width" min="0"> пикс.
+            <input type="hidden" name="mixin.settings.children_max_width_unit" value="px">
+        </label>
+    </div>
+
+    <div class="nc-mixins-mixin-settings-netcat-layout-width-indent-left">
+        <label>
+            Отступ слева:
+            <input type="number" class="nc--medium" name="mixin.settings.children_indent_left" min="0"> пикс.
+            <input type="hidden" name="mixin.settings.children_indent_left_unit" value="px">
+        </label>
+    </div>
+
+</div>
+<script>
+(function() {
+    var prefix = '.nc-mixins-mixin-settings-netcat-layout-width';
+
+    var mixin_settings_container = $nc(prefix);
+
+    function init(event, data) {
+        var updated_container = data.row || $nc(this);
+
+        // переключение выравнивания
+        updated_container.find(prefix + '-alignment-select')
+            .off('change' + prefix)
+            .on('change' + prefix, function() {
+                updated_container.find(prefix + '-indent-left').toggle($nc(this).val() === 'left')
+            })
+            .trigger('change');
+    }
+
+    // Инициализация событий
+    mixin_settings_container.closest('.nc-mixins-mixin-settings')
+        .off(nc_mixin_settings_editor.mixin_settings_set_values_event)
+        .on(nc_mixin_settings_editor.mixin_settings_set_values_event, init);
+
+})();
+</script>

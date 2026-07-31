@@ -1,0 +1,26 @@
+<?
+
+if($checked-1) {
+    //отправка сообщения об активации
+    $candidateDate = date("Y-m-d H:i:s");
+    $candidateUserID = 1;
+    $shadhanID = $f_User_ID;
+    $candidateTheme = 'Ваш профиль активирован';    
+    $candidateMessage = 'Уважаемый шадхан! <br>
+Ваш профиль активирован на сайте One Soul. <br> Вы можете авторизоваться на <a href="https://shiduh.org/" title="Перейти на сайт">сайте</a>  <br>
+Команда One Soul желает Сията деШмая и плодотворных шидухов!';
+
+   sendEmail($shadhanID, $candidateTheme, $candidateMessage);
+    
+}
+
+if($inside_admin) {
+    ob_end_clean();
+    header('Location: '.$goBackLink.'&inside_admin=1');
+    exit;
+} else { 
+	echo ($checked-1 ? ( count($messages) == 1 ? NETCAT_MODERATION_OBJISON : NETCAT_MODERATION_OBJSAREON) :
+ 			 (count($messages) == 1 ? NETCAT_MODERATION_OBJISOFF : NETCAT_MODERATION_OBJSAREOFF) );
+	echo "<br /><br />".$goBack;
+}
+?>

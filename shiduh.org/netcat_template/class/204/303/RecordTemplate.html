@@ -1,0 +1,93 @@
+<?/* Служебная часть */for ($f_RowNum = 0; $f_RowNum < $rowCount; $f_RowNum++) {    if($fetch_row[$f_RowNum] instanceof Iterator) {        extract($fetch_row[$f_RowNum]->to_array(), EXTR_PREFIX_ALL, "f");    } else {        extract($fetch_row[$f_RowNum], EXTR_PREFIX_ALL, "f");    }    foreach($iteration_RecordTemplate[$f_RowNum] as $value) {        extract($value);    }    eval($cc_env["convert2txt"]);    ob_start();/* Конец служебной части */?>
+<?
+if($nc_core->user->get_by_id($f_User_ID, 'Checked') && $f_Checked):
+  $now = time(); // текущее время (метка времени)
+  $your_date = strtotime($f_Created_year.'-'.$f_Created_month.'-'.$f_Created_day); // какая-то дата в строке (1 января 2017 года)
+  $datediff = $now - $your_date; // получим разность дат (в секундах)
+
+  $daysSumm = floor($datediff / (60 * 60 * 24));
+  if( get_age($f_Date_of_birth) >= $_GET["age"][0]  && get_age($f_Date_of_birth) <= $_GET["age"][1]):
+?>
+<div class="lk-table__row lk-sort-item " data-name="<?= $f_Name;?> " data-new="<?= $daysSumm <= 30 ? 'true': 'false';?>">
+  <div class="lk-table__cell lk-table__cell--avatar">
+    <picture class="lk-table__cell-picture">
+      <img class="lk-table__cell-picture-img js-lazy" data-src="<?= $f_Photo_avatar ? $f_Photo_avatar : ($f_Gender_id == 1 ? '/images/avatar/man.png' : '/images/avatar/woman.png'); ?>" alt="">
+    </picture>
+  </div>
+  <div class="lk-table__cell lk-table__cell--name">
+    <div class="lk-table__cell-key">ФИО</div>
+    <div class="lk-table__cell-val">
+      <div class="lk-table__cell-val-name"><?= $f_Name;?></div>
+      <a class="lk-table__cell-val-link js-scroll-link" href="/my/candidate/candidate_<?= $f_Message_ID;?>.html" title="">Подробнее</a>
+    </div>
+  </div>
+  <div class="lk-table__cell lk-table__cell--address">
+    <div class="lk-table__cell-key">Страна</div>
+    <div class="lk-table__cell-val"><?= $f_Country;?></div>
+  </div>
+  <div class="lk-table__cell lk-table__cell--age">
+    <div class="lk-table__cell-key">Возраст</div>
+    <div class="lk-table__cell-val"><?= $f_Date_of_birth_year < 2024 && $f_Date_of_birth_year !== '0000' ? get_age($f_Date_of_birth) : ''; ?> <?= num2word(get_age($f_Date_of_birth), array('год', 'года', 'лет'));?></div>
+  </div>
+  <div class="lk-table__cell lk-table__cell--gender">
+    <div class="lk-table__cell-key">Пол</div>
+    <div class="lk-table__cell-val"><?= $f_Gender;?></div>
+  </div>
+  <div class="lk-table__cell lk-table__cell--manage">
+    <div class="lk-table__cell-inner lk-table__cell-inner--btn-more">
+      <a class="lk-table__cell-button button js-scroll-link" href="/my/candidate/candidate_<?= $f_Message_ID;?>.html" title="">Подробнее</a>
+    </div>
+    <? if($daysSumm <= 5): ?>   
+    <div class="lk-table__cell-inner lk-table__cell-inner--badge-new"></div>
+    <? endif; ?>
+    
+    <? if(!$_GET['ID'] && !$_GET['gender']): ?>
+    <? 
+    $Marital_status = [];
+    foreach ($f_Search_was_previously_married as &$value) {
+        if($value == 'Да'){
+          $Marital_status[] = 2;   
+        }
+        if($value == 'Нет'){
+          $Marital_status[] = 1;   
+        }
+    }
+    foreach ($f_Search_divorced as &$value) {
+        if($value == 'Да' && !in_array(2, $Marital_status)){
+          $Marital_status[] = 2;   
+        }
+     
+        if($value == 'Вдова/ец'){
+          $Marital_status[] = 3;   
+        }
+    }
+
+    ?>
+    <a href="<?= $subLink; ?>?ID=<?= $f_Message_ID; ?>&gender=<?= $f_Search_gender_id;?>&<?= $f_Search_education_id[0] === '1'  ? '' : http_build_query(['Education' => $f_Search_education_id]); ?>&<?= http_build_query(['Number_of_children' => $f_Search_number_of_children]); ?>&<?= http_build_query(['Marital_status' => $Marital_status]); ?>&<?= http_build_query(['Belonging_denomination' => $f_Search_belonging_denomination_id]); ?>&age[0]=<?= $f_Search_age_start ? $f_Search_age_start -5 : 0; ?>&age[1]=<?= $f_Search_age_end ? $f_Search_age_end + 5 :  300; ?>" class="lk-table__cell-inner lk-table__cell-inner--btn-choose js-scroll-link">
+      <button class="lk-table__cell-button button button--write">
+        <span class="button__text">Выбрать кандидата</span>
+      </button>
+    </a>
+
+    <? endif; ?>
+    <? if($_GET['ID'] && $_GET['gender']): ?>
+    <? $IDCandidate2 = $_GET['ID'];?>
+    <!--<a href="/my/message/add_soobscheniya.html?uid=<?=$f_User_ID;?>" class="lk-shiduch__item-manage-write button button--write">
+      <svg class="button__icon">
+        <use xlink:href="/images/sprite.svg#letter"></use>
+      </svg>
+      <span class="button__text">Написать</span>
+    </a>-->
+    <a href="/my/message/add_soobscheniya.html?uid=<?=$f_User_ID;?>&shiduch=1&candidateId=<?=$IDCandidate2;?>&candidate2Id=<?=$f_Message_ID;?>" class="lk-shiduch__item-manage-write button button--write">
+      <svg class="button__icon">
+        <use xlink:href="/images/sprite.svg#letter"></use>
+      </svg>
+      <span class="button__text">Написать</span>
+    </a>
+    <? endif; ?>
+  </div>
+</div>
+<? $numEl++; ?> 
+<? endif;?>
+<? endif;?>
+<?/* Служебная часть */    echo nc_finishing_RecordTemplate(ob_get_clean(), $inside_admin, $classID, $f_RowID, $parent_message, $cc, $cc_env["Class_Name"], $no_cache_marks);}/* Конец служебной части */?>

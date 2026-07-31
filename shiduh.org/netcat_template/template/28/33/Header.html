@@ -1,0 +1,82 @@
+%Header
+
+<div class="breadcrumbs ">
+        <div class="breadcrumbs__wrapper wrapper">
+          <a class="breadcrumbs__item" href="/en/" title="">
+            <svg class="breadcrumbs__item-icon">
+              <use xlink:href="/images/sprite.svg#home"></use>
+            </svg> Home </a>
+          <a class="breadcrumbs__item" href="" title="">Questions and answers</a>
+        </div>
+      </div>
+      <section class="faq">
+        <div class="faq__wrapper wrapper">
+          <div class="page-head faq__page-head">
+            <div class="page-head__title">Questions and answers</div>
+          </div>
+          <div class="faq__body">
+            <div class="faq__main">
+
+              <div class="tabs faq__tabs">
+                <div class="swiper tabs__nav">
+                  <div class="swiper-wrapper">
+                    <button class="swiper-slide tabs__nav-item">For candidates</button>
+                    <button class="swiper-slide tabs__nav-item">For shadchans</button>
+                  </div>
+                </div>
+                <div class="swiper tabs__content">
+                  <div class="swiper-wrapper">
+                    <div class="swiper-slide tabs__content-item faq__main-list">
+                      <?= nc_objects_list(37, 35 ); ?>
+                    </div>
+                    <div class="swiper-slide tabs__content-item faq__main-list">
+                      <?= nc_objects_list(37, 36 ); ?>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            
+              <button class="faq__main-question-button button" data-hystmodal=".modal--question">
+                <svg class="button__icon">
+                  <use xlink:href="/images/sprite.svg#question-2"></use>
+                </svg> Аsk s question </button>
+            </div>
+            <div class="faq__sidebar">
+                <?= nc_objects_list(37, 37,"&nc_ctpl=228" ); ?>  
+            </div>
+          </div>
+        </div>
+      </section>
+      <section class="partners-section">
+        <div class="partners-section__wrapper wrapper">
+          <div class="partners-section__head">
+            <h2 class="partners-section__title title appearance-container">
+              <span class="appearance"> International  <br> partners </span>
+            </h2>
+            <div class="partners-section__subtitle appearance-container">
+              <span class="appearance"> Specislists from all communities of Mountain Jews:Makhachkala ,Baku ,
+Derbent, Nalchik, Pyatigorsk, USA, Israel and Canada with their candidates databases are connected to our program. </span>
+            </div>
+          </div>
+          <div class="partners-swiper swiper partners-section__swiper">
+            <div class="swiper-wrapper">
+              
+              <?= nc_objects_list(35, 33, "&rands=1" ); ?>
+              
+            </div>
+            <div class="swiper-navigation partners-swiper__swiper-nav">
+              <button class="swiper-navigation__button swiper-navigation__button--prev">
+                <svg class="swiper-navigation__icon">
+                  <use xlink:href="/images/sprite.svg#arrow"></use>
+                </svg>
+              </button>
+              <button class="swiper-navigation__button swiper-navigation__button--next">
+                <svg class="swiper-navigation__icon">
+                  <use xlink:href="/images/sprite.svg#arrow"></use>
+                </svg>
+              </button>
+            </div>
+          </div>
+          <a class="partners-section__more more more--border" href="/en/partner/" title="">View all</a>
+        </div>
+      </section>

@@ -1,0 +1,41 @@
+<?/* Служебная часть */for ($f_RowNum = 0; $f_RowNum < $rowCount; $f_RowNum++) {    if($fetch_row[$f_RowNum] instanceof Iterator) {        extract($fetch_row[$f_RowNum]->to_array(), EXTR_PREFIX_ALL, "f");    } else {        extract($fetch_row[$f_RowNum], EXTR_PREFIX_ALL, "f");    }    foreach($iteration_RecordTemplate[$f_RowNum] as $value) {        extract($value);    }    eval($cc_env["convert2txt"]);    ob_start();/* Конец служебной части */?>
+<div class="lk-table__cell-inner lk-table__cell-inner--btn-more">
+  <a class="lk-table__cell-button button js-scroll-link" href="<?=$fullLink?>" title="">Подробнее</a>
+
+<? if($nc_core->user->get_by_id($f_User_ID, "Type_id" ) === 2 && !in_array($f_User_ID, $arrShadhanIDS) ): ?>  
+<?
+$arrShadhanIDS[] = $f_User_ID;
+?>
+<a class="lk-table__cell-button-shadhan" href="/my/shadhany/shadhan_<?= $f_User_ID;?>.html" title="">
+  <img class="lk-table__cell-shadhan-img js-lazy" style="object-fit:cover;"  data-src="<?= $nc_core->user->get_by_id($f_User_ID, "Photo_avatar" ); ?>" alt="">
+</a>
+<? endif; ?>  
+<? if($f_Shadhan_1 && !in_array($f_Shadhan_1, $arrShadhanIDS) ): ?>  
+<?
+$arrShadhanIDS[] = $f_Shadhan_1;
+?>
+<a class="lk-table__cell-button-shadhan" href="/my/shadhany/shadhan_<?= $f_Shadhan_1;?>.html" title="">
+  <img class="lk-table__cell-shadhan-img js-lazy" style="object-fit:cover;"  data-src="<?= $nc_core->user->get_by_id($f_Shadhan_1, "Photo_avatar" ); ?>" alt="">
+</a>
+<? endif; ?>
+<? if($f_Shadhan_2 && !in_array($f_Shadhan_2, $arrShadhanIDS) ): ?>  
+<?
+$arrShadhanIDS[] = $f_Shadhan_2;
+?>
+<a class="lk-table__cell-button-shadhan" href="/my/shadhany/shadhan_<?= $f_Shadhan_2;?>.html" title="">
+  <img class="lk-table__cell-shadhan-img js-lazy" style="object-fit:cover;"  data-src="<?= $nc_core->user->get_by_id($f_Shadhan_2, "Photo_avatar" ); ?>" alt="">
+</a>
+<? endif; ?>
+<? if($f_Shadhan_3 && !in_array($f_Shadhan_3, $arrShadhanIDS) ): ?> 
+<?
+$arrShadhanIDS[] = $f_Shadhan_3;
+?>
+<a class="lk-table__cell-button-shadhan" href="/my/shadhany/shadhan_<?= $f_Shadhan_3;?>.html" title="">
+  <img class="lk-table__cell-shadhan-img js-lazy" style="object-fit:cover;"  data-src="<?= $nc_core->user->get_by_id($f_Shadhan_3, "Photo_avatar" ); ?>" alt="">
+</a>
+<? endif; ?>
+<? if($nc_core->user->get_by_id($f_User_ID, "Type_id" ) === 1 && !$f_Shadhan_1 && !$f_Shadhan_2 && !$f_Shadhan_3): ?>  
+<span>—</span>
+<? endif; ?>
+</div>
+<?/* Служебная часть */    echo nc_finishing_RecordTemplate(ob_get_clean(), $inside_admin, $classID, $f_RowID, $parent_message, $cc, $cc_env["Class_Name"], $no_cache_marks);}/* Конец служебной части */?>

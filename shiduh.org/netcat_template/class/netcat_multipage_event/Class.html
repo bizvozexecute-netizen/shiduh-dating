@@ -1,0 +1,38 @@
+<!-- FormPrefix --><?= $f_AdminCommon; ?><!-- /FormPrefix -->
+
+<!-- RecordTemplate --><div class='object-item'<?= $styles ?>>
+    <?= $f_AdminButtons; ?>
+    <?php if ($f_Image): ?>
+        <a href='<?= $fullLink; ?>' class='item-image'>
+            <div class="image">
+                <?= $f_Image->as_img(array('alt' => $f_Name)); ?>
+            </div>
+        </a>
+    <?php endif; ?>
+    <div class="item-padding">
+        <?php if ($admin_mode || $f_Category): ?>
+            <div class="item-category tpl-text-header6">
+                <?= nc_edit_inline('Category', $f_RowID, $cc_env['Sub_Class_ID']); ?>
+            </div>
+        <?php endif; ?>
+        <?php if ($admin_mode): ?>
+            <div class="item-name tpl-text-header4">
+                <?= nc_edit_inline('Name', $f_RowID, $cc_env['Sub_Class_ID']); ?>
+            </div>
+        <?php else: ?>
+            <a href='<?= $fullLink; ?>' class="item-name tpl-text-header4"><?= $f_Name; ?></a>
+        <?php endif; ?>
+        <div class="item-period tpl-text-alt-paragraph">
+            <i class="far fa-calendar-alt"></i> <?= nc_edit_inline('Period', $f_RowID, $cc_env['Sub_Class_ID']); ?>
+        </div>
+        <?php if ($admin_mode || $f_Description): ?>
+            <div class="item-announce tpl-text-default-paragraph">
+                <?= nc_edit_inline('Description', $f_RowID, $cc_env['Sub_Class_ID']); ?>
+            </div>
+        <?php endif; ?>
+    </div>
+</div><!-- /RecordTemplate -->
+
+<!-- FormSuffix --><?php if ($totRows > $recNum): ?>
+<?= nc_browse_messages($cc_env, 10); ?>
+<?php endif; ?><!-- /FormSuffix -->

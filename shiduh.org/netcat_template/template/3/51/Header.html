@@ -1,0 +1,23 @@
+%Header
+
+<div class="breadcrumbs ">
+        <div class="breadcrumbs__wrapper wrapper">
+          <a class="breadcrumbs__item" href="/" title="">
+            <svg class="breadcrumbs__item-icon">
+              <use xlink:href="/images/sprite.svg#home"></use>
+            </svg> Главная </a>
+          <a class="breadcrumbs__item" href="" title="">Нас рекомендуют</a>
+        </div>
+      </div>
+      
+      <div class="recommendation">
+        <div class="wrapper recommendation__wrapper">
+          <h2 class="appearance-container recommendation__title">
+            <span class="appearance appearance--show">Нас рекомендуют</span>
+          </h2>
+          <?= nc_objects_list(61, 59, "&nc_ctpl=252"); ?>
+          <img class="js-lazy recommendation__bg" data-src="/images/recommendation/recommendation__bg.svg" alt="">
+          <img class="recommendation__star js-lazy" data-src="/images/recommendation/star.svg" alt="">
+        </div>
+        
+      </div>

@@ -1,0 +1,28 @@
+<?=( $warnText ? "<div class='warnText'>$warnText</div>" : NULL )?>
+<form name=''  class='lk-table__cell-inner lk-table__cell-inner--btn-choose ' enctype='multipart/form-data' method='post' action='<?= $SUB_FOLDER ?><?= $HTTP_ROOT_PATH ?>add.php'>
+<div id='nc_moderate_form'>
+<div class='nc_clear'></div>
+<input name='admin_mode' type='hidden' value='<?= $admin_mode ?>' />
+<?= $nc_core->token->get_input() ?>
+<input name='catalogue' type='hidden' value='<?= $catalogue ?>' />
+<input name='cc' type='hidden' value='<?= $cc ?>' />
+<input name='sub' type='hidden' value='<?= $sub ?>' /><input name='posting' type='hidden' value='1' />
+<input name='curPos' type='hidden' value='<?= $curPos ?>' />
+<input name='f_Parent_Message_ID' type='hidden' value='<?= $f_Parent_Message_ID ?>' />
+<?= nc_form_moderate('add', $admin_mode, 0, $systemTableID, $current_cc, (isset($f_Checked) ? $f_Checked  : null), $f_Priority , $f_Keyword, $f_ncTitle, $f_ncKeywords, $f_ncDescription ) ?>
+</div>
+
+<input class="" name="f_Candidate1" type="hidden" value="<?= $IDCandidate1;?>" placeholder="" required>
+<input class="" name="f_Candidate2" type="hidden" value="<?= $IDCandidate2;?>" placeholder="" required>
+<input class="" name="f_choose" type="hidden" value="" placeholder="" >
+
+
+
+<button class="lk-table__cell-button button button--write" type="submit">
+                          <svg class="button__icon">
+                            <use xlink:href="/images/sprite.svg#lk-2hearts"></use>
+                          </svg>
+                          <span class="button__text">Создать шидух</span>
+                        </button>
+
+</form>

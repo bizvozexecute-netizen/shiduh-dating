@@ -1,0 +1,57 @@
+<?/* Служебная часть */for ($f_RowNum = 0; $f_RowNum < $rowCount; $f_RowNum++) {    if($fetch_row[$f_RowNum] instanceof Iterator) {        extract($fetch_row[$f_RowNum]->to_array(), EXTR_PREFIX_ALL, "f");    } else {        extract($fetch_row[$f_RowNum], EXTR_PREFIX_ALL, "f");    }    foreach($iteration_RecordTemplate[$f_RowNum] as $value) {        extract($value);    }    eval($cc_env["convert2txt"]);    ob_start();/* Конец служебной части */?>
+<?
+if($nc_core->user->get_by_id($f_User_ID, 'Checked') && $f_Checked):
+  $now = time(); // текущее время (метка времени)
+  $your_date = strtotime($f_Created_year.'-'.$f_Created_month.'-'.$f_Created_day); // какая-то дата в строке (1 января 2017 года)
+  $datediff = $now - $your_date; // получим разность дат (в секундах)
+
+  $daysSumm = floor($datediff / (60 * 60 * 24));
+  if( get_age($f_Date_of_birth) >= $_GET["age"][0]  && get_age($f_Date_of_birth) <= $_GET["age"][1]):
+?>
+<div class="lk-table__row lk-sort-item " data-name="<?= $f_Name;?> " data-new="<?= $daysSumm <= 30 ? 'true': 'false';?>">
+  <div class="lk-table__cell lk-table__cell--avatar">
+    <picture class="lk-table__cell-picture">
+      <img class="lk-table__cell-picture-img js-lazy" data-src="<?= $f_Photo_avatar ? $f_Photo_avatar : ($f_Gender_id == 1 ? '/images/avatar/man.png' : '/images/avatar/woman.png'); ?>" alt="">
+    </picture>
+  </div>
+  <div class="lk-table__cell lk-table__cell--name">
+    <div class="lk-table__cell-key">ФИО</div>
+    <div class="lk-table__cell-val">
+      <div class="lk-table__cell-val-name"><?= $f_Name;?></div>
+      <a class="lk-table__cell-val-link js-scroll-link" href="<?=$fullLink?>" title="">Подробнее</a>
+    </div>
+  </div>
+  <div class="lk-table__cell lk-table__cell--address">
+    <div class="lk-table__cell-key">Страна</div>
+    <div class="lk-table__cell-val"><?= $f_Country;?></div>
+  </div>
+  <div class="lk-table__cell lk-table__cell--age">
+    <div class="lk-table__cell-key">Возраст</div>
+    <div class="lk-table__cell-val"><?= $f_Date_of_birth_year < 2024 && $f_Date_of_birth_year !== '0000' ? get_age($f_Date_of_birth) : ''; ?> <?= num2word(get_age($f_Date_of_birth), array('год', 'года', 'лет'));?></div>
+  </div>
+  <div class="lk-table__cell lk-table__cell--manage">
+    <div class="lk-table__cell-inner lk-table__cell-inner--btn-more">
+      <a class="lk-table__cell-button button js-scroll-link" href="<?=$fullLink?>" title="">Подробнее</a>
+    </div>
+    <? if($daysSumm <= 5): ?>   
+    <div class="lk-table__cell-inner lk-table__cell-inner--badge-new"></div>
+    <? endif; ?>
+    
+    <? if(!$_GET['ID'] && !$_GET['gender']): ?>
+    <a href="<?= $subLink; ?>?ID=<?= $f_Message_ID; ?>&gender=<?= $f_Gender_id == 1 ? 2 : 1;?>" class="lk-table__cell-inner lk-table__cell-inner--btn-choose">
+      <button class="lk-table__cell-button button button--write">
+        <span class="button__text">Выбрать кандидата</span>
+      </button>
+    </a>
+    <? endif; ?>
+    <? if($_GET['ID'] && $_GET['gender']): ?>
+    <? $IDCandidate2 = $_GET['ID'];?>
+    <?= nc_objects_list(77, 82, "&IDCandidate1=$f_Message_ID&IDCandidate2=$IDCandidate2&nc_ctpl=281" ); ?>
+    
+
+    <? endif; ?>
+  </div>
+</div>
+<? endif;?>
+<? endif;?>
+<?/* Служебная часть */    echo nc_finishing_RecordTemplate(ob_get_clean(), $inside_admin, $classID, $f_RowID, $parent_message, $cc, $cc_env["Class_Name"], $no_cache_marks);}/* Конец служебной части */?>

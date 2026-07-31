@@ -1,0 +1,30 @@
+<?
+$subject = "Написать админу с сайта One Soul";
+$text = "<table>
+    <tr>
+        <td><p>Имя:</p></td>
+        <td><p>$f_name</p></td>
+    </tr>
+    <tr>
+        <td><p>E-mail:</p></td>
+        <td><p>$f_email</p></td>
+    </tr>
+    <tr>
+        <td><p>Текст сообщения:</p></td>
+        <td><p>$f_info</p></td>
+    </tr>
+</table>";
+
+
+// $mailer = new CMIMEMail();
+// $mailer->mailbody( strip_tags($text), $text);
+
+//$var = $nc_core->db->get_var("SELECT `tenant_room` FROM `Message187` WHERE `Message_ID` = 1");
+// $mailer->send('events@shiduh.org', 'info@shiduh.org', 'info@shiduh.org', $subject, $subject);
+
+$nc_core = nc_Core::get_object();
+$nc_core->mail->mailbody( strip_tags($text), $text);
+
+$nc_core->mail->send('events@shiduh.org', 'info@shiduh.org', 'info@shiduh.org', $subject, $subject, $subject);
+
+?>

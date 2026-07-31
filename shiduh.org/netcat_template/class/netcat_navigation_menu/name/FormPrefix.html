@@ -1,0 +1,32 @@
+<?php if ($menu_level == 1): ?><?= $f_AdminCommon; ?><?php endif; ?>
+<?php
+if ($menu_is_custom && $res) {
+    // данные о разделах уже загружены — передадим их в $nc_core->subdivision,
+    // чтобы не делать дополнительных запросов при обращении к $nc_core->subdivision->get_by_id(),
+    // и устанавливаем дополнительные переменные для файловых и т. п. особых полей
+    $fetch_row = $nc_core->subdivision->process_raw_data($res);
+}
+
+// Следующий фрагмент нужен только для шаблонов с иконками-индикаторами наличия подменю:
+$submenu_symbols = '';
+if ($totRows && $make_submenu && $cc_settings['submenu_symbol']) {
+    // Например: "font_awesome;plus minus;alternate" → иконки "plus.svg", "minus.svg" из
+    // "netcat_template/icon/font_awesome/", с классом alternate (видна одна из двух)
+    // (другой возможный класс — rotate, иконка поворачивается в зависимости от положения подменю,
+    // иконка должна быть направлена вниз)
+    list($icon_library, $icons, $icon_type) = explode(';', "$cc_settings[submenu_symbol];;");
+    $icons = explode(' ', $icons);
+    $submenu_symbols = '<span class="menu-item-symbol' . ($icon_type ? " menu-item-symbol-$icon_type" : '') . '">';
+    foreach ($icons as $icon) {
+        $submenu_symbols .= nc_get_icon_from_library($icon_library, $icon);
+    }
+    $submenu_symbols .= '</span>';
+}
+
+?>
+<?php if ($totRows): ?>
+    <ul>
+<?php else: ?>
+    <?php if ($admin_mode): ?>Нет подразделов<?php endif; ?>
+    <!-- EMPTY SUBMENU -->
+<?php endif; ?>

@@ -1,0 +1,7 @@
+<?php
+if($ThemeID && $AnswerID) {
+ $query_where = "Theme = $ThemeID AND Message_ID = $AnswerID";
+} else {
+ $query_where = "Theme = 0";
+}
+?>

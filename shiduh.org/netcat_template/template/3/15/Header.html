@@ -1,0 +1,101 @@
+%Header
+<?
+if(!$current_user['User_ID']) {
+    header('Location: https://'.$_SERVER['HTTP_HOST'].'');
+    exit();
+}
+?>
+
+<section class="lk-body ">
+  <div class="lk-body__wrapper wrapper">
+    <?= $this->partial('aside_profile') ?>
+    <section class="lk-main">
+            <h1 class="lk-main__title">Личный кабинет</h1>
+            <div class="lk-main__wrapper">
+              <? if($current_user['Type_id'] !== 1): ?>
+              <!--<div class="lk-main__candidates">
+                <? if($current_user['User_ID'] == 1 || $current_user['User_ID'] == 119 || $current_user['Type_id'] == 3 || $current_user['Type_id'] == 4): ?> 
+                <div class="lk-head lk-main__candidates-head">
+                  <h2 class="lk-head__title">Список  кандидатов</h2>
+                  <a class="lk-head__right-link" href="/my/candidate/" title="">Посмотреть все</a>
+                </div>
+                <? else: ?> 
+                <div class="lk-head lk-main__candidates-head">
+                  <h2 class="lk-head__title">Список своих кандидатов</h2>
+                  <a class="lk-head__right-link" href="/my/my-candidates/" title="">Посмотреть все</a>
+                </div>
+                <? endif; ?> 
+                <div class="lk-main__candidates-body">
+                  <div class="lk-main__candidates-body-list">
+                    
+                    <?= nc_objects_list( 23, 22, "&nc_ctpl=212" ); ?>
+                    
+                  </div>
+                </div>
+              </div>-->
+              <div class="lk-main__steps">
+                <div class="lk-head lk-main__steps-head">
+                  <h2 class="lk-head__title">Список необходимых шагов для создания Шидуха</h2>
+                </div>
+                <div class="lk-main__steps-body">
+                  <ol class="lk-main__steps-list">
+                    <li class="lk-main__steps-item">
+                      <strong>Зайдите в раздел "Создание шидуха"</strong>
+                      <a class="lk-main__steps-item-link" href="/my/sozdanie-shiduha/" title="">Перейти</a>
+                    </li>
+                    <li class="lk-main__steps-item">
+                      <strong>Необходимо выбрать пару мужчину и женщину</strong>
+              
+                    </li>
+                    <li class="lk-main__steps-item">
+                      <strong>Выбранные пары должны связаться с шадханом</strong>
+                      <a class="lk-main__steps-item-link" href="/my/message/" title="">Перейти</a>
+                    </li>
+                    <li class="lk-main__steps-item">
+                      <strong>Поддерживайте и обновляйте статус шидуха</strong>
+                      <a class="lk-main__steps-item-link" href="/my/istoriya-shiduha/" title="">Перейти</a>
+                    </li>
+                  </ol>
+                </div>
+              </div>
+              <? else: ?>
+              <div class="lk-main__steps">
+                <div class="lk-head lk-main__steps-head">
+                  <h2 class="lk-head__title">Список необходимых шагов</h2>
+                </div>
+                <div class="lk-main__steps-body">
+                  <ol class="lk-main__steps-list">
+                    <li class="lk-main__steps-item">
+                      <strong>Заполнение «своей анкеты»</strong>
+                      <a class="lk-main__steps-item-link" href="/my/modify/" title="">Перейти</a>
+                    </li>
+                    <li class="lk-main__steps-item">
+                      <strong>Заполнение анкеты «о второй половине»</strong>
+                      <a class="lk-main__steps-item-link" href="/my/modify/#profile_preferences" title="">Перейти</a>
+                    </li>
+                    <li class="lk-main__steps-item">
+                      <strong> Выберете от 1-го до 3-х шадханов</strong>
+                      <a class="lk-main__steps-item-link" href="/my/shadhany/" title="">Перейти</a>
+                    </li>
+                    <li class="lk-main__steps-item">
+                      <strong>Приятного и продуктивного нахождения второй половины</strong>
+                    </li>
+                  </ol>
+                </div>
+              </div>
+              <? endif; ?>
+              <?= nc_objects_list( 21, 21, "&nc_ctpl=301" ); ?>
+              
+            </div>
+          </section>
+
+      
+      
+      
+      
+
+
+
+
+
+

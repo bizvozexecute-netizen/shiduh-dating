@@ -1,0 +1,16 @@
+<?/* Служебная часть */for ($f_RowNum = 0; $f_RowNum < $rowCount; $f_RowNum++) {    if($fetch_row[$f_RowNum] instanceof Iterator) {        extract($fetch_row[$f_RowNum]->to_array(), EXTR_PREFIX_ALL, "f");    } else {        extract($fetch_row[$f_RowNum], EXTR_PREFIX_ALL, "f");    }    foreach($iteration_RecordTemplate[$f_RowNum] as $value) {        extract($value);    }    eval($cc_env["convert2txt"]);    ob_start();/* Конец служебной части */?>
+<div class="lk-table__cell lk-table__cell--avatar-small">
+  <div class="lk-table__cell-val">
+    <picture class="lk-table__cell-picture">
+      <img class="lk-table__cell-picture-img js-lazy" data-src="<?= $f_Photo_avatar ? $f_Photo_avatar : ($f_Gender_id == 1 ? '/images/avatar/man.png' : '/images/avatar/woman.png'); ?>" alt="">
+    </picture>
+  </div>
+</div>
+<div class="lk-table__cell lk-table__cell--name">
+  <div class="lk-table__cell-key">ФИО</div>
+  <div class="lk-table__cell-val">
+    <div class="lk-table__cell-val-name"><?= $f_Name; ?></div>
+    <a class="lk-table__cell-val-link js-scroll-link" href="<?=$fullLink?>" title="">Подробнее</a>
+  </div>
+</div>
+<?/* Служебная часть */    echo nc_finishing_RecordTemplate(ob_get_clean(), $inside_admin, $classID, $f_RowID, $parent_message, $cc, $cc_env["Class_Name"], $no_cache_marks);}/* Конец служебной части */?>

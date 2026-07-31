@@ -1,0 +1,49 @@
+<?
+// получаем объект nc_core
+$nc_core = nc_Core::get_object();
+if($f_Checked) {
+    //отправка сообщения шадханам о том что их кандидат в избранном
+    $candidateDate = date("Y-m-d H:i:s");    
+    $nc_core->db->query("SELECT * FROM Message204 WHERE Message_ID = $f_Candidate1");
+    $arr = $nc_core->db->last_result;
+    $candidateUserID = 1;
+    $shadhanID = $arr[0]->User_ID;
+    
+    $userLink = 'https://shiduh.org/my/shadhany/shadhan_'.$AUTH_USER_ID.'.html';
+      
+    $candidateTheme = 'Вам предложен кандидат';   
+    $candidateMessage = 'Уважаемый кандидат! <br>
+<a href="'.$userLink.'">Шадхан</a> предлагает Вам рассмотреть анкету <a href="https://shiduh.org/my/candidate/candidate_'.$f_Candidate2.'.html">кандидата</a> в качестве идеи шидуха! Ознакомьтесь с анкетой и свяжитесь с Вашим шадханом <br>
+С уважением,<br>
+Команда One Soul';
+    $nc_core->db->query("INSERT INTO `Message6` 
+              (`Checked`, `ToUser`, `Subject`, `Message`, `User_ID`, `Subdivision_ID`, `Sub_Class_ID`, `Created`, `Status`) 
+              VALUES 
+              ('1', '$shadhanID', '$candidateTheme', '$candidateMessage', '$candidateUserID', '28', '29', '$candidateDate', '0') "); 
+    sendEmail($shadhanID, $candidateTheme, $candidateMessage);         
+              
+    $nc_core->db->query("SELECT * FROM Message204 WHERE Message_ID = $f_Candidate2");
+    $arr = $nc_core->db->last_result;
+    $shadhanID = $arr[0]->User_ID;
+      
+    $candidateTheme = 'Вам предложен кандидат';   
+    $candidateMessage = 'Уважаемый кандидат! <br>
+<a href="'.$userLink.'">Шадхан</a> предлагает Вам рассмотреть анкету <a href="https://shiduh.org/my/candidate/candidate_'.$f_Candidate1.'.html">кандидата</a> в качестве идеи шидуха! Ознакомьтесь с анкетой и свяжитесь с Вашим шадханом <br>
+С уважением,<br>
+Команда One Soul';
+    $nc_core->db->query("INSERT INTO `Message6` 
+              (`Checked`, `ToUser`, `Subject`, `Message`, `User_ID`, `Subdivision_ID`, `Sub_Class_ID`, `Created`, `Status`) 
+              VALUES 
+              ('1', '$shadhanID', '$candidateTheme', '$candidateMessage', '$candidateUserID', '28', '29', '$candidateDate', '0') ");               
+    sendEmail($shadhanID, $candidateTheme, $candidateMessage);    
+    
+}
+if($inside_admin) {
+    ob_end_clean();
+    header('Location: '.$goBackLink.'&inside_admin=1');
+    exit;
+} else { 
+	echo ($IsChecked ? NETCAT_MODERATION_MSG_OBJADD : NETCAT_MODERATION_MSG_OBJADDMOD);
+	echo "<br /><br />".$goBack;
+}
+?>

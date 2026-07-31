@@ -1,0 +1,7 @@
+<!-- FormPrefix --><?= $f_AdminCommon; ?><!-- /FormPrefix -->
+
+<!-- RecordTemplate --><div class="object-item <?= $cc_settings['imageSize']; ?>  <?= $cc_settings['imageHeight'] ? "setHeight" : ""; ?>"><?= $f_AdminButtons; ?>
+    <?= $f_Image ? $f_Image->as_img(array('alt'=>strip_tags($f_Title),'title'=>strip_tags($f_Title),'height'=>$cc_settings['imageHeight'])) : ''; ?>
+</div><!-- /RecordTemplate -->
+
+<!-- FormSuffix --><!-- /FormSuffix -->

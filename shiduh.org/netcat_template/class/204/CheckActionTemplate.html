@@ -1,0 +1,75 @@
+<?
+if($f_Checked) {
+  //отправка сообщения шадханам об удалении кандидата
+  $reasons = '';
+  $nc_core->db->query("SELECT * FROM Message201 WHERE id_candidate = '$message' ORDER BY Message_ID DESC LIMIT 1");
+  $arr = $nc_core->db->last_result;
+  if ($arr[0]->Profile_delete_reasons) {
+     $reasons = $arr[0]->Profile_delete_reasons;
+  }
+
+  $candidateDate = date("Y-m-d H:i:s");
+  $candidateTheme = 'Мазаль Тов, важно! Кандидат покинул(-а) сайт One Soul';
+  $candidateMessage = '';
+  if($reasons === 'женился / вышел замуж') {
+      $candidateMessage = 'Добрый день! <br>
+        <a href="/my/candidate/candidate_'.$message.'.html">Кандидат '.$message.'</a> удалился по причине '.$reasons.' с платформы One Soul.<br>
+
+        Мазаль Тов! Так держать! Команда One Soul радуется вместе с вами. <br>
+
+        Если вы считаете, что это Ваш шидух, пожалуйста, свяжитесь с нами ответив на это письмо.';
+  } else {
+      $candidateMessage = 'Добрый день! <br>
+
+<a href="/my/candidate/candidate_'.$message.'.html">Кандидат '.$message.'</a> удалился по причине '.$reasons.' с платформы One Soul.<br>
+
+Мы хотим, чтобы наш сервис был максимально качественным и стараемся ежедневно делать его лучше. Поэтому, если у вас остались контакты кандидата '.$message.' свяжитесь с ним для обратной связи по работе платформы и уточнений истинной причины удаления аккаунта. <br>
+
+Браха вэАцлаха!';
+
+  }
+  
+
+  $nc_core->db->query("SELECT * FROM Message204 WHERE Message_ID = $message");
+  $arr = $nc_core->db->last_result;
+
+  $nc_core->db->query("INSERT INTO `Message6` 
+                  (`Checked`, `ToUser`, `Subject`, `Message`, `User_ID`, `Subdivision_ID`, `Sub_Class_ID`, `Created`) 
+                  VALUES 
+                  ('1', '$f_User_ID', '$candidateTheme', '$candidateMessage', '1', '28', '29', '$candidateDate') "); 
+
+  if ($arr[0]->Shadhan_1) {
+     $shadhanID = $arr[0]->Shadhan_1;
+     $nc_core->db->query("INSERT INTO `Message6` 
+                  (`Checked`, `ToUser`, `Subject`, `Message`, `User_ID`, `Subdivision_ID`, `Sub_Class_ID`, `Created`) 
+                  VALUES 
+                  ('1', '$shadhanID', '$candidateTheme', '$candidateMessage', '1', '28', '29', '$candidateDate') "); 
+  }
+  if ($arr[0]->Shadhan_2) {
+     $shadhanID = $arr[0]->Shadhan_2;
+     $nc_core->db->query("INSERT INTO `Message6` 
+                  (`Checked`, `ToUser`, `Subject`, `Message`, `User_ID`, `Subdivision_ID`, `Sub_Class_ID`, `Created`) 
+                  VALUES 
+                  ('1', '$shadhanID', '$candidateTheme', '$candidateMessage', '1', '28', '29', '$userDate') "); 
+  }
+  if ($arr[0]->Shadhan_3) {
+     $shadhanID = $arr[0]->Shadhan_3;
+     $nc_core->db->query("INSERT INTO `Message6` 
+                  (`Checked`, `ToUser`, `Subject`, `Message`, `User_ID`, `Subdivision_ID`, `Sub_Class_ID`, `Created`) 
+                  VALUES 
+                  ('1', '$shadhanID', '$candidateTheme', '$candidateMessage', '1', '28', '29', '$userDate') "); 
+  }
+}
+
+if($inside_admin) {
+    ob_end_clean();
+    header('Location: '.$goBackLink.'&inside_admin=1');
+    exit;
+} else { 
+    echo '<div class="lk-aside__container">';
+	echo ($checked-1 ? ( count($messages) == 1 ? NETCAT_MODERATION_OBJISON : NETCAT_MODERATION_OBJSAREON) :
+ 			 (count($messages) == 1 ? NETCAT_MODERATION_OBJISOFF : NETCAT_MODERATION_OBJSAREOFF) );
+	echo "<br /><br />".$goBack;
+    echo '</div>';
+}
+?>

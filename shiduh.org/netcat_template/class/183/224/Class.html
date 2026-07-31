@@ -1,0 +1,19 @@
+<!-- FormPrefix --><!-- /FormPrefix -->
+
+<!-- RecordTemplate --><?
+$arrayMonth = array("january", "february", "march", "april", "may", "june", "july", "august", "september", "october", "november", "december");
+?>
+
+<div class="news-item appearance-container last-news__slide swiper-slide">
+  <div class="news-item__wrapper appearance">
+    <a class="news-item__head" href="<?=$fullLink?>" title="">
+      <img class="news-item__img js-lazy" data-src="<?= $f_newsImage->resize(370, 370); ?>" alt="">
+    </a>
+    <div class="news-item__info">
+      <span class="news-item__date"><?= $f_newsDate_day; ?> <?= $arrayMonth[(int)$f_newsDate_month - 1] ?> <?= $f_newsDate_year; ?> y.</span> / <a style="color: inherit;" href="/en/news/?<?= $f_autor_ID ? 'autor='.$f_autor_ID : 'user='.$f_User_ID;?>"   class="news-item__autor"><?=listQuery("SELECT * FROM Message200 WHERE Message_ID=$f_autor_ID", '$data[name]') ?: $nc_core->user->get_by_id($f_User_ID, "Name" );?></a>
+    </div>
+    <a class="news-item__title" href="<?=$fullLink?>" title=""><?= $f_newsTitle; ?></a>
+  </div>
+</div><!-- /RecordTemplate -->
+
+<!-- FormSuffix --><!-- /FormSuffix -->

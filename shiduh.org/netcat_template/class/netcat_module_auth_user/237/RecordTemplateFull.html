@@ -1,0 +1,83 @@
+<section class="lk-questionnaire lk-questionnaire--shadhan">
+  <div class="lk-questionnaire__wrapper">
+    <div class="lk-head lk-questionnaire__head">
+      <div class="lk-questionnaire__head-row">
+        <h1 class="lk-head__title lk-questionnaire__head-title"><?= $f_Name; ?></h1>
+        <a class="lk-questionnaire__head-exit" href="<?= $_SERVER['HTTP_REFERER'] ? $_SERVER['HTTP_REFERER'] : '/en/my/shadhany/'; ?>" title="">Back</a>
+
+      </div>
+      
+      <div class="lk-questionnaire__head-redistration-date">Дата регистрации: <?= $f_Created_day; ?>.<?= $f_Created_month; ?>.<?= $f_Created_year; ?></div>
+      <div class="lk-questionnaire__head-info-list">
+        <div class="lk-questionnaire__head-subtitle">Shadkhan, <?= $f_Date_of_birth_year < 2024 && $f_Date_of_birth_year !== '0000' ? get_age($f_Date_of_birth)   : ''; ?> <?= num2word(get_age($f_Date_of_birth), array('year', 'year', 'year'));?></div>
+        <? if($f_Success_ravin):?>
+        <div class="lk-questionnaire__head-subtitle lk-questionnaire__head-subtitle--check">Подтвержден раввином</div>
+        <? else: ?>
+        <div class="lk-questionnaire__head-subtitle lk-questionnaire__head-subtitle--uncheck">Не подтвержден раввином</div>
+        <? endif; ?>
+      </div>
+      
+    </div>
+    <div class="lk-questionnaire__body">
+      <div class="lk-questionnaire__body-main">
+        <div class="lk-questionnaire__body-main-title title title--lk">
+            <span>Rating: <?= $f_Account >= 100 ? 100 : $f_Account; ?></span>
+            <span>Number of candidates: <?= nc_objects_list( 23, 22, "&nc_ctpl=222&Shadhan=$f_UserID" ); ?></span>
+        </div>
+        <div class="lk-questionnaire__body-table">
+          <div class="lk-questionnaire__body-table-row">
+            <div class="lk-questionnaire__body-table-cell lk-questionnaire__body-table-cell--key"><b>Full name:</b></div>
+            <div class="lk-questionnaire__body-table-cell lk-questionnaire__body-table-cell--value"><?= $f_Name; ?></div>
+          </div>
+          <div class="lk-questionnaire__body-table-row">
+            <div class="lk-questionnaire__body-table-cell lk-questionnaire__body-table-cell--key"><b>Gender:</b></div>
+            <div class="lk-questionnaire__body-table-cell lk-questionnaire__body-table-cell--value"><?= $f_Gender_value; ?></div>
+          </div>
+          <div class="lk-questionnaire__body-table-row">
+            <div class="lk-questionnaire__body-table-cell lk-questionnaire__body-table-cell--key"><b>Day of birth:</b></div>
+            <div class="lk-questionnaire__body-table-cell lk-questionnaire__body-table-cell--value"><?= $f_Date_of_birth_day; ?>.<?= $f_Date_of_birth_month; ?>.<?= $f_Date_of_birth_year; ?> (<?= $f_Date_of_birth_year < 2024 && $f_Date_of_birth_year !== '0000' ? get_age($f_Date_of_birth) : ''; ?> <?= num2word(get_age($f_Date_of_birth), array('year', 'year', 'year'));?>)</div>
+          </div>
+          <div class="lk-questionnaire__body-table-row">
+            <div class="lk-questionnaire__body-table-cell lk-questionnaire__body-table-cell--key"><b>Place of birth:</b></div>
+            <div class="lk-questionnaire__body-table-cell lk-questionnaire__body-table-cell--value"><?= $f_Place_of_birth; ?></div>
+          </div>
+          <div class="lk-questionnaire__body-table-row">
+            <div class="lk-questionnaire__body-table-cell lk-questionnaire__body-table-cell--key"><b>Country of residence:</b></div>
+            <div class="lk-questionnaire__body-table-cell lk-questionnaire__body-table-cell--value"><?= $f_Country_value; ?></div>
+          </div>
+          <div class="lk-questionnaire__body-table-row">
+            <div class="lk-questionnaire__body-table-cell lk-questionnaire__body-table-cell--key"><b>Phone:</b></div>
+            <div class="lk-questionnaire__body-table-cell lk-questionnaire__body-table-cell--value"><?= $f_Phone; ?></div>
+          </div>
+          <div class="lk-questionnaire__body-table-row">
+            <div class="lk-questionnaire__body-table-cell lk-questionnaire__body-table-cell--key"><b>E-mail:</b></div>
+            <div class="lk-questionnaire__body-table-cell lk-questionnaire__body-table-cell--value"><?= $f_Email; ?></div>
+          </div>
+        </div>
+        <div class="lk-questionnaire__body-buttons">
+          <? if ($noIam) {
+                if ($pm_allow) { ?>
+          <a href='/en<?= nc_auth_messages_url($f_RowID) ?>' class="lk-questionnaire__body-write button button--write">
+            <svg class="button__icon">
+              <use xlink:href="/images/sprite.svg#letter"></use>
+            </svg>
+            <span class="button__text">Write</span>
+          </a>
+          <?
+            }
+          }?>  
+          <?= nc_objects_list( 23, 22, "&nc_ctpl=247&Shadhan=$f_UserID" ); ?>
+          
+        </div>
+        
+      </div>
+      <picture class="lk-questionnaire__body-picture">
+        <img class="lk-questionnaire__body-img js-lazy" data-src="<?= $f_Photo_avatar; ?>" alt="">
+      </picture>
+    </div>
+    <div class="lk-questionnaire__goback">
+ 
+      <a class="lk-questionnaire__goback-link" href="<?= $_SERVER['HTTP_REFERER'] ? $_SERVER['HTTP_REFERER'] : '/en/my/shadhany/'; ?>" title="">Вернуться назад</a>
+    </div>
+  </div>
+</section>

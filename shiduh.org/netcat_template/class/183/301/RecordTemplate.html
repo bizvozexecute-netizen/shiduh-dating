@@ -1,0 +1,22 @@
+<?/* Служебная часть */for ($f_RowNum = 0; $f_RowNum < $rowCount; $f_RowNum++) {    if($fetch_row[$f_RowNum] instanceof Iterator) {        extract($fetch_row[$f_RowNum]->to_array(), EXTR_PREFIX_ALL, "f");    } else {        extract($fetch_row[$f_RowNum], EXTR_PREFIX_ALL, "f");    }    foreach($iteration_RecordTemplate[$f_RowNum] as $value) {        extract($value);    }    eval($cc_env["convert2txt"]);    ob_start();/* Конец служебной части */?>
+<?
+$arrayMonth = array("января", "февраля", "марта", "апреля", "мая", "июня", "июля", "августа", "сентября", "октября", "ноября", "декабря");
+?>
+
+
+<div class="article-item lk-blog__item"  >
+                    <a href="<?=$fullLink?>" class="article-item__head">
+                      <img class="article-item__img js-lazy" data-src="<?= $f_mainNews ? $f_newsImage->resize(773, 773) : $f_newsImage->resize(370, 370) ?>" alt="">
+                    </a>
+                    <div class="article-item__body">
+                      <div class="avatar article-item__avatar">
+                        
+                        <div class="avatar__body">
+                          <div class="avatar__date"><?= $f_newsDate_day; ?> <?= $arrayMonth[(int)$f_newsDate_month - 1] ?> <?= $f_newsDate_year; ?> г.</div>
+                          <a  href="/my/blog/?<?= $f_autor_ID ? 'autor='.$f_autor_ID : 'user='.$f_User_ID;?>"  class="avatar__autor"  title=""> <?=listQuery("SELECT * FROM Message200 WHERE Message_ID=$f_autor_ID", '$data[name]') ?: $nc_core->user->get_by_id($f_User_ID, "Name" );?> </a>
+                        </div>
+                      </div>
+                      <a href="<?=$fullLink?>" class="article-item__title" title=""><?= $f_newsTitle; ?></a>
+                    </div>
+                  </div>
+<?/* Служебная часть */    echo nc_finishing_RecordTemplate(ob_get_clean(), $inside_admin, $classID, $f_RowID, $parent_message, $cc, $cc_env["Class_Name"], $no_cache_marks);}/* Конец служебной части */?>

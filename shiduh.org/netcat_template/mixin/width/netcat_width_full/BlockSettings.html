@@ -1,0 +1,42 @@
+<div class="nc-mixins-mixin-settings-netcat-width-full">
+    <div>
+        <label>
+            <input type="checkbox" name="mixin.settings.background_only" class="nc-mixins-mixin-settings-netcat-width-full-background-checkbox">
+            только фон на полную ширину, контент выводится с шириной как у остальных блоков в контейнере
+        </label>
+        <div class="nc-mixins-mixin-settings-netcat-width-full-background-hint nc-hint" style="display: none; margin: 5px 20px">
+            У родительского контейнера должна быть выбрана компоновка списка
+            «ограничение ширины и выравнивание».
+        </div>
+    </div>
+</div>
+<script>
+(function() {
+    var prefix = '.nc-mixins-mixin-settings-netcat-width-full';
+
+    var mixin_settings_container = $nc(prefix);
+
+    function init(event, data) {
+        var updated_container = data.row || $nc(this);
+
+        // переключение выравнивания
+        updated_container.find(prefix + '-background-checkbox')
+            .off(prefix)
+            .on('change' + prefix, function() {
+                var hint = updated_container.find(prefix + '-background-hint');
+                if ($nc(this).is(':checked')) {
+                    hint.slideDown();
+                } else {
+                    hint.slideUp();
+                }
+            })
+            .trigger('change');
+    }
+
+    // Инициализация событий
+    mixin_settings_container.closest('.nc-mixins-mixin-settings')
+        .off(nc_mixin_settings_editor.mixin_settings_set_values_event)
+        .on(nc_mixin_settings_editor.mixin_settings_set_values_event, init);
+
+})();
+</script>

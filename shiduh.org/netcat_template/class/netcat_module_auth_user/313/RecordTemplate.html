@@ -1,0 +1,50 @@
+<?/* Служебная часть */for ($f_RowNum = 0; $f_RowNum < $rowCount; $f_RowNum++) {    if($fetch_row[$f_RowNum] instanceof Iterator) {        extract($fetch_row[$f_RowNum]->to_array(), EXTR_PREFIX_ALL, "f");    } else {        extract($fetch_row[$f_RowNum], EXTR_PREFIX_ALL, "f");    }    foreach($iteration_RecordTemplate[$f_RowNum] as $value) {        extract($value);    }    eval($cc_env["convert2txt"]);    ob_start();/* Конец служебной части */?>
+<div class="lk-shadhans__item">
+  <div class="lk-shadhans__item-avatar">
+    <picture class="lk-shadhans__item-avatar-picture">
+      <img class="lk-shadhans__item-avatar-img js-lazy" data-src="<?= $f_Photo_avatar ? $f_Photo_avatar : ($f_Gender_id == 1 ? '/images/avatar/man.png' : '/images/avatar/woman.png'); ?>" alt="">
+    </picture>
+  </div>
+  <div class="lk-shadhans__item-info">
+    <div class="lk-shadhans__item-key">ФИО </div>
+    <div class="lk-shadhans__item-info-name">
+      <?= $f_Name;?>
+      <svg class="lk-search-candidate-result__table-cell-value-check-item tooltip <? if($f_Success_ravin):?>lk-search-candidate-result__table-cell-value-check-item--checked<? endif; ?>" data-tippy-content="<? if($f_Success_ravin):?>Подтвержден<? else: ?>Не подтвержден<? endif; ?>  раввином">
+        <use xlink:href="/images/sprite.svg#check"></use>
+      </svg>
+    </div>
+    <a class="lk-shadhans__item-info-link" href="<?=$fullLink?>" title="">Подробнее</a>
+  </div>
+  <div class="lk-shadhans__item-address">
+    <div class="lk-shadhans__item-key">Страна</div>
+    <div class="lk-shadhans__item-address-value"> <?= $f_Country;?></div>
+  </div>
+  <div class="lk-shadhans__item-age">
+    <div class="lk-shadhans__item-key">Возраст</div>
+    <div class="lk-shadhans__item-age-value"><?= $f_Date_of_birth_year < 2024 && $f_Date_of_birth_year !== '0000' ? get_age($f_Date_of_birth) : ''; ?> <?= num2word(get_age($f_Date_of_birth), array('год', 'года', 'лет'));?></div>
+  </div>
+  <div class="lk-shadhans__item-rating">
+    <div class="lk-shadhans__item-key">Рейтинг</div>
+    <div class="lk-shadhans__item-rating-value"><?= $f_Account >= 100 ? 100 : $f_Account; ?></div>
+  </div>
+  <div class="lk-shadhans__item-manage">
+    <a class="lk-shadhans__item-manage-more button" href="<?=$fullLink?>" title="">Подробнее</a>
+    <? if($f_User_ID !== $current_user['User_ID']): ?>
+    <!--<a href='<?= nc_auth_messages_url($f_RowID) ?>' class="lk-shadhans__item-manage-write button button--write">
+      <svg class="button__icon">
+        <use xlink:href="/images/sprite.svg#letter"></use>
+      </svg>
+      <span class="button__text">Написать</span>
+    </a>-->
+    <? endif;?>
+    <? if($current_user['User_ID'] == '119' || $current_user['User_ID'] == '1'): ?>
+        <a href="<?=$checkedLink?>" class="form__toggle-button button <?=$f_Checked==1?'button--ghost':'button--white '?>" ><?=$f_Checked==1?"выключить":"включить"?></a>
+    <? endif; ?> 
+  </div>
+  
+  
+
+    
+
+</div>
+<?/* Служебная часть */    echo nc_finishing_RecordTemplate(ob_get_clean(), $inside_admin, $classID, $f_RowID, $parent_message, $cc, $cc_env["Class_Name"], $no_cache_marks);}/* Конец служебной части */?>
