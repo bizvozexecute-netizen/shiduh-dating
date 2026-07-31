@@ -79,11 +79,19 @@ INSERT INTO _chk (class,name,got,want) SELECT 'ПД','Файловые поля 
        OR (CHAR_LENGTH(IFNULL(Another_document_Jewishness,'')) - CHAR_LENGTH(REPLACE(IFNULL(Another_document_Jewishness,''),':',''))) > 3;
 
 -- --- 2. Вычищенные таблицы --------------------------------------------------
-INSERT INTO _chk (class,name,got,want) SELECT 'Очистка','Logging пуст',            COUNT(*),0 FROM Logging;
-INSERT INTO _chk (class,name,got,want) SELECT 'Очистка','Session пуст',            COUNT(*),0 FROM Session;
+-- `Session` и `Logging` здесь НЕ проверяются на пустоту: они заново
+-- наполняются от обычной работы с сайтом (вход, правка объектов). Требовать
+-- их пустоты означало бы, что проверка проходит только сразу после импорта
+-- и падает после первого же логина. Данные из прод-дампа из них вычищены
+-- шагом 02, а накопившийся локальный мусор снимает 04_export.sh перед
+-- выгрузкой.
 INSERT INTO _chk (class,name,got,want) SELECT 'Очистка','Trash_Data пуст',         COUNT(*),0 FROM Trash_Data;
 INSERT INTO _chk (class,name,got,want) SELECT 'Очистка','Security_FilterLog пуст', COUNT(*),0 FROM Security_FilterLog;
 INSERT INTO _chk (class,name,got,want) SELECT 'Очистка','Search_Document пуст',    COUNT(*),0 FROM Search_Document;
+-- Logging из дампа содержал имена пользователей в поле Info. Проверяем, что
+-- прод-записи ушли: локальные пишутся только текущей датой.
+INSERT INTO _chk (class,name,got,want) SELECT 'Очистка','Logging: нет записей старше сегодня',
+    COUNT(*),0 FROM Logging WHERE Date < CURDATE();
 
 -- --- 3. Секреты и изоляция --------------------------------------------------
 INSERT INTO _chk (class,name,got,want) SELECT 'Изоляция','SMTP-пароль вычищен',

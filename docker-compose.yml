@@ -53,6 +53,9 @@ services:
       - ./docker/mysql/my.cnf:/etc/mysql/conf.d/netcat.cnf:ro
       - ./tools:/tools:ro
       - ./shiduh_org_2026-07-17.sql:/dump/original.sql:ro
+      # Куда 04_export.sh кладёт обезличенный дамп. Отдельный каталог,
+      # чтобы сами скрипты оставались смонтированными только на чтение.
+      - ./dump-out:/out
     healthcheck:
       test: ["CMD", "mysqladmin", "ping", "-h", "127.0.0.1", "-uroot", "-p${MYSQL_ROOT_PASSWORD}"]
       interval: 5s

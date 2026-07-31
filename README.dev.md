@@ -143,7 +143,9 @@ docker compose exec db mysql -uroot -proot_local_dev shiduh_org
 # перепроверить обезличивание
 docker compose exec db sh -c 'mysql -uroot -p$MYSQL_ROOT_PASSWORD -t shiduh_org < /tools/03_verify.sql'
 
-# выгрузить обезличенный дамп для коллеги (tools/dump.anonymized.sql)
+# выгрузить обезличенный дамп для коллеги (dump-out/dump.anonymized.sql, ~30 МБ)
+# скрипт сначала снимает локальный мусор (сессии, аудит), затем заново
+# прогоняет 03_verify.sql и ОТКАЗЫВАЕТСЯ выгружать, если проверка не прошла
 docker compose exec db sh /tools/04_export.sh
 
 # начать с чистого листа
