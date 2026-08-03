@@ -1,0 +1,37 @@
+# Тестовый стенд: TLS (Let's Encrypt автоматически) + базовая авторизация.
+#
+# Стенд закрыт паролем не «на всякий случай», а по делу: даже на
+# обезличенных данных это копия боевого сервиса, и в поиске ей делать нечего.
+
+{$STAGE_DOMAIN} {
+	encode gzip
+
+	# Забор от посторонних и от поисковых роботов
+	basic_auth {
+		{$STAGE_USER} {$STAGE_PASS_HASH}
+	}
+
+	# Стенд не должен попадать в индекс ни при каких обстоятельствах
+	header {
+		X-Robots-Tag "noindex, nofollow, noarchive"
+		X-Content-Type-Options "nosniff"
+		X-Frame-Options "SAMEORIGIN"
+		Referrer-Policy "same-origin"
+		-Server
+	}
+
+	# NetCat определяет сайт по HTTP_HOST, поэтому заголовки хоста
+	# пробрасываем как есть.
+	reverse_proxy web:80 {
+		header_up Host {host}
+		header_up X-Real-IP {remote_host}
+		header_up X-Forwarded-Proto {scheme}
+	}
+
+	log {
+		output file /data/access.log {
+			roll_size 10MiB
+			roll_keep 5
+		}
+	}
+}

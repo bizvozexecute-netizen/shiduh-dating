@@ -1,0 +1,109 @@
+# Тестовый стенд на отдельном VPS.
+#
+# Отличия от локального docker-compose.yml:
+#   * впереди Caddy — TLS и базовая авторизация;
+#   * наружу торчит ТОЛЬКО сайт, всё остальное слушает 127.0.0.1
+#     и открывается через SSH-туннель;
+#   * почта по-прежнему запирается в mailpit — стенд не должен
+#     написать ни одному живому пользователю;
+#   * дамп не монтируется: на стенд заливается только обезличенный.
+#
+# Запуск:  docker compose -f docker-compose.stage.yml up -d
+# Ранбук:  deploy/README.stage.md
+
+name: shiduh-stage
+
+services:
+
+  # TLS и «забор» от посторонних. Без TLS стенд нерабочий: guard'ы
+  # в шаблонах редиректят на захардкоженный https:// (находка №16а
+  # в AUDIT.md), и по http неавторизованный получает обрыв соединения.
+  proxy:
+    image: caddy:2-alpine
+    ports:
+      - "80:80"
+      - "443:443"
+    environment:
+      STAGE_DOMAIN: ${STAGE_DOMAIN:?не задан STAGE_DOMAIN}
+      STAGE_USER: ${STAGE_USER:-team}
+      STAGE_PASS_HASH: ${STAGE_PASS_HASH:?не задан STAGE_PASS_HASH - см. deploy/README.stage.md}
+    volumes:
+      - ./docker/caddy/Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy-data:/data
+      - caddy-config:/config
+    depends_on: [web]
+    restart: unless-stopped
+
+  web:
+    build:
+      context: ./docker/php
+    expose: ["80"]
+    environment:
+      NC_MYSQL_HOST: db
+      NC_MYSQL_PORT: 3306
+      NC_MYSQL_DB_NAME: ${NC_MYSQL_DB_NAME:-shiduh_org}
+      NC_MYSQL_USER: ${NC_MYSQL_USER:-shiduh_org}
+      NC_MYSQL_PASSWORD: ${NC_MYSQL_PASSWORD:?не задан NC_MYSQL_PASSWORD}
+      # Домен стенда. Должен совпадать с Catalogue.Domain в базе,
+      # иначе NetCat не опознает сайт — см. tools/05_set_domain.sh
+      NC_HTTP_HOST: ${STAGE_DOMAIN}
+    volumes:
+      - ./shiduh.org:/var/www/html
+      - ./docker/php/php.ini:/usr/local/etc/php/conf.d/zz-netcat.ini:ro
+      - ./tools:/tools:ro
+      - ./dump-out:/out
+    depends_on:
+      db: {condition: service_healthy}
+    restart: unless-stopped
+
+  db:
+    image: mysql:5.7
+    command: --default-authentication-plugin=mysql_native_password
+    ports:
+      # Только на локальный интерфейс: снаружи не достучаться,
+      # подключение через SSH-туннель.
+      - "127.0.0.1:13306:3306"
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:?не задан MYSQL_ROOT_PASSWORD}
+      MYSQL_DATABASE: ${NC_MYSQL_DB_NAME:-shiduh_org}
+      MYSQL_USER: ${NC_MYSQL_USER:-shiduh_org}
+      MYSQL_PASSWORD: ${NC_MYSQL_PASSWORD:?не задан NC_MYSQL_PASSWORD}
+    volumes:
+      - db-data:/var/lib/mysql
+      - ./docker/mysql/my.cnf:/etc/mysql/conf.d/netcat.cnf:ro
+      - ./tools:/tools:ro
+      - ./dump-out:/out
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "127.0.0.1", "-uroot", "-p${MYSQL_ROOT_PASSWORD}"]
+      interval: 5s
+      timeout: 5s
+      retries: 30
+      start_period: 40s
+    restart: unless-stopped
+
+  mail:
+    image: axllent/mailpit:latest
+    ports:
+      - "127.0.0.1:8025:8025"
+    environment:
+      MP_SMTP_AUTH_ACCEPT_ANY: 1
+      MP_SMTP_AUTH_ALLOW_INSECURE: 1
+      MP_MAX_MESSAGES: 5000
+    volumes:
+      - mail-data:/data
+    restart: unless-stopped
+
+  adminer:
+    image: adminer:latest
+    ports:
+      - "127.0.0.1:8081:8080"
+    environment:
+      ADMINER_DEFAULT_SERVER: db
+    depends_on: [db]
+    restart: unless-stopped
+
+volumes:
+  db-data:
+  mail-data:
+  caddy-data:
+  caddy-config:
