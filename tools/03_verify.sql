@@ -86,8 +86,11 @@ INSERT INTO _chk (class,name,got,want) SELECT 'ПД','Файловые поля 
 -- шагом 02, а накопившийся локальный мусор снимает 04_export.sh перед
 -- выгрузкой.
 INSERT INTO _chk (class,name,got,want) SELECT 'Очистка','Trash_Data пуст',         COUNT(*),0 FROM Trash_Data;
-INSERT INTO _chk (class,name,got,want) SELECT 'Очистка','Security_FilterLog пуст', COUNT(*),0 FROM Security_FilterLog;
 INSERT INTO _chk (class,name,got,want) SELECT 'Очистка','Search_Document пуст',    COUNT(*),0 FROM Search_Document;
+-- Security_FilterLog на пустоту НЕ проверяем: WAF наполняет его от обычной
+-- работы с сайтом (и от тестов безопасности). Прод-записи вычищены шагом 02,
+-- накопившийся локальный мусор снимает 04_export.sh перед выгрузкой —
+-- как и Session с Logging.
 -- Logging из дампа содержал имена пользователей в поле Info. Проверяем, что
 -- прод-записи ушли: локальные пишутся только текущей датой.
 INSERT INTO _chk (class,name,got,want) SELECT 'Очистка','Logging: нет записей старше сегодня',

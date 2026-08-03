@@ -1,3 +1,28 @@
+<?php
+/*
+ * Английское зеркало /en/my/favourites/. Проверка доступа идентична
+ * русской копии (class/204/272), иначе фикс обходится через /en/.
+ * Подробности — там же и в AUDIT.md, находки №2 и №16а.
+ */
+$uid = (int)$current_user['User_ID'];
+$mid = (int)$f_Message_ID;
+$nc_allowed = ($f_User_ID  === $current_user['User_ID']
+            || $f_Shadhan_1 === $current_user['User_ID']
+            || $f_Shadhan_2 === $current_user['User_ID']
+            || $f_Shadhan_3 === $current_user['User_ID']);
+if(!$nc_allowed){
+    // Message255: доступ выдан получателю ID_User, НЕ User_ID (см. RU-копию 272).
+    $nc_allowed = (int)$nc_core->db->get_var(
+        "SELECT (
+            EXISTS(SELECT 1 FROM Message255 WHERE Candidate=$mid AND ID_User=$uid)
+            OR EXISTS(SELECT 1 FROM Message270 WHERE Candidate=$mid AND User_ID=$uid)
+        )") > 0;
+}
+if(!$nc_allowed){
+    header('Location: /en/my/favourites/');
+    exit();
+}
+?>
 <section class="lk-questionnaire lk-questionnaire--candidate">
   <div class="lk-questionnaire__wrapper">
     <div class="lk-head lk-questionnaire__head">
