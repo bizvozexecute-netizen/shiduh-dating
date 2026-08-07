@@ -62,13 +62,13 @@
 
 ### Э0.1. Расширение схемы (обратимые миграции)
 
-- ⬜ **Э0.1-a.** Новые поля анкеты `Message204` через `nc_component::add_field()` (механизм проверен): `kashrut_level`, `shabbat_level`, `family_values` (JSON), `ai_summary` (TEXT), `ai_summary_meta` (JSON), `psychological_profile` (JSON), `profile_embedding` (BLOB/JSON), `embedding_meta` (JSON), **поле «о себе»** (свободный текст — его нет, а без него Э3.2 не считается)
-- ⬜ **Э0.1-b.** Переиспользовать существующее, НЕ дублировать: `Are_you_ready_to_move` (= relocation_ready), `Country_of_relocation` (= relocation_cities). См. маппинг в AUDIT.md §9
-- ⬜ **Э0.1-g.** *(протокол встречи)* Расширенный состав ценностей в `family_values` / `psychological_profile`: к языкам любви и бюджет/воспитание/родители добавить измерения — предложить список на утверждение (роли в семье, отношение к религии, карьера vs дом, география/переезд и др.). Словари — в одном месте (см. Э0.1-d). Отражается в кейсах (Э2.2) и скоринге (Э2.3)
-- ⬜ **Э0.1-c.** Новые таблицы: `ai_chat_messages` (user_id, role, content, created_at, tokens_used), `ai_prompts` (key, content, version, updated_by, updated_at), `ai_field_writes` (user_id, field, old/new_value, source, chat_message_id, created_at)
-- ⬜ **Э0.1-d.** Словари уровней кашрута/шаббата — в справочную таблицу/конфиг в одном месте (не хардкод). Шкалы согласовать с раввином (открытый вопрос)
-- ⬜ **Э0.1-e.** Составные индексы под подбор: `(Gender, Date_of_birth, Country)`, `kashrut_level`, `shabbat_level`, `Are_you_ready_to_move`
-- ⬜ **Э0.1-f.** Каждая миграция с обратным откатом; данные не повреждаются
+- ✅ **Э0.1-a.** Новые поля анкеты `Message204` через `nc_component::add_field()` (механизм проверен): `kashrut_level`, `shabbat_level`, `family_values` (JSON), `ai_summary` (TEXT), `ai_summary_meta` (JSON), `psychological_profile` (JSON), `profile_embedding` (BLOB/JSON), `embedding_meta` (JSON), **поле «о себе»** (свободный текст — его нет, а без него Э3.2 не считается)
+- ✅ **Э0.1-b.** Переиспользовать существующее, НЕ дублировать: `Are_you_ready_to_move` (= relocation_ready), `Country_of_relocation` (= relocation_cities). См. маппинг в AUDIT.md §9
+- ✅ **Э0.1-g.** *(протокол встречи)* Расширенный состав ценностей в `family_values` / `psychological_profile`: к языкам любви и бюджет/воспитание/родители добавить измерения — предложить список на утверждение (роли в семье, отношение к религии, карьера vs дом, география/переезд и др.). Словари — в одном месте (см. Э0.1-d). Отражается в кейсах (Э2.2) и скоринге (Э2.3)
+- ✅ **Э0.1-c.** Новые таблицы: `ai_chat_messages` (user_id, role, content, created_at, tokens_used), `ai_prompts` (key, content, version, updated_by, updated_at), `ai_field_writes` (user_id, field, old/new_value, source, chat_message_id, created_at)
+- ✅ **Э0.1-d.** Словари уровней кашрута/шаббата — в справочную таблицу/конфиг в одном месте (не хардкод). Шкалы согласовать с раввином (открытый вопрос)
+- ✅ **Э0.1-e.** Составные индексы под подбор: `(Gender, Date_of_birth, Country)`, `kashrut_level`, `shabbat_level`, `Are_you_ready_to_move`
+- ✅ **Э0.1-f.** Каждая миграция с обратным откатом; данные не повреждаются
 - **Готовность:** миграции применяются и откатываются чисто; заполненность полей не изменилась (проверка как в `03_verify.sql`)
 
 ### Э0.2. Вкладка «Ваш ИИ-консультант» (кабинет кандидата)
