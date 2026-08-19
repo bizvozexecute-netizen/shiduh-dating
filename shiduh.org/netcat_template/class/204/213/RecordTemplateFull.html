@@ -468,6 +468,72 @@ if($f_User_ID === $current_user['User_ID'] || $f_Shadhan_1 === $current_user['Us
     </div>
     <? endif; ?>
 
+    <?php /* XI-5. «Пригласить по ссылке» — только шадхану. Создаёт кандидату
+       аккаунт-заготовку и одноразовую ссылку (api/invite_create.php); кандидат
+       по ней логинится и дозаполняет анкету через ИИ-консультанта, без ручной
+       регистрации. Запрос идёт same-origin fetch — браузер шлёт Origin, что
+       проходит CSRF-заслон эндпоинта. */ ?>
+    <? if($current_user['Type_id'] === 2): ?>
+    <div class="lk-questionnaire__section">
+      <div class="lk-questionnaire__section-title title title--lk">Пригласить по ссылке</div>
+      <div class="lk-questionnaire__body">
+        <p style="color:#756d65;margin:0 0 10px">Кандидат заполнит анкету сам через ИИ-консультанта — без регистрации. Отправьте ему ссылку.</p>
+        <button type="button" class="button button--secondary js-invite-create" data-anketa="<?= (int)$f_Message_ID ?>">Создать ссылку-приглашение</button>
+        <div class="js-invite-result" hidden style="margin-top:12px">
+          <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+            <input type="text" class="js-invite-link" readonly style="flex:1;min-width:220px;border:1px solid #e3ddd2;background:#f5f2ec;border-radius:9px;padding:9px 11px;font-size:13.5px;color:#3a2b2b">
+            <button type="button" class="button button--secondary js-invite-copy">Скопировать</button>
+          </div>
+          <div class="js-invite-note" style="color:#7e6440;font-size:12.5px;margin-top:6px"></div>
+        </div>
+        <div class="js-invite-error" hidden style="color:#c0392b;font-size:13px;margin-top:10px"></div>
+      </div>
+    </div>
+    <script>
+    (function(){
+      var root = document.currentScript.previousElementSibling;
+      var btn = root.querySelector('.js-invite-create');
+      if (!btn) return;
+      var box = root.querySelector('.js-invite-result');
+      var linkEl = root.querySelector('.js-invite-link');
+      var noteEl = root.querySelector('.js-invite-note');
+      var errEl = root.querySelector('.js-invite-error');
+      var copyBtn = root.querySelector('.js-invite-copy');
+
+      btn.addEventListener('click', function(){
+        btn.disabled = true;
+        errEl.hidden = true;
+        var body = new URLSearchParams();
+        body.append('anketa_id', btn.getAttribute('data-anketa'));
+        fetch('/api/invite_create.php', { method:'POST', body: body, credentials:'same-origin' })
+          .then(function(r){ return r.json().then(function(j){ return { ok:r.ok, js:j }; }); })
+          .then(function(res){
+            if (res.ok && res.js && res.js.link) {
+              linkEl.value = res.js.link;
+              noteEl.textContent = res.js.reused
+                ? 'Ссылка для этого кандидата уже была создана.'
+                : 'Ссылка действует 30 дней. Скопируйте и отправьте кандидату.';
+              box.hidden = false;
+            } else {
+              errEl.textContent = (res.js && res.js.error) ? res.js.error : 'Не удалось создать ссылку.';
+              errEl.hidden = false;
+            }
+          })
+          .catch(function(){ errEl.textContent = 'Сервис временно недоступен.'; errEl.hidden = false; })
+          .then(function(){ btn.disabled = false; });
+      });
+
+      copyBtn.addEventListener('click', function(){
+        linkEl.select();
+        var done = function(){ copyBtn.textContent = 'Скопировано'; setTimeout(function(){ copyBtn.textContent = 'Скопировать'; }, 1500); };
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+          navigator.clipboard.writeText(linkEl.value).then(done, function(){ try{ document.execCommand('copy'); done(); }catch(e){} });
+        } else { try{ document.execCommand('copy'); done(); }catch(e){} }
+      });
+    })();
+    </script>
+    <? endif; ?>
+
     <? if($current_user['Type_id'] === 2): ?>
     <?= nc_objects_list(77, 82, "&candidateID=$f_Message_ID&nc_ctpl=289" ); ?>
     <? endif;?>

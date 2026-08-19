@@ -215,6 +215,18 @@ def test_foreign_origin_forbidden():
     assert code2 == 200, "запрос со своего Origin отклонён: %s" % data2
 
 
+def test_card_shows_invite_button():
+    # в карточке кандидата у шадхана есть кнопка приглашения с id анкеты
+    reset_state()
+    a = STATE["anketa"]
+    sid = login(SHADHAN)
+    code, body = get_with_sid("/my/my-candidates/moi-kandidaty_%d.html" % a, sid)
+    assert code == 200, "карточка не открылась: %s" % code
+    assert "js-invite-create" in body, "нет кнопки приглашения"
+    assert ('data-anketa="%d"' % a) in body, "кнопка без id анкеты"
+    assert "Fatal error" not in body and "Parse error" not in body
+
+
 def test_get_method_not_allowed():
     req = urllib.request.Request(CREATE_URL, method="GET")
     opener = urllib.request.build_opener(NoRedirect)
