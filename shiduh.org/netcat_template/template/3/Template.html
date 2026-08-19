@@ -779,7 +779,10 @@ if($current_user['Type_id'] == 1) {
     if (
         $hasEmptyField &&
         preg_match('#^/my(/.*)?$#', $currentUrl) &&
-        strpos($currentUrl, '/my/modify') === false
+        strpos($currentUrl, '/my/modify') === false &&
+        // ИИ-консультант помогает заполнить анкету — он должен быть доступен
+        // ДО заполнения, иначе кандидат не попадёт в чат (Э0.2)
+        strpos($currentUrl, '/my/ai-consultant/') !== 0
     ) {
        // Редирект на анкету
        header('Location: https://'.$_SERVER['HTTP_HOST'].'/my/modify?fill_required=1');

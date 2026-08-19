@@ -58,3 +58,24 @@ function mig_files() {
 function mig_name($file) {
     return basename($file, '.php');
 }
+
+/*
+ * Копирует строку таблицы-образца с заменой части полей и вставляет её.
+ * Нужно для создания раздела/компонента: таблицы Class, Subdivision,
+ * Sub_Class имеют десятки колонок, перечислять их вручную хрупко —
+ * берём готовую рабочую строку и точечно меняем ключевые поля.
+ */
+function mig_copy_row($db, $table, $id_col, $src_id, $overrides) {
+    $row = $db->get_row("SELECT * FROM `$table` WHERE `$id_col`=" . (int)$src_id, ARRAY_A);
+    if (!$row) {
+        throw new Exception("mig_copy_row: нет строки-образца $table.$id_col=$src_id");
+    }
+    foreach ($overrides as $k => $v) {
+        $row[$k] = $v;
+    }
+    $sets = array();
+    foreach ($row as $k => $v) {
+        $sets[] = $v === null ? "`$k`=NULL" : "`$k`='" . $db->prepare($v) . "'";
+    }
+    $db->query("INSERT INTO `$table` SET " . implode(',', $sets));
+}

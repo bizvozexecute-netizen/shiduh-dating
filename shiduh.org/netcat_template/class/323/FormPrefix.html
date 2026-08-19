@@ -1,0 +1,131 @@
+<?php
+/*
+ * Компонент «ИИ-консультант» (Э0.2). Весь UI чата рендерится здесь:
+ * история из ai_chat_messages текущего пользователя, поле ввода, голосовой
+ * ввод. Отправка — AJAX на /api/ai_chat.php (пишет в ai_chat_messages,
+ * пока отвечает заглушкой; живой ИИ подключается в Э1).
+ *
+ * Приватность: каждый видит только свой диалог (WHERE user_id). Гостей
+ * отсекает макет ЛК (template/3/17/Header.html редиректит неавторизованных).
+ */
+$nc_uid = (int)$current_user['User_ID'];
+if (!$nc_uid) {
+    // Самозащита компонента: макет ЛК и так редиректит гостей, но если это
+    // когда-нибудь регрессирует — не показываем общий бакет user_id=0.
+    echo '<p style="text-align:center;color:#756d65;padding:30px">Войдите, чтобы открыть ИИ-консультанта.</p>';
+    return;
+}
+$nc_core->db->query(
+    "SELECT `role`, `content` FROM `ai_chat_messages` "
+    . "WHERE `user_id`=$nc_uid ORDER BY `id` ASC",
+    ARRAY_A
+);
+$nc_history = $nc_core->db->last_result;
+?>
+<style>
+.ai-chat{max-width:760px;margin:0 auto;background:#fff;border:1px solid #e3ddd2;border-radius:14px;overflow:hidden;display:flex;flex-direction:column}
+.ai-chat__head{background:#262839;color:#fff;padding:14px 18px;display:flex;align-items:center;gap:11px}
+.ai-chat__ava{width:36px;height:36px;border-radius:50%;flex:none;display:grid;place-items:center;background:linear-gradient(140deg,#c8ae88,#a68556);color:#262839;font-size:16px}
+.ai-chat__title{font-size:15px;font-weight:500}
+.ai-chat__sub{font-size:11.5px;color:#c3beb7}
+.ai-chat__log{background:#f5f2ec;padding:16px 14px;display:flex;flex-direction:column;gap:11px;min-height:340px;max-height:60vh;overflow-y:auto}
+.ai-msg{max-width:82%;font-size:14.5px;line-height:1.55;padding:10px 13px;border-radius:15px;white-space:pre-wrap;word-wrap:break-word}
+.ai-msg--ai{background:#fff;border:1px solid #e3ddd2;border-bottom-left-radius:4px;align-self:flex-start;color:#3a2b2b}
+.ai-msg--me{background:#c8ae88;color:#262839;border-bottom-right-radius:4px;align-self:flex-end}
+.ai-chat__hello{align-self:center;text-align:center;color:#756d65;font-size:13.5px;max-width:46ch;padding:20px 0}
+.ai-chat__compose{display:flex;gap:8px;padding:12px 14px;background:#fff;border-top:1px solid #e3ddd2;align-items:center}
+.ai-chat__input{flex:1;min-width:0;border:1px solid #e3ddd2;background:#f5f2ec;border-radius:11px;padding:11px 13px;font:inherit;font-size:14px;color:#3a2b2b}
+.ai-chat__btn{flex:none;border:0;border-radius:11px;padding:11px 17px;font:inherit;font-size:14.5px;font-weight:500;background:#c8ae88;color:#262839;cursor:pointer}
+.ai-chat__btn:hover{background:#a68556}
+.ai-chat__mic{flex:none;width:42px;height:42px;border-radius:50%;border:0;display:grid;place-items:center;background:#f5f2ec;color:#7e6440;cursor:pointer}
+.ai-chat__mic:hover{background:#efe7d8}
+.ai-chat__mic--on{background:#df2e7a;color:#fff;animation:aiPulse 1.2s infinite}
+@keyframes aiPulse{0%,100%{opacity:1}50%{opacity:.55}}
+@media(prefers-reduced-motion:reduce){.ai-chat__mic--on{animation:none}}
+</style>
+
+<section class="ai-chat">
+  <div class="ai-chat__head">
+    <div class="ai-chat__ava">✡</div>
+    <div>
+      <div class="ai-chat__title">Ваш ИИ-консультант</div>
+      <div class="ai-chat__sub">поможет дозаполнить анкету в диалоге</div>
+    </div>
+  </div>
+
+  <div class="ai-chat__log" id="aiLog">
+    <?php if (empty($nc_history)): ?>
+      <div class="ai-chat__hello">Здравствуйте! Напишите или продиктуйте сообщение — я помогу заполнить анкету в живой беседе.</div>
+    <?php else: foreach ($nc_history as $nc_m): ?>
+      <div class="ai-msg ai-msg--<?= $nc_m['role'] === 'user' ? 'me' : 'ai' ?>"><?= htmlspecialchars($nc_m['content'], ENT_QUOTES, 'UTF-8') ?></div>
+    <?php endforeach; endif; ?>
+  </div>
+
+  <form class="ai-chat__compose" id="aiForm" autocomplete="off">
+    <button type="button" class="ai-chat__mic" id="aiMic" aria-label="Ввести голосом" title="Ввести голосом" hidden>
+      <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><path fill="currentColor" d="M12 15a3 3 0 0 0 3-3V6a3 3 0 0 0-6 0v6a3 3 0 0 0 3 3Zm5-3a5 5 0 0 1-10 0H5a7 7 0 0 0 6 6.9V22h2v-3.1A7 7 0 0 0 19 12h-2Z"/></svg>
+    </button>
+    <input type="text" class="ai-chat__input" id="aiInput" placeholder="Напишите или продиктуйте…" aria-label="Сообщение">
+    <button type="submit" class="ai-chat__btn" id="aiSend">Отправить</button>
+  </form>
+</section>
+
+<script>
+(function(){
+  var form = document.getElementById('aiForm');
+  var input = document.getElementById('aiInput');
+  var log = document.getElementById('aiLog');
+  var send = document.getElementById('aiSend');
+  var mic = document.getElementById('aiMic');
+
+  function esc(s){ var d = document.createElement('div'); d.textContent = s; return d.innerHTML; }
+  function bubble(role, text){
+    var hello = log.querySelector('.ai-chat__hello');
+    if (hello) hello.remove();
+    var el = document.createElement('div');
+    el.className = 'ai-msg ai-msg--' + (role === 'user' ? 'me' : 'ai');
+    el.innerHTML = esc(text);
+    log.appendChild(el);
+    log.scrollTop = log.scrollHeight;
+  }
+  log.scrollTop = log.scrollHeight;
+
+  form.addEventListener('submit', function(e){
+    e.preventDefault();
+    var text = input.value.trim();
+    if (!text) return;
+    bubble('user', text);
+    input.value = '';
+    send.disabled = true;
+    var body = new URLSearchParams(); body.append('message', text);
+    fetch('/api/ai_chat.php', { method:'POST', body: body, credentials:'same-origin' })
+      .then(function(r){ return r.json().catch(function(){ return {}; }); })
+      .then(function(js){
+        if (js && js.reply) bubble('assistant', js.reply);
+        else bubble('assistant', 'Не удалось получить ответ. Попробуйте ещё раз.');
+      })
+      .catch(function(){ bubble('assistant', 'Сервис временно недоступен. Ваше сообщение сохранено.'); })
+      .then(function(){ send.disabled = false; input.focus(); });
+  });
+
+  // Голосовой ввод — браузерный Web Speech API. Нет поддержки — кнопка скрыта.
+  var SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+  if (SR) {
+    var rec = new SR();
+    rec.lang = 'ru-RU'; rec.interimResults = false; rec.maxAlternatives = 1;
+    var listening = false;
+    mic.hidden = false;
+    mic.addEventListener('click', function(){
+      if (listening) { rec.stop(); return; }
+      try { rec.start(); } catch(e){}
+    });
+    rec.onstart = function(){ listening = true; mic.classList.add('ai-chat__mic--on'); };
+    rec.onend = function(){ listening = false; mic.classList.remove('ai-chat__mic--on'); };
+    rec.onresult = function(ev){
+      var t = ev.results[0][0].transcript;
+      input.value = (input.value ? input.value + ' ' : '') + t;
+      input.focus();
+    };
+  }
+})();
+</script>

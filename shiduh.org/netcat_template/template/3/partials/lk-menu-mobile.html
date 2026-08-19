@@ -62,6 +62,18 @@
                     <span class="lk-aside__nav-link-counter"><?= nc_auth_messages_new();?></span>
                   </a>
                 </li>
+                <? if($current_user['Type_id'] === 1): ?>
+                <li class="lk-aside__nav-item <?= $sub == 89 ? "lk-aside__nav-item--active" : ""; ?>">
+                  <a class="lk-aside__nav-link" href="/my/ai-consultant/" title="">
+                    <div class="lk-aside__nav-link-icon-wrap">
+                      <svg class="lk-aside__nav-link-icon lk-aside__nav-link-icon--lk-chat">
+                        <use xlink:href="/images/sprite.svg#lk-chat"></use>
+                      </svg>
+                    </div>
+                    <span class="lk-aside__nav-link-text">ИИ-консультант</span>
+                  </a>
+                </li>
+                <? endif; ?>
                 <li class="lk-aside__nav-item <?= $sub == 22 ? "lk-aside__nav-item--active" : ""; ?>">
                   <a class="lk-aside__nav-link" href="/my/shadhany/" title="">
                     <div class="lk-aside__nav-link-icon-wrap">

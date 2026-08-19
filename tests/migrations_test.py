@@ -120,6 +120,13 @@ class TestUp:
     def test_composite_index_for_matching(self):
         assert index_exists("Message204", "idx_match"), "нет составного индекса подбора"
 
+    def test_ai_consultant_section_created(self):
+        # миграция 005: раздел /my/ai-consultant/ → компонент 323
+        assert dbq("SELECT Subdivision_ID FROM Subdivision WHERE EnglishName='ai-consultant'") == "89"
+        assert dbq("SELECT COUNT(*) FROM Sub_Class WHERE Sub_Class_ID=99 AND Class_ID=323") == "1"
+        assert dbq("SELECT File_Path FROM Class WHERE Class_ID=323") == "/323/"
+        assert table_exists("Message323")
+
     def test_data_not_damaged(self):
         assert count("Message204") == BASELINE_ROWS
         assert int(dbq("SELECT COUNT(*) FROM Message204 WHERE Name<>''")) == BASELINE_NAME_FILLED
@@ -165,6 +172,13 @@ class TestDown:
 
     def test_schema_back_to_baseline(self):
         assert message204_cols() == BASELINE_COLS, "число колонок Message204 не вернулось к 131"
+
+    def test_ai_consultant_section_removed(self):
+        # миграция 005 откатывается чисто: раздел, привязка, компонент, таблица
+        assert dbq("SELECT COUNT(*) FROM Subdivision WHERE EnglishName='ai-consultant'") == "0"
+        assert dbq("SELECT COUNT(*) FROM Sub_Class WHERE Sub_Class_ID=99") == "0"
+        assert dbq("SELECT COUNT(*) FROM Class WHERE Class_ID=323") == "0"
+        assert not table_exists("Message323")
 
     def test_data_intact_after_rollback(self):
         assert count("Message204") == BASELINE_ROWS
