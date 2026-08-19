@@ -76,7 +76,10 @@ def setup_module(module):
 
 
 def teardown_module(module):
+    # Возвращаем схему в штатное «всё применено»: dev-среда и остальные наборы
+    # тестов рассчитывают на применённые миграции (поля AI_summary и др.).
     migrate("down-all")
+    migrate("up")
 
 
 def message204_cols():

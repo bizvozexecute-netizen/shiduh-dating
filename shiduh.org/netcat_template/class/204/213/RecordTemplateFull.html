@@ -447,9 +447,28 @@ if($f_User_ID === $current_user['User_ID'] || $f_Shadhan_1 === $current_user['Us
       </div>
     </div>
     <? endif; ?>
-    
 
-    <? if($current_user['Type_id'] === 2): ?>  
+    <?php /* Э0.3. Резюме от ИИ по кандидату — только шадхану. Показывает поле
+       AI_summary; переписка кандидата с ИИ здесь НЕ выводится (приватность).
+       Кнопка «Обновить резюме» активируется в Э1, когда подключим генерацию. */ ?>
+    <? if($current_user['Type_id'] === 2): ?>
+    <div class="lk-questionnaire__section">
+      <div class="lk-questionnaire__section-title title title--lk">Резюме от ИИ</div>
+      <div class="lk-questionnaire__body">
+        <? if(trim((string)$f_AI_summary) !== ''): ?>
+          <?php /* $f_AI_summary уже экранирован NetCat при выводе (тип 3, пустой
+             Format) — как и остальные поля анкеты здесь. htmlspecialchars дал бы
+             двойное экранирование; выводим сырым, добавляя только переносы строк. */ ?>
+          <div class="lk-questionnaire__ai-summary"><?= nl2br($f_AI_summary); ?></div>
+        <? else: ?>
+          <div class="lk-questionnaire__ai-summary lk-questionnaire__ai-summary--empty">Резюме ещё не сформировано</div>
+        <? endif; ?>
+        <button type="button" class="button button--secondary lk-questionnaire__ai-summary-refresh" disabled title="Появится на следующем этапе">Обновить резюме</button>
+      </div>
+    </div>
+    <? endif; ?>
+
+    <? if($current_user['Type_id'] === 2): ?>
     <?= nc_objects_list(77, 82, "&candidateID=$f_Message_ID&nc_ctpl=289" ); ?>
     <? endif;?>
     
