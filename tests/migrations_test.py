@@ -65,6 +65,24 @@ NEW_DICTS = ["Classificator_Kashrut_level", "Classificator_Shabbat_level",
              "Classificator_Value_dimension"]
 DICT_NAMES = ["Kashrut_level", "Shabbat_level", "Value_dimension"]
 
+# Миграция 006 (встреча с шадханами 2026-08-18): новые необязательные поля.
+MEETING_FIELDS = [
+    "Sport_attitude", "Housing_after_marriage", "Languages_spoken",
+    "Diaspora_openness", "Observance_growth", "Rabbinate_registration",
+    "Introvert_extrovert",
+]
+# Чувствительные поля (152-ФЗ): хранятся, но не уходят в зарубежный LLM.
+SENSITIVE_FIELDS = ["Income_property", "Health_conditions", "Medications"]
+MEETING006_FIELDS = MEETING_FIELDS + SENSITIVE_FIELDS
+SENSITIVE_CONFIG = "/var/www/html/api/ai_sensitive_fields.php"
+
+
+def sensitive_registry():
+    """Реестр чувствительных полей из PHP-конфига (источник для слоя LLM)."""
+    r = _run(["web", "php", "-r",
+              "foreach ((array)(@include '%s') as $f) { echo $f, PHP_EOL; }" % SENSITIVE_CONFIG])
+    return [ln.strip() for ln in (r.stdout or "").splitlines() if ln.strip()]
+
 BASELINE_COLS = 131          # колонок в Message204 до миграций (AUDIT.md §5.1)
 BASELINE_ROWS = 1189         # строк в Message204
 BASELINE_NAME_FILLED = 1189  # Name заполнено у всех
@@ -120,6 +138,31 @@ class TestUp:
             n = dbq("SELECT COUNT(*) FROM Field WHERE Class_ID=204 AND Field_Name='%s'" % f)
             assert n == "1", "поле не зарегистрировано в Field: " + f
 
+    def test_meeting_fields_added(self):
+        # миграция 006: новые необязательные поля из встречи с шадханами
+        for f in MEETING006_FIELDS:
+            assert col_exists("Message204", f), "нет колонки Message204." + f
+
+    def test_meeting_fields_registered_in_Field(self):
+        for f in MEETING006_FIELDS:
+            n = dbq("SELECT COUNT(*) FROM Field WHERE Class_ID=204 AND Field_Name='%s'" % f)
+            assert n == "1", "поле не зарегистрировано в Field: " + f
+
+    def test_meeting_fields_empty_not_fabricated(self):
+        # новые поля не должны быть заполнены — иначе портят метрику заполненности
+        for f in MEETING006_FIELDS:
+            filled = dbq("SELECT COUNT(*) FROM Message204 WHERE `%s` IS NOT NULL AND `%s`<>''" % (f, f))
+            assert filled == "0", "новое поле неожиданно заполнено: " + f
+
+    def test_sensitive_registry_matches_columns(self):
+        # реестр чувствительных полей существует и ссылается только на реальные
+        # колонки Message204 (иначе слой LLM не сможет их вырезать)
+        reg = sensitive_registry()
+        assert set(reg) == set(SENSITIVE_FIELDS), \
+            "реестр чувствительных полей разошёлся: " + repr(reg)
+        for f in reg:
+            assert col_exists("Message204", f), "реестр ссылается на несуществующую колонку: " + f
+
     def test_composite_index_for_matching(self):
         assert index_exists("Message204", "idx_match"), "нет составного индекса подбора"
 
@@ -171,6 +214,11 @@ class TestDown:
     def test_profile_columns_removed(self):
         for f in PROFILE_FIELDS:
             assert not col_exists("Message204", f), "колонка не удалена: " + f
+            assert dbq("SELECT COUNT(*) FROM Field WHERE Class_ID=204 AND Field_Name='%s'" % f) == "0"
+
+    def test_meeting_fields_removed(self):
+        for f in MEETING006_FIELDS:
+            assert not col_exists("Message204", f), "колонка 006 не удалена: " + f
             assert dbq("SELECT COUNT(*) FROM Field WHERE Class_ID=204 AND Field_Name='%s'" % f) == "0"
 
     def test_schema_back_to_baseline(self):
