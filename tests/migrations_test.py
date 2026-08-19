@@ -60,7 +60,7 @@ PROFILE_FIELDS = [
     "AI_summary", "AI_summary_meta", "Psychological_profile",
     "Profile_embedding", "Embedding_meta",
 ]
-NEW_TABLES = ["ai_chat_messages", "ai_prompts", "ai_field_writes"]
+NEW_TABLES = ["ai_chat_messages", "ai_prompts", "ai_field_writes", "invite_tokens"]
 NEW_DICTS = ["Classificator_Kashrut_level", "Classificator_Shabbat_level",
              "Classificator_Value_dimension"]
 DICT_NAMES = ["Kashrut_level", "Shabbat_level", "Value_dimension"]
@@ -162,6 +162,15 @@ class TestUp:
             "реестр чувствительных полей разошёлся: " + repr(reg)
         for f in reg:
             assert col_exists("Message204", f), "реестр ссылается на несуществующую колонку: " + f
+
+    def test_invite_tokens_unique_token(self):
+        # миграция 007: токен-приглашение (Раздел XI). UNIQUE по token —
+        # защита от коллизий и заготовка одноразовости
+        assert table_exists("invite_tokens"), "нет таблицы invite_tokens"
+        non_unique = dbq("SELECT Non_unique FROM information_schema.statistics "
+                         "WHERE table_schema=DATABASE() AND table_name='invite_tokens' "
+                         "AND column_name='token'")
+        assert non_unique == "0", "нет UNIQUE-индекса по invite_tokens.token"
 
     def test_composite_index_for_matching(self):
         assert index_exists("Message204", "idx_match"), "нет составного индекса подбора"
