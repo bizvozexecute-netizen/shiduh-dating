@@ -23,7 +23,10 @@ PASSWORD = "shiduh"
 SHADHAN = "u3f9bb8c20b01@example.local"          # User_ID 57 (Type=2)
 CANDIDATE = "uad322c9ddbba@example.local"        # User_ID 44 (Type=1)
 PLACEHOLDER_LIKE = "invite-%@invite.shiduh.org"
+CLAIM_LIKE = "%@claimtest.local"          # присвоенные заготовки в тестах
 CREATE_URL = BASE + "/api/invite_create.php"
+CLAIM_URL = BASE + "/api/invite_claim.php"
+SEND_URL = BASE + "/api/invite_send_email.php"
 
 # Заполняется в setup_module
 STATE = {"anketa": None, "orig_shadhan1": None, "other_anketa": None}
@@ -82,7 +85,8 @@ def post_invite(sid, anketa_id, origin=None):
 
 
 def _delete_placeholders():
-    ids = dbq("SELECT User_ID FROM `User` WHERE Email LIKE '%s'" % PLACEHOLDER_LIKE).split()
+    ids = dbq("SELECT User_ID FROM `User` WHERE Email LIKE '%s' OR Email LIKE '%s'"
+              % (PLACEHOLDER_LIKE, CLAIM_LIKE)).split()
     for uid in ids:
         uid = int(uid)
         dbq("DELETE FROM `User` WHERE User_ID=%d" % uid)
@@ -93,6 +97,8 @@ def _delete_placeholders():
     # осиротевшие сессии заготовок из прошлых прогонов (User уже удалён)
     dbq("DELETE s FROM `Session` s LEFT JOIN `User` u ON u.User_ID=s.User_ID "
         "WHERE u.User_ID IS NULL")
+    # тестовые письма из очереди
+    dbq("DELETE FROM `Mail_Queue` WHERE recipient LIKE '%s'" % CLAIM_LIKE)
 
 
 def reset_state():
@@ -329,3 +335,184 @@ def test_redeem_claimed_token():
     code, headers, _ = redeem(token)
     assert code == 410, "присвоенный токен не отклонён: %s" % code
     assert headers.get("Location") is None
+
+
+# --- Присвоение аккаунта (XI-4): api/invite_claim.php ---
+
+def login_with(email, password):
+    body = urllib.parse.urlencode({
+        "AuthPhase": "1", "REQUESTED_FROM": "/my/", "REQUESTED_BY": "GET",
+        "catalogue": "1", "sub": "8", "cc": "0", "AUTH_USER": email, "AUTH_PW": password,
+    }).encode()
+    req = urllib.request.Request(BASE + "/netcat/modules/auth/", data=body, method="POST")
+    opener = urllib.request.build_opener(NoRedirect)
+    try:
+        headers = opener.open(req, timeout=60).headers
+    except urllib.error.HTTPError as e:
+        headers = e.headers
+    return sid_from_headers(headers)
+
+
+def post_claim(sid, email, password, origin=None):
+    body = urllib.parse.urlencode({"email": email, "password": password}).encode()
+    req = urllib.request.Request(CLAIM_URL, data=body, method="POST")
+    if sid:
+        req.add_header("Cookie", "PHP_AUTH_SID=%s; PHP_AUTH_LANG=Russian" % sid)
+    if origin:
+        req.add_header("Origin", origin)
+    opener = urllib.request.build_opener(NoRedirect)
+    try:
+        r = opener.open(req, timeout=60)
+        code, raw = r.status, r.read()
+    except urllib.error.HTTPError as e:
+        code, raw = e.code, e.read()
+    try:
+        data = json.loads(raw.decode("utf-8", "replace"))
+    except ValueError:
+        data = None
+    return code, data
+
+
+def redeem_to_sid():
+    """Создать приглашение, войти по ссылке, вернуть (sid заготовки, candidate_uid, token)."""
+    token, cand = make_invite()
+    _, headers, _ = redeem(token)
+    return sid_from_headers(headers), cand, token
+
+
+def test_claim_converts_placeholder():
+    reset_state()
+    sid, cand, token = redeem_to_sid()
+    assert sid, "не получена сессия заготовки"
+    email = "cand71828@claimtest.local"
+    code, data = post_claim(sid, email, "secret123")
+    assert code == 200 and data.get("ok") is True, "присвоение не удалось: %s" % data
+    assert dbq("SELECT Email FROM `User` WHERE User_ID=%d" % cand) == email
+    assert dbq("SELECT claimed_at IS NOT NULL FROM invite_tokens WHERE token='%s'" % token) == "1"
+    # можно войти по новым email+паролю
+    assert login_with(email, "secret123"), "новый логин/пароль не работают"
+
+
+def test_claim_disables_token():
+    reset_state()
+    sid, _, token = redeem_to_sid()
+    code, data = post_claim(sid, "cand31415@claimtest.local", "secret123")
+    assert code == 200, "присвоение не удалось: %s" % data
+    # ссылка после присвоения больше не пускает
+    rcode, rheaders, _ = redeem(token)
+    assert rcode == 410 and rheaders.get("Location") is None
+
+
+def test_claim_requires_placeholder():
+    reset_state()
+    sid = login(CANDIDATE)  # обычный кандидат, не заготовка
+    code, data = post_claim(sid, "x27182@claimtest.local", "secret123")
+    assert code == 409, "обычному аккаунту разрешили присвоение: %s" % data
+
+
+def test_claim_rejects_taken_email():
+    reset_state()
+    sid, _, _ = redeem_to_sid()
+    code, data = post_claim(sid, SHADHAN, "secret123")  # email уже занят
+    assert code == 409, "занятый email не отклонён: %s" % data
+
+
+def test_claim_rejects_bad_email():
+    reset_state()
+    sid, _, _ = redeem_to_sid()
+    code, data = post_claim(sid, "not-an-email", "secret123")
+    assert code == 400, "некорректный email не отклонён: %s" % data
+
+
+def test_claim_rejects_short_password():
+    reset_state()
+    sid, _, _ = redeem_to_sid()
+    code, data = post_claim(sid, "cand99999@claimtest.local", "123")
+    assert code == 400, "короткий пароль не отклонён: %s" % data
+
+
+def test_claim_foreign_origin_forbidden():
+    reset_state()
+    sid, cand, _ = redeem_to_sid()
+    code, data = post_claim(sid, "evil@claimtest.local", "secret123", origin="https://evil.example.com")
+    assert code == 403, "чужой Origin не отклонён: %s" % data
+    assert dbq("SELECT Email FROM `User` WHERE User_ID=%d" % cand).endswith("@invite.shiduh.org"), \
+        "email заготовки изменился при CSRF"
+
+
+def post_send(sid, anketa_id, email, origin=None):
+    body = urllib.parse.urlencode({"anketa_id": anketa_id, "email": email}).encode()
+    req = urllib.request.Request(SEND_URL, data=body, method="POST")
+    if sid:
+        req.add_header("Cookie", "PHP_AUTH_SID=%s; PHP_AUTH_LANG=Russian" % sid)
+    if origin:
+        req.add_header("Origin", origin)
+    opener = urllib.request.build_opener(NoRedirect)
+    try:
+        r = opener.open(req, timeout=60)
+        code, raw = r.status, r.read()
+    except urllib.error.HTTPError as e:
+        code, raw = e.code, e.read()
+    try:
+        data = json.loads(raw.decode("utf-8", "replace"))
+    except ValueError:
+        data = None
+    return code, data
+
+
+def test_send_email_queues_message():
+    reset_state()
+    make_invite()  # анкета переходит заготовке, появляется активный токен
+    a = STATE["anketa"]
+    rcpt = "invite-mail@claimtest.local"
+    sid = login(SHADHAN)
+    code, data = post_send(sid, a, rcpt)
+    assert code == 200 and data.get("ok") is True, "письмо не поставлено в очередь: %s" % data
+    n = dbq("SELECT COUNT(*) FROM `Mail_Queue` WHERE recipient='%s'" % rcpt)
+    assert n == "1", "нет письма в Mail_Queue: " + n
+    body = dbq("SELECT body FROM `Mail_Queue` WHERE recipient='%s' ORDER BY id DESC LIMIT 1" % rcpt)
+    assert "/api/invite.php?t=" in body, "в письме нет ссылки-приглашения"
+
+
+def test_send_email_requires_existing_link():
+    reset_state()  # владелец — шадхан, активного токена нет
+    sid = login(SHADHAN)
+    code, data = post_send(sid, STATE["anketa"], "invite-mail@claimtest.local")
+    assert code == 409, "отправка без созданной ссылки не отклонена: %s" % data
+
+
+def test_send_email_bad_recipient():
+    reset_state()
+    make_invite()
+    sid = login(SHADHAN)
+    code, data = post_send(sid, STATE["anketa"], "not-an-email")
+    assert code == 400, "некорректный email получателя не отклонён: %s" % data
+
+
+def test_send_email_non_shadhan_forbidden():
+    reset_state()
+    sid = login(CANDIDATE)
+    code, data = post_send(sid, STATE["anketa"], "invite-mail@claimtest.local")
+    assert code == 403, "кандидату разрешили отправку: %s" % data
+
+
+def test_send_email_foreign_origin_forbidden():
+    reset_state()
+    sid = login(SHADHAN)
+    code, data = post_send(sid, STATE["anketa"], "invite-mail@claimtest.local",
+                           origin="https://evil.example.com")
+    assert code == 403, "чужой Origin не отклонён: %s" % data
+
+
+def test_consultant_shows_claim_form_only_for_placeholder():
+    reset_state()
+    # заготовка видит форму закрепления
+    sid, _, _ = redeem_to_sid()
+    code, body = get_with_sid("/my/ai-consultant/", sid)
+    assert code == 200
+    assert "aiClaimForm" in body, "заготовка не видит форму закрепления"
+    # обычный кандидат — не видит
+    csid = login(CANDIDATE)
+    ccode, cbody = get_with_sid("/my/ai-consultant/", csid)
+    assert ccode == 200
+    assert "aiClaimForm" not in cbody, "обычный кандидат видит форму закрепления"

@@ -485,6 +485,11 @@ if($f_User_ID === $current_user['User_ID'] || $f_Shadhan_1 === $current_user['Us
             <button type="button" class="button button--secondary js-invite-copy">Скопировать</button>
           </div>
           <div class="js-invite-note" style="color:#7e6440;font-size:12.5px;margin-top:6px"></div>
+          <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-top:10px">
+            <input type="email" class="js-invite-email" placeholder="email кандидата (необязательно)" style="flex:1;min-width:200px;border:1px solid #e3ddd2;background:#f5f2ec;border-radius:9px;padding:9px 11px;font-size:13.5px;color:#3a2b2b">
+            <button type="button" class="button button--secondary js-invite-send">Отправить на email</button>
+          </div>
+          <div class="js-invite-send-msg" style="font-size:12.5px;margin-top:6px"></div>
         </div>
         <div class="js-invite-error" hidden style="color:#c0392b;font-size:13px;margin-top:10px"></div>
       </div>
@@ -529,6 +534,27 @@ if($f_User_ID === $current_user['User_ID'] || $f_Shadhan_1 === $current_user['Us
         if (navigator.clipboard && navigator.clipboard.writeText) {
           navigator.clipboard.writeText(linkEl.value).then(done, function(){ try{ document.execCommand('copy'); done(); }catch(e){} });
         } else { try{ document.execCommand('copy'); done(); }catch(e){} }
+      });
+
+      var sendBtn = root.querySelector('.js-invite-send');
+      var emailEl = root.querySelector('.js-invite-email');
+      var sendMsg = root.querySelector('.js-invite-send-msg');
+      sendBtn.addEventListener('click', function(){
+        var email = (emailEl.value || '').trim();
+        if (!email) { sendMsg.style.color = '#c0392b'; sendMsg.textContent = 'Укажите email кандидата.'; return; }
+        sendBtn.disabled = true;
+        sendMsg.style.color = '#7e6440'; sendMsg.textContent = 'Отправляем…';
+        var body = new URLSearchParams();
+        body.append('anketa_id', btn.getAttribute('data-anketa'));
+        body.append('email', email);
+        fetch('/api/invite_send_email.php', { method:'POST', body: body, credentials:'same-origin' })
+          .then(function(r){ return r.json().then(function(j){ return { ok:r.ok, js:j }; }); })
+          .then(function(res){
+            if (res.ok && res.js && res.js.ok) { sendMsg.style.color = '#3a7a3a'; sendMsg.textContent = 'Письмо отправлено кандидату.'; }
+            else { sendMsg.style.color = '#c0392b'; sendMsg.textContent = (res.js && res.js.error) ? res.js.error : 'Не удалось отправить.'; }
+          })
+          .catch(function(){ sendMsg.style.color = '#c0392b'; sendMsg.textContent = 'Сервис временно недоступен.'; })
+          .then(function(){ sendBtn.disabled = false; });
       });
     })();
     </script>

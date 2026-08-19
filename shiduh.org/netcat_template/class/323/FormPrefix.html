@@ -21,6 +21,13 @@ $nc_core->db->query(
     ARRAY_A
 );
 $nc_history = $nc_core->db->last_result;
+
+// Приглашённый кандидат заходит в аккаунт-заготовку (синтетический email,
+// вход только по ссылке). Предлагаем закрепить аккаунт за собой (XI-4).
+$nc_is_placeholder = (bool)$nc_core->db->get_var(
+    "SELECT 1 FROM `User` WHERE `User_ID`=$nc_uid "
+    . "AND `Email` LIKE 'invite-%@invite.shiduh.org' LIMIT 1"
+);
 ?>
 <style>
 .ai-chat{max-width:760px;margin:0 auto;background:#fff;border:1px solid #e3ddd2;border-radius:14px;overflow:hidden;display:flex;flex-direction:column}
@@ -43,6 +50,44 @@ $nc_history = $nc_core->db->last_result;
 @keyframes aiPulse{0%,100%{opacity:1}50%{opacity:.55}}
 @media(prefers-reduced-motion:reduce){.ai-chat__mic--on{animation:none}}
 </style>
+
+<?php if ($nc_is_placeholder): ?>
+<section class="ai-claim" id="aiClaim" style="max-width:760px;margin:0 auto 14px;background:#fff;border:1px solid #e3ddd2;border-radius:14px;padding:16px 18px">
+  <div style="font-size:15px;font-weight:500;color:#3a2b2b;margin-bottom:4px">Закрепите аккаунт за собой</div>
+  <div style="font-size:13px;color:#756d65;margin-bottom:12px">Задайте свой email и пароль, чтобы возвращаться к анкете без ссылки. Это не обязательно — можно просто продолжить заполнение.</div>
+  <form id="aiClaimForm" autocomplete="off" style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
+    <input type="email" id="aiClaimEmail" placeholder="Ваш email" required style="flex:1;min-width:180px;border:1px solid #e3ddd2;background:#f5f2ec;border-radius:11px;padding:10px 12px;font:inherit;font-size:14px;color:#3a2b2b">
+    <input type="password" id="aiClaimPass" placeholder="Пароль (от 6 символов)" required minlength="6" style="flex:1;min-width:180px;border:1px solid #e3ddd2;background:#f5f2ec;border-radius:11px;padding:10px 12px;font:inherit;font-size:14px;color:#3a2b2b">
+    <button type="submit" style="flex:none;border:0;border-radius:11px;padding:10px 16px;font:inherit;font-size:14px;font-weight:500;background:#c8ae88;color:#262839;cursor:pointer">Закрепить</button>
+  </form>
+  <div id="aiClaimMsg" style="font-size:12.5px;margin-top:8px"></div>
+</section>
+<script>
+(function(){
+  var form = document.getElementById('aiClaimForm');
+  var msg = document.getElementById('aiClaimMsg');
+  var box = document.getElementById('aiClaim');
+  form.addEventListener('submit', function(e){
+    e.preventDefault();
+    msg.style.color = '#7e6440'; msg.textContent = 'Сохраняем…';
+    var body = new URLSearchParams();
+    body.append('email', document.getElementById('aiClaimEmail').value);
+    body.append('password', document.getElementById('aiClaimPass').value);
+    fetch('/api/invite_claim.php', { method:'POST', body: body, credentials:'same-origin' })
+      .then(function(r){ return r.json().then(function(j){ return { ok:r.ok, js:j }; }); })
+      .then(function(res){
+        if (res.ok && res.js && res.js.ok) {
+          box.innerHTML = '<div style="font-size:14px;color:#3a2b2b">Готово! Аккаунт закреплён — теперь можно входить по вашему email и паролю.</div>';
+        } else {
+          msg.style.color = '#c0392b';
+          msg.textContent = (res.js && res.js.error) ? res.js.error : 'Не удалось сохранить.';
+        }
+      })
+      .catch(function(){ msg.style.color = '#c0392b'; msg.textContent = 'Сервис временно недоступен.'; });
+  });
+})();
+</script>
+<?php endif; ?>
 
 <section class="ai-chat">
   <div class="ai-chat__head">
