@@ -127,6 +127,9 @@ main.m .chat{height:404px}
 @media(prefers-reduced-motion:reduce){.dots i,.caret{animation:none;opacity:.6}}
 .compose{display:flex; gap:8px; padding:11px 13px; background:#fff; border-top:1px solid var(--line); align-items:center}
 .compose input{flex:1; min-width:0; border:1px solid var(--line); background:var(--cream); border-radius:11px; padding:10px 13px; font:inherit; font-size:14px; color:var(--brown)}
+.mic{flex:none; width:40px; height:40px; border-radius:50%; display:grid; place-items:center; background:var(--gold); color:var(--on-gold); transition:background .18s}
+.mic:hover{background:var(--gold-deep)}
+.mic:active{transform:scale(.94)}
 .compose input::placeholder{color:var(--mute)}
 
 .flist{list-style:none; margin:12px 0 0; padding:0; display:flex; flex-direction:column; gap:8px; font-size:13.5px}
@@ -182,6 +185,7 @@ main.m .chat{height:404px}
 .ava--f{background:linear-gradient(140deg,#dcc0cd,#b98fa4)}
 .per b{font-weight:500;font-size:14.5px;display:block;line-height:1.25}
 .per span{font-size:12px;color:var(--mute)}
+.per .shadhan{display:block;font-size:11px;color:var(--gold-text);margin-top:1px}
 .xx{color:var(--mute);font-size:12.5px}
 .score{text-align:right;min-width:92px}
 @container (max-width:600px){ .score{text-align:left} }
@@ -238,6 +242,22 @@ main.m .chat{height:404px}
 .sw__c{width:56px;height:34px;border-radius:7px;display:grid;place-items:center;font-size:12.5px;font-weight:500;flex:none}
 .sw__r{margin-left:auto;font-variant-numeric:tabular-nums;font-weight:700}
 
+/* ---------------- взгляд кандидата: открытые анкеты ---------------- */
+.cards{display:grid;gap:12px;grid-template-columns:repeat(auto-fill,minmax(196px,1fr))}
+.acard{background:#fff;border:1px solid var(--line);border-radius:12px;padding:15px;text-align:center;display:flex;flex-direction:column;align-items:center;gap:4px}
+.acard .cand__ava{margin:0 0 6px}
+.acard b{font-size:14.5px;color:#000;font-weight:500}
+.masked{display:inline-flex;align-items:center;gap:5px;color:var(--mute);font-size:12.5px;background:var(--cream);border-radius:7px;padding:3px 9px}
+.acard .row{justify-content:center;gap:5px;margin-top:4px}
+
+/* ---------------- личные сообщения с фото ---------------- */
+.im{background:var(--cream);border:1px solid var(--line);border-radius:12px;padding:14px;display:flex;flex-direction:column;gap:10px;max-width:520px}
+.im .msg--me img,.im .msg--ai img{display:block;max-width:180px;width:100%;border-radius:10px;margin-top:6px}
+.im-compose{display:flex;gap:8px;align-items:center;background:#fff;border:1px solid var(--line);border-radius:12px;padding:9px 11px}
+.im-compose input{flex:1;min-width:0;border:0;background:none;font:inherit;font-size:14px;color:var(--brown)}
+.attach{flex:none;width:38px;height:38px;border-radius:50%;display:grid;place-items:center;background:var(--cream);color:var(--gold-text)}
+.attach:hover{background:color-mix(in srgb,var(--gold) 22%,#fff)}
+
 /* Презентационная версия: прячем инженерные пометки — технические
    подписи под заголовками экранов, пометки фаз (Э0.2 и т.п.),
    служебные ключи и мелкие сноски со ссылками на требования. */
@@ -265,6 +285,8 @@ main.m .chat{height:404px}
       <button class="tab" role="tab" aria-selected="false" aria-controls="s2" id="t2">Резюме кандидата</button>
       <button class="tab" role="tab" aria-selected="false" aria-controls="s3" id="t3">Психопрофиль</button>
       <button class="tab" role="tab" aria-selected="false" aria-controls="s4" id="t4">Подбор пар</button>
+      <button class="tab" role="tab" aria-selected="false" aria-controls="s8" id="t8">Взгляд кандидата</button>
+      <button class="tab" role="tab" aria-selected="false" aria-controls="s9" id="t9">Личные сообщения</button>
       <button class="tab" role="tab" aria-selected="false" aria-controls="s5" id="t5">Разные ситуации</button>
       <button class="tab" role="tab" aria-selected="false" aria-controls="s6" id="t6">Настройка ИИ</button>
       <button class="tab" role="tab" aria-selected="false" aria-controls="s7" id="t7">Рассылка</button>
@@ -309,7 +331,10 @@ main.m .chat{height:404px}
         </div>
         <div class="compose">
           <label for="ci" style="position:absolute;left:-9999px">Сообщение</label>
-          <input id="ci" type="text" placeholder="Напишите сообщение…">
+          <button class="mic" aria-label="Ввести голосом" title="Ввести голосом">
+            <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><path fill="currentColor" d="M12 15a3 3 0 0 0 3-3V6a3 3 0 0 0-6 0v6a3 3 0 0 0 3 3Zm5-3a5 5 0 0 1-10 0H5a7 7 0 0 0 6 6.9V22h2v-3.1A7 7 0 0 0 19 12h-2Z"/></svg>
+          </button>
+          <input id="ci" type="text" placeholder="Напишите или продиктуйте…">
           <button class="btn btn--sm">Отправить</button>
         </div>
       </div>
@@ -412,12 +437,15 @@ main.m .chat{height:404px}
 
       <div style="display:flex;flex-direction:column;gap:16px">
         <div>
-          <h3 class="h3">Семейные ценности</h3>
+          <h3 class="h3">Ценностный профиль</h3>
           <div class="vals" style="margin-top:10px">
-            <div class="val"><div class="fact__k">Бюджет</div><div class="fact__v">Общий, решения вместе</div></div>
+            <div class="val"><div class="fact__k">Бюджет семьи</div><div class="fact__v">Общий, решения вместе</div></div>
             <div class="val"><div class="fact__k">Роли в доме</div><div class="fact__v">Традиционные</div></div>
-            <div class="val"><div class="fact__k">Дети</div><div class="fact__v">Хочет, много</div></div>
-            <div class="val"><div class="fact__k">Родители</div><div class="fact__v">Близко, но с границами</div></div>
+            <div class="val"><div class="fact__k">Воспитание детей</div><div class="fact__v">Хочет, много</div></div>
+            <div class="val"><div class="fact__k">Отношения с родителями</div><div class="fact__v">Близко, но с границами</div></div>
+            <div class="val"><div class="fact__k">Отношение к религии</div><div class="fact__v">Соблюдение — образ жизни</div></div>
+            <div class="val"><div class="fact__k">Карьера и дом</div><div class="fact__v">Дом в приоритете</div></div>
+            <div class="val"><div class="fact__k">Готовность к переезду</div><div class="fact__v">Готова ради семьи</div></div>
           </div>
         </div>
 
@@ -470,9 +498,9 @@ main.m .chat{height:404px}
     <article class="rec">
       <div class="rec__t">
         <div class="pair">
-          <div class="per"><div class="ava">МС</div><div><b>Менаше Симхаев</b><span>33 · Ясногорск · Хабад</span></div></div>
+          <div class="per"><div class="ava">МС</div><div><b>Менаше Симхаев</b><span>33 · Ясногорск · Хабад</span><span class="shadhan">Шадхан: Давид Мизрахи</span></div></div>
           <span class="xx">×</span>
-          <div class="per"><div class="ava ava--f">ЛК</div><div><b>Лея Каплан</b><span>41 · Озёрное · Хабад</span></div></div>
+          <div class="per"><div class="ava ava--f">ЛК</div><div><b>Лея Каплан</b><span>41 · Озёрное · Хабад</span><span class="shadhan">Шадханит: Ривка Абрамова</span></div></div>
         </div>
         <div class="score"><div class="score__n">87%</div><div class="score__b"><span style="width:87%"></span></div></div>
       </div>
@@ -497,9 +525,9 @@ main.m .chat{height:404px}
     <article class="rec">
       <div class="rec__t">
         <div class="pair">
-          <div class="per"><div class="ava">РБ</div><div><b>Рафаэль Биньяминов</b><span>27 · Ясногорск · Эдот Мизрах</span></div></div>
+          <div class="per"><div class="ava">РБ</div><div><b>Рафаэль Биньяминов</b><span>27 · Ясногорск · Эдот Мизрах</span><span class="shadhan">Шадхан: Йосеф Ханукаев</span></div></div>
           <span class="xx">×</span>
-          <div class="per"><div class="ava ava--f">СГ</div><div><b>Сара Гольдберг</b><span>25 · Ясногорск · Эдот Мизрах</span></div></div>
+          <div class="per"><div class="ava ava--f">СГ</div><div><b>Сара Гольдберг</b><span>25 · Ясногорск · Эдот Мизрах</span><span class="shadhan">Шадханит: Ривка Абрамова</span></div></div>
         </div>
         <div class="score"><div class="score__n">79%</div><div class="score__b"><span style="width:79%"></span></div></div>
       </div>
@@ -551,6 +579,121 @@ main.m .chat{height:404px}
         <button class="btn btn--sm">Отклонить пару</button>
       </div>
       <p class="mini" style="margin-top:9px">Причина не просто прячет пару: если шадхан регулярно отклоняет по одному основанию, вес соответствующей части балла у него понижается.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ================= 08 ВЗГЛЯД КАНДИДАТА ================= -->
+<section class="screen" id="s8" role="tabpanel" aria-labelledby="t8" hidden>
+  <div class="note">
+    <b>Что видит сам кандидат.</b> Открытые анкеты — без имени и контактов, только то, что человек согласился показать. И его собственные рекомендованные пары — тоже обезличенно, знакомство ведёт шадхан.
+  </div>
+
+  <div class="stage">
+    <h2 style="font-family:kudryashev,Georgia,serif;font-size:22px;color:#000;margin-bottom:4px">Открытые анкеты</h2>
+    <p class="mini" style="margin-bottom:14px">Имя и контакты скрыты. Чтобы познакомиться — кандидат обращается к своему шадхану.</p>
+    <div class="cards">
+      <div class="acard">
+        <div class="cand__ava">✡</div>
+        <span class="masked">🔒 Имя скрыто</span>
+        <div class="mini" style="margin-top:6px">28 лет · Ясногорск</div>
+        <div class="row"><span class="pill">Хабад</span><span class="pill pill--ok">Документы</span></div>
+      </div>
+      <div class="acard">
+        <div class="cand__ava" style="background:linear-gradient(140deg,#dcc0cd,#b98fa4)">✡</div>
+        <span class="masked">🔒 Имя скрыто</span>
+        <div class="mini" style="margin-top:6px">25 лет · Пятигорск</div>
+        <div class="row"><span class="pill">Эдот Мизрах</span></div>
+      </div>
+      <div class="acard">
+        <div class="cand__ava">✡</div>
+        <span class="masked">🔒 Имя скрыто</span>
+        <div class="mini" style="margin-top:6px">33 года · Москва</div>
+        <div class="row"><span class="pill">Литвак</span><span class="pill pill--ok">Документы</span></div>
+      </div>
+      <div class="acard">
+        <div class="cand__ava" style="background:linear-gradient(140deg,#dcc0cd,#b98fa4)">✡</div>
+        <span class="masked">🔒 Имя скрыто</span>
+        <div class="mini" style="margin-top:6px">31 год · Дербент</div>
+        <div class="row"><span class="pill">Эдот Мизрах</span></div>
+      </div>
+    </div>
+
+    <hr class="sep" style="margin:22px 0">
+
+    <div class="row" style="margin-bottom:6px">
+      <h2 style="font-family:kudryashev,Georgia,serif;font-size:22px;color:#000">Пары, подобранные для вас</h2>
+      <span class="pill">3 совпадения</span>
+    </div>
+    <p class="mini" style="margin-bottom:14px">ИИ нашёл подходящих кандидатов. Данные обезличены — знакомство организует ваш шадхан.</p>
+
+    <article class="rec">
+      <div class="rec__t">
+        <div class="pair">
+          <div class="per"><div class="ava ava--f">Я</div><div><b>Вы</b><span>25 · Пятигорск · Эдот Мизрах</span></div></div>
+          <span class="xx">×</span>
+          <div class="per"><div class="ava">✡</div><div><b class="masked" style="background:none;padding:0">Кандидат скрыт</b><span>27 · Ясногорск · Эдот Мизрах</span></div></div>
+        </div>
+        <div class="score"><div class="score__n">79%</div><div class="score__b"><span style="width:79%"></span></div></div>
+      </div>
+      <div class="rec__b">
+        <div>
+          <div class="lbl">Что совпало</div>
+          <p class="why" style="margin-top:5px">Один регион и одно течение, близкий уровень соблюдения, оба хотят большую семью. Подробности и знакомство — через вашего шадхана.</p>
+        </div>
+        <div class="acts">
+          <button class="btn btn--sm">Обсудить с шадханом</button>
+          <button class="btn btn--quiet btn--sm">Не интересно</button>
+        </div>
+      </div>
+    </article>
+
+    <article class="rec">
+      <div class="rec__t">
+        <div class="pair">
+          <div class="per"><div class="ava ava--f">Я</div><div><b>Вы</b><span>25 · Пятигорск · Эдот Мизрах</span></div></div>
+          <span class="xx">×</span>
+          <div class="per"><div class="ava">✡</div><div><b class="masked" style="background:none;padding:0">Кандидат скрыт</b><span>29 · Москва · Эдот Мизрах</span></div></div>
+        </div>
+        <div class="score"><div class="score__n">71%</div><div class="score__b"><span style="width:71%"></span></div></div>
+      </div>
+      <div class="rec__b">
+        <div>
+          <div class="lbl">Что совпало</div>
+          <p class="why" style="margin-top:5px">Совпали ценности и отношение к дому. Разница в городе — но кандидат отметил готовность к переезду.</p>
+        </div>
+        <div class="acts">
+          <button class="btn btn--sm">Обсудить с шадханом</button>
+          <button class="btn btn--quiet btn--sm">Не интересно</button>
+        </div>
+      </div>
+    </article>
+  </div>
+</section>
+
+<!-- ================= 09 ЛИЧНЫЕ СООБЩЕНИЯ ================= -->
+<section class="screen" id="s9" role="tabpanel" aria-labelledby="t9" hidden>
+  <div class="note">
+    <b>Личные сообщения с фотографиями.</b> Кандидат и шадхан переписываются и могут прикреплять фото — например, свежий снимок для анкеты или скан документа.
+  </div>
+
+  <div class="stage">
+    <div class="im">
+      <div class="msg msg--ai">Здравствуйте! Пришлите, пожалуйста, свежую фотографию для анкеты.<time>10:14</time></div>
+      <div class="msg msg--me">Конечно, вот последняя:
+        <img alt="Прикреплённое фото" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='240' height='180'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' y1='0' x2='0' y2='1'%3E%3Cstop offset='0' stop-color='%23d9c2a2'/%3E%3Cstop offset='1' stop-color='%23b99a6f'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='240' height='180' fill='url(%23g)'/%3E%3Ccircle cx='120' cy='74' r='34' fill='%23f5f2ec' opacity='.85'/%3E%3Cpath d='M64 168c0-34 26-52 56-52s56 18 56 52z' fill='%23f5f2ec' opacity='.85'/%3E%3C/svg%3E">
+        <time>10:16</time>
+      </div>
+      <span class="chip">✓ Фото добавлено в анкету</span>
+      <div class="msg msg--ai">Спасибо, отличное фото! Добавил в вашу анкету.<time>10:17</time></div>
+    </div>
+
+    <div class="im-compose" style="margin-top:12px;max-width:520px">
+      <button class="attach" aria-label="Прикрепить фото" title="Прикрепить фото">
+        <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><path fill="currentColor" d="M16.5 6.5v9a4.5 4.5 0 0 1-9 0V5a3 3 0 0 1 6 0v9.5a1.5 1.5 0 0 1-3 0V6.5H8V14.5a3 3 0 0 0 6 0V5a4.5 4.5 0 0 0-9 0v10.5a6 6 0 0 0 12 0v-9z"/></svg>
+      </button>
+      <input type="text" placeholder="Сообщение…" aria-label="Сообщение">
+      <button class="btn btn--sm">Отправить</button>
     </div>
   </div>
 </section>
