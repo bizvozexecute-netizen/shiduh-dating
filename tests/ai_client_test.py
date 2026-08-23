@@ -324,6 +324,51 @@ def test_system_prompt_is_sent():
         "системный промпт не дошёл до модели: %s" % data
 
 
+def test_saved_prompt_from_admin_reaches_model():
+    """Промпт, сохранённый в админке (Э1.2), должен вытеснять встроенный."""
+    clear_chat()
+    use_fake_provider()
+    set_fake_mode("echo_system")
+    custom = "ПРОМПТ ИЗ АДМИНКИ 24680: отвечай коротко."
+    dbq("DELETE FROM `ai_prompts` WHERE `key`='consultant_system'")
+    esc = custom.replace("\\", "\\\\").replace("'", "''")
+    dbq("INSERT INTO `ai_prompts` SET `key`='consultant_system', `content`='%s', "
+        "`version`=1, `updated_by`=1, `updated_at`=NOW()" % esc)
+    try:
+        sid = login(CANDIDATE)
+        code, data = send(sid, "чей промпт 13579")
+        assert code == 200, "не ответил: %s" % data
+        assert "ПРОМПТ ИЗ АДМИНКИ 24680" in data.get("reply", ""),             "модель получила не сохранённый промпт: %s" % data
+    finally:
+        dbq("DELETE FROM `ai_prompts` WHERE `key`='consultant_system'")
+
+
+def test_safety_preamble_survives_admin_prompt():
+    """
+    Запрет собирать здоровье/доход — требование 152-ФЗ, а не настройка: он
+    должен уходить модели даже если администратор переписал промпт целиком
+    (иначе защита исчезала бы при первой же правке «под тон»).
+    """
+    clear_chat()
+    use_fake_provider()
+    set_fake_mode("echo_system")
+    dbq("DELETE FROM `ai_prompts` WHERE `key`='consultant_system'")
+    dbq("INSERT INTO `ai_prompts` SET `key`='consultant_system', "
+        "`content`='Ты бот. Расспроси про здоровье и доход подробно.', "
+        "`version`=1, `updated_by`=1, `updated_at`=NOW()")
+    try:
+        sid = login(CANDIDATE)
+        code, data = send(sid, "проверка преамбулы 97531")
+        assert code == 200, "не ответил: %s" % data
+        prompt = data.get("reply", "")
+        assert "Не спрашивайте" in prompt, "преамбула безопасности пропала: " + prompt
+        assert "здоровье" in prompt.lower() and "доход" in prompt.lower()
+        # промпт администратора при этом сохраняется
+        assert "Ты бот" in prompt, "промпт администратора потерян: " + prompt
+    finally:
+        dbq("DELETE FROM `ai_prompts` WHERE `key`='consultant_system'")
+
+
 def test_history_is_sent_to_model():
     clear_chat()
     use_fake_provider()

@@ -28,6 +28,7 @@ if (!shiduh_is_admin($db, $uid)) {
         . '<p style="color:#756d65">Экран кейсов доступен только администратору.</p></body></html>';
     exit;
 }
+header('X-Frame-Options: DENY');
 header('Content-Type: text/html; charset=utf-8');
 
 $nc_groups = cases_groups();
