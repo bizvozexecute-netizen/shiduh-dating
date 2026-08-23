@@ -14,7 +14,13 @@ if ($f_Subject && !$warnText) {
         $reSubject = "Re: $f_Subject";
 }
 
-echo $warnText;
+// Ошибку валидации (напр. недопустимый тип/размер вложения — Ф-2) оборачиваем
+// в маркер js-upload-error, чтобы JS формы показал её вместо слепого редиректа.
+if ($warnText) {
+    echo '<div class="js-upload-error form__upload-error" role="alert" '
+       . 'style="background:#f8e3e3;border:1px solid #e3b6b6;color:#8a2a2a;'
+       . 'border-radius:8px;padding:10px 13px;margin-bottom:12px">' . $warnText . '</div>';
+}
 
 if (!$inside_admin && $to_user && $uid != $current_user['User_ID'] && $nc_core->get_settings('pm_allow', 'auth')) {
     ?>
@@ -123,7 +129,28 @@ const form = document.querySelector('#write_message-new'); // #addForm
         if (!response.ok) {
           throw new Error(`Ошибка ${response.status}`);
         }
-        // В случае успешной отправки, выполняем перезагрузку страницы
+        return response.text();
+      })
+      .then((html) => {
+        // Если сервер вернул форму с ошибкой валидации (напр. недопустимый
+        // тип/размер вложения — Ф-2), не уходим со страницы, а показываем причину.
+        // Маркер собираем из частей, чтобы регексп не совпал со своим же текстом
+        // в этом <script> (иначе на пустом warnText показал бы мусор).
+        const marker = 'js-upload' + '-error';
+        const m = html.match(new RegExp('<div class="' + marker + '[^"]*"[^>]*>([\\s\\S]*?)</div>'));
+        if (m) {
+          let box = form.querySelector('.js-upload-error-live');
+          if (!box) {
+            box = document.createElement('div');
+            box.className = 'js-upload-error-live';
+            box.setAttribute('role', 'alert');
+            box.style.cssText = 'background:#f8e3e3;border:1px solid #e3b6b6;color:#8a2a2a;border-radius:8px;padding:10px 13px;margin:10px 0';
+            form.prepend(box);
+          }
+          box.textContent = m[1].replace(/<[^>]+>/g, '').trim();
+          return;
+        }
+        // Успешная отправка — перезагружаем список сообщений.
         window.location.href = '/my/message/';
       })
       .catch((error) => {

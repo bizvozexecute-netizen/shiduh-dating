@@ -182,6 +182,11 @@ class TestUp:
                          "AND column_name='token'")
         assert non_unique == "0", "нет UNIQUE-индекса по mailing_optout.token"
 
+    def test_photo_field_format_limits(self):
+        # миграция 009: вложения в сообщениях (Ф-2) — лимит 10 МБ и только image/*
+        fmt = dbq("SELECT Format FROM Field WHERE Field_ID=648")
+        assert fmt.startswith("10485760:image/*"), "формат поля фото без лимита: " + fmt[:40]
+
     def test_composite_index_for_matching(self):
         assert index_exists("Message204", "idx_match"), "нет составного индекса подбора"
 
@@ -239,6 +244,11 @@ class TestDown:
         for f in MEETING006_FIELDS:
             assert not col_exists("Message204", f), "колонка 006 не удалена: " + f
             assert dbq("SELECT COUNT(*) FROM Field WHERE Class_ID=204 AND Field_Name='%s'" % f) == "0"
+
+    def test_photo_field_format_restored(self):
+        # 009 down: префикс лимита снят, формат вернулся к «без ограничений»
+        fmt = dbq("SELECT Format FROM Field WHERE Field_ID=648")
+        assert not fmt.startswith("10485760:image/*"), "лимит формата не снят: " + fmt[:40]
 
     def test_schema_back_to_baseline(self):
         assert message204_cols() == BASELINE_COLS, "число колонок Message204 не вернулось к 131"
