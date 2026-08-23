@@ -147,6 +147,9 @@ $nc_is_placeholder = (bool)$nc_core->db->get_var(
       .then(function(r){ return r.json().catch(function(){ return {}; }); })
       .then(function(js){
         if (js && js.reply) bubble('assistant', js.reply);
+        // сервер объяснил причину (например, ИИ временно недоступен) — показываем её,
+        // а не общее «не удалось»
+        else if (js && js.error) bubble('assistant', js.error);
         else bubble('assistant', 'Не удалось получить ответ. Попробуйте ещё раз.');
       })
       .catch(function(){ bubble('assistant', 'Сервис временно недоступен. Ваше сообщение сохранено.'); })
