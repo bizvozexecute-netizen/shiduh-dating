@@ -61,7 +61,7 @@ PROFILE_FIELDS = [
     "Profile_embedding", "Embedding_meta",
 ]
 NEW_TABLES = ["ai_chat_messages", "ai_prompts", "ai_field_writes", "invite_tokens",
-              "mailings", "mailing_log", "mailing_optout"]
+              "mailings", "mailing_log", "mailing_optout", "assessment_cases"]
 NEW_DICTS = ["Classificator_Kashrut_level", "Classificator_Shabbat_level",
              "Classificator_Value_dimension"]
 DICT_NAMES = ["Kashrut_level", "Shabbat_level", "Value_dimension"]
@@ -181,6 +181,29 @@ class TestUp:
                          "WHERE table_schema=DATABASE() AND table_name='mailing_optout' "
                          "AND column_name='token'")
         assert non_unique == "0", "нет UNIQUE-индекса по mailing_optout.token"
+
+    def test_assessment_cases_seeded(self):
+        # миграция 010: кейсы опроса (Э2.2-a) — таблица и стартовый набор
+        assert table_exists("assessment_cases"), "нет таблицы assessment_cases"
+        assert int(dbq("SELECT COUNT(*) FROM assessment_cases "
+                       "WHERE dimension_group='love_language'")) >= 5
+        assert int(dbq("SELECT COUNT(*) FROM assessment_cases "
+                       "WHERE dimension_group='family_value'")) >= 7
+        # все стартовые кейсы активны и с непустым текстом
+        assert dbq("SELECT COUNT(*) FROM assessment_cases "
+                   "WHERE active<>1 OR TRIM(scenario_text)=''") == "0"
+
+    def test_assessment_cases_seed_not_duplicated_on_reup(self):
+        # снимок берём ПОСЛЕ первого up: тогда результат не зависит от того,
+        # что успели наделать соседние тесты (иначе up дозаполнил бы удалённое
+        # и сравнение с внешним снимком развалилось)
+        code, out = migrate("up")
+        assert code == 0, "up упал:\n" + out
+        before = dbq("SELECT COUNT(*) FROM assessment_cases")
+        code, out = migrate("up")
+        assert code == 0, "повторный up упал:\n" + out
+        assert dbq("SELECT COUNT(*) FROM assessment_cases") == before, \
+            "повторный up продублировал кейсы"
 
     def test_photo_field_format_limits(self):
         # миграция 009: вложения в сообщениях (Ф-2) — лимит 10 МБ и только image/*
