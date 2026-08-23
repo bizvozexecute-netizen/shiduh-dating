@@ -385,12 +385,109 @@ if($f_User_ID === $current_user['User_ID'] || $f_Shadhan_1 === $current_user['Us
             <div class="lk-questionnaire__body-table-cell lk-questionnaire__body-table-cell--value">От <?= $f_Search_age_start; ?> До <?= $f_Search_age_end; ?> лет</div>
           </div>
           <? endif; ?>
-          <? if($f_Search_for_shadhan): ?>  
+          <? if($f_Search_for_shadhan): ?>
           <div class="lk-questionnaire__body-table-row">
             <div class="lk-questionnaire__body-table-cell lk-questionnaire__body-table-cell--key"><b>Заметка для шадхана:</b></div>
             <div class="lk-questionnaire__body-table-cell lk-questionnaire__body-table-cell--value"><?= $f_Search_for_shadhan; ?></div>
           </div>
           <? endif; ?>
+      </div>
+    </div>
+    <? endif; ?>
+
+    <?php /* Новые поля по итогам встречи с шадханами (миграция 006) — атрибуты
+       самого кандидата, поэтому ОТДЕЛЬНАЯ самодостаточная секция (не внутри
+       «Предпочтений»): показывается, когда заполнено хоть одно. Значения уже
+       экранированы NetCat при выводе (тип 3), добавляем только переносы. */ ?>
+    <? if(trim((string)$f_Sport_attitude) !== ''
+          || trim((string)$f_Housing_after_marriage) !== ''
+          || trim((string)$f_Languages_spoken) !== ''
+          || trim((string)$f_Diaspora_openness) !== ''
+          || trim((string)$f_Observance_growth) !== ''
+          || trim((string)$f_Rabbinate_registration) !== ''
+          || trim((string)$f_Introvert_extrovert) !== ''): ?>
+    <div class="lk-questionnaire__section">
+      <div class="lk-questionnaire__section-title title title--lk">Дополнительно о кандидате</div>
+      <div class="lk-questionnaire__body">
+        <div class="lk-questionnaire__body-table">
+          <? if(trim((string)$f_Sport_attitude) !== ''): ?>
+          <div class="lk-questionnaire__body-table-row">
+            <div class="lk-questionnaire__body-table-cell lk-questionnaire__body-table-cell--key"><b>Спорт и активный отдых:</b></div>
+            <div class="lk-questionnaire__body-table-cell lk-questionnaire__body-table-cell--value"><?= nl2br($f_Sport_attitude); ?></div>
+          </div>
+          <? endif; ?>
+          <? if(trim((string)$f_Housing_after_marriage) !== ''): ?>
+          <div class="lk-questionnaire__body-table-row">
+            <div class="lk-questionnaire__body-table-cell lk-questionnaire__body-table-cell--key"><b>Жильё после брака:</b></div>
+            <div class="lk-questionnaire__body-table-cell lk-questionnaire__body-table-cell--value"><?= nl2br($f_Housing_after_marriage); ?></div>
+          </div>
+          <? endif; ?>
+          <? if(trim((string)$f_Languages_spoken) !== ''): ?>
+          <div class="lk-questionnaire__body-table-row">
+            <div class="lk-questionnaire__body-table-cell lk-questionnaire__body-table-cell--key"><b>Языки общения:</b></div>
+            <div class="lk-questionnaire__body-table-cell lk-questionnaire__body-table-cell--value"><?= nl2br($f_Languages_spoken); ?></div>
+          </div>
+          <? endif; ?>
+          <? if(trim((string)$f_Diaspora_openness) !== ''): ?>
+          <div class="lk-questionnaire__body-table-row">
+            <div class="lk-questionnaire__body-table-cell lk-questionnaire__body-table-cell--key"><b>Открытость к диаспорам:</b></div>
+            <div class="lk-questionnaire__body-table-cell lk-questionnaire__body-table-cell--value"><?= nl2br($f_Diaspora_openness); ?></div>
+          </div>
+          <? endif; ?>
+          <? if(trim((string)$f_Observance_growth) !== ''): ?>
+          <div class="lk-questionnaire__body-table-row">
+            <div class="lk-questionnaire__body-table-cell lk-questionnaire__body-table-cell--key"><b>Готовность расти в соблюдении:</b></div>
+            <div class="lk-questionnaire__body-table-cell lk-questionnaire__body-table-cell--value"><?= nl2br($f_Observance_growth); ?></div>
+          </div>
+          <? endif; ?>
+          <? if(trim((string)$f_Rabbinate_registration) !== ''): ?>
+          <div class="lk-questionnaire__body-table-row">
+            <div class="lk-questionnaire__body-table-cell lk-questionnaire__body-table-cell--key"><b>Раввинат и документы о еврействе:</b></div>
+            <div class="lk-questionnaire__body-table-cell lk-questionnaire__body-table-cell--value"><?= nl2br($f_Rabbinate_registration); ?></div>
+          </div>
+          <? endif; ?>
+          <? if(trim((string)$f_Introvert_extrovert) !== ''): ?>
+          <div class="lk-questionnaire__body-table-row">
+            <div class="lk-questionnaire__body-table-cell lk-questionnaire__body-table-cell--key"><b>Интроверт / экстраверт:</b></div>
+            <div class="lk-questionnaire__body-table-cell lk-questionnaire__body-table-cell--value"><?= nl2br($f_Introvert_extrovert); ?></div>
+          </div>
+          <? endif; ?>
+        </div>
+      </div>
+    </div>
+    <? endif; ?>
+
+    <?php /* Чувствительные сведения (доход/здоровье/медикаменты, миграция 006):
+       видны ТОЛЬКО шадхану и никогда не уходят во внешний LLM
+       (см. api/ai_sensitive_fields.php, Раздел X). Блок показывается только
+       если есть что показать. */ ?>
+    <? if($current_user['Type_id'] === 2
+          && (trim((string)$f_Income_property) !== ''
+              || trim((string)$f_Health_conditions) !== ''
+              || trim((string)$f_Medications) !== '')): ?>
+    <div class="lk-questionnaire__section">
+      <div class="lk-questionnaire__section-title title title--lk">Чувствительные сведения <span style="font-weight:400;font-size:13px;color:#8a6d1a">— только для шадхана</span></div>
+      <div class="lk-questionnaire__body">
+        <div class="lk-questionnaire__body-table">
+          <? if(trim((string)$f_Income_property) !== ''): ?>
+          <div class="lk-questionnaire__body-table-row">
+            <div class="lk-questionnaire__body-table-cell lk-questionnaire__body-table-cell--key"><b>Доход и имущество:</b></div>
+            <div class="lk-questionnaire__body-table-cell lk-questionnaire__body-table-cell--value"><?= nl2br($f_Income_property); ?></div>
+          </div>
+          <? endif; ?>
+          <? if(trim((string)$f_Health_conditions) !== ''): ?>
+          <div class="lk-questionnaire__body-table-row">
+            <div class="lk-questionnaire__body-table-cell lk-questionnaire__body-table-cell--key"><b>Здоровье:</b></div>
+            <div class="lk-questionnaire__body-table-cell lk-questionnaire__body-table-cell--value"><?= nl2br($f_Health_conditions); ?></div>
+          </div>
+          <? endif; ?>
+          <? if(trim((string)$f_Medications) !== ''): ?>
+          <div class="lk-questionnaire__body-table-row">
+            <div class="lk-questionnaire__body-table-cell lk-questionnaire__body-table-cell--key"><b>Приём медикаментов:</b></div>
+            <div class="lk-questionnaire__body-table-cell lk-questionnaire__body-table-cell--value"><?= nl2br($f_Medications); ?></div>
+          </div>
+          <? endif; ?>
+        </div>
       </div>
     </div>
     <? endif; ?>

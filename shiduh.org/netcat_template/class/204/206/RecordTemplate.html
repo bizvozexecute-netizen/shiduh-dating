@@ -693,7 +693,53 @@ if (!empty($missingFields)) {
             <div class="form__item form__item--2col tpl-field">
               <label class="form__item-name" for="">Заметка для шадхана </label>
               <textarea class="form__textarea" name="f_Search_for_shadhan"  placeholder="Введите текст заметки"><?= $f_Search_for_shadhan;?></textarea>
-             
+
+            </div>
+
+            <?php /* Новые поля по итогам встречи с шадханами (миграция 006).
+               Все необязательные — можно заполнить в диалоге с ИИ-консультантом
+               или здесь вручную. Чувствительные (доход/здоровье/медикаменты)
+               поданы мягко: по желанию и видно только шадхану. */ ?>
+            <div class="form__item form__item--2col tpl-field">
+              <label class="form__item-name" for="">Спорт и активный отдых</label>
+              <textarea class="form__textarea" name="f_Sport_attitude" placeholder="Например: бегаю по утрам, люблю походы"><?= $f_Sport_attitude;?></textarea>
+            </div>
+            <div class="form__item form__item--2col tpl-field">
+              <label class="form__item-name" for="">Жильё после свадьбы</label>
+              <textarea class="form__textarea" name="f_Housing_after_marriage" placeholder="С семьёй, отдельно, пока не решили…"><?= $f_Housing_after_marriage;?></textarea>
+            </div>
+            <div class="form__item form__item--2col tpl-field">
+              <label class="form__item-name" for="">Языки, на которых говорите</label>
+              <textarea class="form__textarea" name="f_Languages_spoken" placeholder="Например: русский, иврит, английский"><?= $f_Languages_spoken;?></textarea>
+            </div>
+            <div class="form__item form__item--2col tpl-field">
+              <label class="form__item-name" for="">Открытость к другим общинам и диаспорам</label>
+              <textarea class="form__textarea" name="f_Diaspora_openness" placeholder="Только своя община или готовы рассмотреть другие"><?= $f_Diaspora_openness;?></textarea>
+            </div>
+            <div class="form__item form__item--2col tpl-field">
+              <label class="form__item-name" for="">Готовность расти в соблюдении заповедей</label>
+              <textarea class="form__textarea" name="f_Observance_growth" placeholder="Что для вас важно и где ваши границы"><?= $f_Observance_growth;?></textarea>
+            </div>
+            <div class="form__item form__item--2col tpl-field">
+              <label class="form__item-name" for="">Документы о еврействе, регистрация в раввинате</label>
+              <textarea class="form__textarea" name="f_Rabbinate_registration" placeholder="По желанию"><?= $f_Rabbinate_registration;?></textarea>
+            </div>
+            <div class="form__item form__item--2col tpl-field">
+              <label class="form__item-name" for="">Скорее интроверт или экстраверт?</label>
+              <textarea class="form__textarea" name="f_Introvert_extrovert" placeholder="Как вам комфортнее"><?= $f_Introvert_extrovert;?></textarea>
+            </div>
+
+            <div class="form__item form__item--2col tpl-field">
+              <label class="form__item-name" for="">Материальное положение <span style="font-weight:400;color:#8a6d1a">— по желанию, видно только шадхану</span></label>
+              <textarea class="form__textarea" name="f_Income_property" placeholder="Работа, жильё, доход — если считаете нужным поделиться"><?= $f_Income_property;?></textarea>
+            </div>
+            <div class="form__item form__item--2col tpl-field">
+              <label class="form__item-name" for="">Здоровье <span style="font-weight:400;color:#8a6d1a">— по желанию, видно только шадхану</span></label>
+              <textarea class="form__textarea" name="f_Health_conditions" placeholder="Важные особенности здоровья, если хотите указать"><?= $f_Health_conditions;?></textarea>
+            </div>
+            <div class="form__item form__item--2col tpl-field">
+              <label class="form__item-name" for="">Приём медикаментов <span style="font-weight:400;color:#8a6d1a">— по желанию, видно только шадхану</span></label>
+              <textarea class="form__textarea" name="f_Medications" placeholder="По желанию"><?= $f_Medications;?></textarea>
             </div>
           </fieldset>
         </div>
