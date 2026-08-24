@@ -10,6 +10,7 @@
   ok              — обычный ответ, эхом последнего сообщения пользователя
   echo_system     — эхом системного промпта (проверка, что он доехал)
   echo_tools      — эхом списка полученных инструментов и их полей
+  echo_prompt     — эхом всего полученного запроса (проверка приватности)
   tool_call_always— просит инструмент на каждом вызове (проверка отсутствия цикла)
   fail_then_ok    — первые N вызовов отдают 500, потом успех (ретраи)
   always_500      — всегда 500 (отказ после ретраев)
@@ -152,6 +153,26 @@ if ($mode === 'tool_call_always') {
             )),
         ))),
         'usage' => array('prompt_tokens' => 4, 'completion_tokens' => 4, 'total_tokens' => 8),
+    ), JSON_UNESCAPED_UNICODE);
+    exit;
+}
+
+if ($mode === 'echo_prompt') {
+    /* Возвращает ВЕСЬ полученный запрос: так тест видит, что реально ушло
+       в модель, и может доказать отсутствие идентификаторов. */
+    $all = array();
+    if (isset($raw['messages']) && is_array($raw['messages'])) {
+        foreach ($raw['messages'] as $m) {
+            $all[] = (isset($m['role']) ? $m['role'] : '?') . ': '
+                   . (isset($m['content']) ? $m['content'] : '');
+        }
+    }
+    echo json_encode(array(
+        'choices' => array(array('message' => array(
+            'role' => 'assistant',
+            'content' => implode(" | ", $all),
+        ))),
+        'usage' => array('prompt_tokens' => 9, 'completion_tokens' => 9, 'total_tokens' => 18),
     ), JSON_UNESCAPED_UNICODE);
     exit;
 }

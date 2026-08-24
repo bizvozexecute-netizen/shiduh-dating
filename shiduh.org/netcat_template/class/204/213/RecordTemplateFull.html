@@ -547,7 +547,9 @@ if($f_User_ID === $current_user['User_ID'] || $f_Shadhan_1 === $current_user['Us
 
     <?php /* Э0.3. Резюме от ИИ по кандидату — только шадхану. Показывает поле
        AI_summary; переписка кандидата с ИИ здесь НЕ выводится (приватность).
-       Кнопка «Обновить резюме» активируется в Э1, когда подключим генерацию. */ ?>
+       Кнопка «Обновить резюме» вызывает генерацию (Э1.4): в модель уходит
+       только белый список полей анкеты — без ФИО, контактов и данных о
+       здоровье (api/summary_lib.php). */ ?>
     <? if($current_user['Type_id'] === 2): ?>
     <div class="lk-questionnaire__section">
       <div class="lk-questionnaire__section-title title title--lk">Резюме от ИИ</div>
@@ -560,9 +562,47 @@ if($f_User_ID === $current_user['User_ID'] || $f_Shadhan_1 === $current_user['Us
         <? else: ?>
           <div class="lk-questionnaire__ai-summary lk-questionnaire__ai-summary--empty">Резюме ещё не сформировано</div>
         <? endif; ?>
-        <button type="button" class="button button--secondary lk-questionnaire__ai-summary-refresh" disabled title="Появится на следующем этапе">Обновить резюме</button>
+        <button type="button" class="button button--secondary js-ai-summary-refresh"
+                data-anketa="<?= (int)$f_Message_ID; ?>">Обновить резюме</button>
+        <div class="js-ai-summary-msg" role="status" style="margin-top:8px;font-size:13.5px"></div>
       </div>
     </div>
+    <script>
+    (function(){
+      var btn = document.querySelector('.js-ai-summary-refresh');
+      if (!btn) return;
+      var msg = document.querySelector('.js-ai-summary-msg');
+      var box = document.querySelector('.lk-questionnaire__ai-summary');
+      btn.addEventListener('click', function(){
+        btn.disabled = true;
+        msg.style.color = '#756d65';
+        msg.textContent = 'Составляю резюме…';
+        var body = new URLSearchParams();
+        body.append('anketa_id', btn.getAttribute('data-anketa'));
+        fetch('/api/summary_generate.php', { method:'POST', body: body, credentials:'same-origin' })
+          .then(function(r){ return r.json().catch(function(){ return {}; }); })
+          .then(function(js){
+            btn.disabled = false;
+            if (js && js.ok && js.summary) {
+              if (box) {
+                box.textContent = js.summary;
+                box.classList.remove('lk-questionnaire__ai-summary--empty');
+              }
+              msg.style.color = '#3d6b2f';
+              msg.textContent = 'Резюме обновлено.';
+              return;
+            }
+            msg.style.color = '#8a2a2a';
+            msg.textContent = (js && js.error) ? js.error : 'Не удалось обновить резюме.';
+          })
+          .catch(function(){
+            btn.disabled = false;
+            msg.style.color = '#8a2a2a';
+            msg.textContent = 'Сервис временно недоступен.';
+          });
+      });
+    })();
+    </script>
     <? endif; ?>
 
     <?php /* XI-5. «Пригласить по ссылке» — только шадхану. Создаёт кандидату
