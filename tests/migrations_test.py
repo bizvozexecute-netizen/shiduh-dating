@@ -156,13 +156,24 @@ class TestUp:
             assert filled == "0", "новое поле неожиданно заполнено: " + f
 
     def test_sensitive_registry_matches_columns(self):
-        # реестр чувствительных полей существует и ссылается только на реальные
-        # колонки Message204 (иначе слой LLM не сможет их вырезать)
+        # Реестр — источник правды для слоя LLM. Требование не «совпадает со
+        # списком миграции 006», а шире: все поля 006 обязаны в нём быть, и
+        # каждая запись должна ссылаться на реальную колонку. Так в реестр
+        # можно дописывать поля, существовавшие до наших миграций (например,
+        # Health_status), не ломая проверку.
         reg = sensitive_registry()
-        assert set(reg) == set(SENSITIVE_FIELDS), \
-            "реестр чувствительных полей разошёлся: " + repr(reg)
+        missing = set(SENSITIVE_FIELDS) - set(reg)
+        assert not missing, "поля миграции 006 выпали из реестра: " + repr(sorted(missing))
         for f in reg:
             assert col_exists("Message204", f), "реестр ссылается на несуществующую колонку: " + f
+
+    def test_sensitive_registry_covers_health_fields(self):
+        # Health_status существовал в проде ДО наших миграций и заполнен у
+        # сотен анкет — это те же данные о здоровье (152-ФЗ). Выпадет из
+        # реестра — уедет во внешнюю модель.
+        reg = sensitive_registry()
+        for f in ("Health_status", "EN_Health_status", "Search_health_status"):
+            assert f in reg, "поле о здоровье не защищено реестром: " + f
 
     def test_invite_tokens_unique_token(self):
         # миграция 007: токен-приглашение (Раздел XI). UNIQUE по token —
