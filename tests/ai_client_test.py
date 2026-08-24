@@ -12,12 +12,9 @@
 
     python -m pytest tests/ai_client_test.py -q
 """
-import base64
 import json
 import os
 import re
-import subprocess
-import time
 import urllib.error
 import urllib.parse
 import urllib.request
@@ -28,171 +25,16 @@ ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 PASSWORD = "shiduh"
 CANDIDATE = "u091ff2b36c83@example.local"     # User 50
 CHAT_URL = "/api/ai_chat.php"
-# Фейк живёт ВНЕ веб-корня: отдаётся встроенным сервером PHP на порту 8099
-# внутри контейнера. Так забытый после сбоя файл не может уехать на прод
-# вместе с деревом сайта (замечание code-review).
-FAKE_DIR = "/tmp/fakellm"
-FAKE_PORT = 8099
-FAKE_KEY = "sk-test-fake"
-FAKE_BASE = "http://127.0.0.1:%d" % FAKE_PORT
 
-FAKE_LLM = r"""<?php
-/* Фейковый LLM для тестов: формат ответа как у OpenAI. Роутер встроенного
-   сервера PHP — принимает любой путь (клиент зовёт /chat/completions).
-   Режим и счётчик попыток — в файле, чтобы пережить отдельные запросы. */
-header('Content-Type: application/json; charset=utf-8');
-$state = sys_get_temp_dir() . '/fake_llm_state.json';
-$s = @json_decode(@file_get_contents($state), true);
-if (!is_array($s)) { $s = array('mode' => 'ok', 'calls' => 0, 'fail_first' => 0); }
-$s['calls']++;
-@file_put_contents($state, json_encode($s));
+from fake_llm import (BASE, FAKE_BASE, FAKE_KEY, clear_ai_settings, dbq, fake_calls,
+                      login, post_json, set_fake_mode, setting, start_fake_server,
+                      stop_fake_server, use_fake_provider, web)
 
-/* Ключ обязателен: без верного Bearer отвечаем 401 — так тест успешного
-   пути доказывает, что ключ из настроек реально уходит в заголовке. */
-$auth = '';
-foreach ($_SERVER as $k => $v) {
-    if ($k === 'HTTP_AUTHORIZATION' || $k === 'REDIRECT_HTTP_AUTHORIZATION') { $auth = $v; }
-}
-if ($auth !== 'Bearer __KEY__') {
-    http_response_code(401);
-    echo json_encode(array('error' => array('message' => 'no/bad api key: [' . $auth . ']')));
-    exit;
-}
-
-$mode = $s['mode'];
-if ($mode === 'fail_then_ok' && $s['calls'] <= (int)$s['fail_first']) {
-    http_response_code(500);
-    echo json_encode(array('error' => array('message' => 'temporary')));
-    exit;
-}
-if ($mode === 'always_500') {
-    http_response_code(500);
-    echo json_encode(array('error' => array('message' => 'boom')));
-    exit;
-}
-if ($mode === 'bad_request') {
-    /* Провайдер может вернуть в тексте ошибки кусок ключа и внутренний URL —
-       проверяем, что наружу это не уходит. */
-    http_response_code(400);
-    echo json_encode(array('error' => array(
-        'message' => 'Incorrect API key provided: sk-Ab****cdEF. See https://internal.example/keys',
-    )));
-    exit;
-}
-if ($mode === 'no_total_tokens') {
-    /* Часть шлюзов не отдаёт total_tokens — только слагаемые. */
-    echo json_encode(array(
-        'choices' => array(array('message' => array('role' => 'assistant', 'content' => 'ЧАСТИЧНЫЙ УЧЁТ'))),
-        'usage' => array('prompt_tokens' => 5, 'completion_tokens' => 4),
-    ), JSON_UNESCAPED_UNICODE);
-    exit;
-}
-$raw = json_decode(file_get_contents('php://input'), true);
-$last = '';
-$system = '';
-if (isset($raw['messages']) && is_array($raw['messages'])) {
-    foreach ($raw['messages'] as $m) {
-        if (isset($m['role']) && $m['role'] === 'user') { $last = $m['content']; }
-        if (isset($m['role']) && $m['role'] === 'system') { $system = $m['content']; }
-    }
-}
-if ($mode === 'echo_system') { $last = $system; }
-echo json_encode(array(
-    'choices' => array(array('message' => array(
-        'role' => 'assistant',
-        'content' => 'ФЕЙК-ОТВЕТ на: ' . $last,
-    ))),
-    'usage' => array('prompt_tokens' => 11, 'completion_tokens' => 7, 'total_tokens' => 18),
-), JSON_UNESCAPED_UNICODE);
-"""
-
-
-def dbq(sql):
-    r = subprocess.run(
-        [DOCKER, "compose", "exec", "-T", "db", "mysql", "-uroot", "-proot_local_dev",
-         "-N", "-B", "--default-character-set=utf8", "shiduh_org", "-e", sql],
-        cwd=ROOT, capture_output=True, text=True, encoding="utf-8", errors="replace", timeout=60,
-    )
-    return (r.stdout or "").strip()
-
-
-def web(*args):
-    return subprocess.run([DOCKER, "compose", "exec", "-T", "web"] + list(args),
-                          cwd=ROOT, capture_output=True, text=True,
-                          encoding="utf-8", errors="replace", timeout=60)
-
-
-def set_fake_mode(mode, fail_first=0):
-    # chmod 0666: файл пишет и CLI-PHP (root), и веб-сервер (www-data) —
-    # без этого счётчик попыток не увеличивается и ретраи не проверить
-    web("php", "-r",
-        "$f=sys_get_temp_dir().'/fake_llm_state.json';"
-        "file_put_contents($f, json_encode("
-        "array('mode'=>'%s','calls'=>0,'fail_first'=>%d))); @chmod($f, 0666);"
-        % (mode, fail_first))
-
-
-def fake_calls():
-    r = web("php", "-r",
-            "$s=json_decode(@file_get_contents(sys_get_temp_dir().'/fake_llm_state.json'),true);"
-            "echo (int)($s['calls'] ?? 0);")
-    return int((r.stdout or "0").strip() or 0)
-
-
-def setting(key, value):
-    esc = str(value).replace("\\", "\\\\").replace("'", "''")
-    dbq("DELETE FROM `Settings` WHERE `Key`='%s' AND `Module`='ai' AND Catalogue_ID=0; "
-        "INSERT INTO `Settings` SET `Key`='%s', `Value`='%s', `Module`='ai', Catalogue_ID=0"
-        % (key, key, esc))
-
-
-def clear_ai_settings():
-    dbq("DELETE FROM `Settings` WHERE `Module`='ai'")
-
-
-class NoRedirect(urllib.request.HTTPRedirectHandler):
-    def redirect_request(self, *a, **kw):
-        return None
-
-
-def login(email):
-    body = urllib.parse.urlencode({
-        "AuthPhase": "1", "REQUESTED_FROM": "/my/", "REQUESTED_BY": "GET",
-        "catalogue": "1", "sub": "8", "cc": "0", "AUTH_USER": email, "AUTH_PW": PASSWORD,
-    }).encode()
-    req = urllib.request.Request(BASE + "/netcat/modules/auth/", data=body, method="POST")
-    opener = urllib.request.build_opener(NoRedirect)
-    try:
-        headers = opener.open(req, timeout=60).headers
-    except urllib.error.HTTPError as e:
-        headers = e.headers
-    for raw in headers.get_all("Set-Cookie") or []:
-        m = re.search(r"PHP_AUTH_SID=([^;]+)", raw)
-        if m:
-            return m.group(1)
-    raise RuntimeError("не удалось авторизоваться: " + email)
+UID = None
 
 
 def send(sid, text, origin=None):
-    body = urllib.parse.urlencode({"message": text}).encode()
-    req = urllib.request.Request(BASE + CHAT_URL, data=body, method="POST")
-    if sid:
-        req.add_header("Cookie", "PHP_AUTH_SID=%s; PHP_AUTH_LANG=Russian" % sid)
-    if origin:
-        req.add_header("Origin", origin)
-    opener = urllib.request.build_opener(NoRedirect)
-    try:
-        r = opener.open(req, timeout=180)
-        raw, code = r.read().decode("utf-8", "replace"), r.status
-    except urllib.error.HTTPError as e:
-        raw, code = e.read().decode("utf-8", "replace"), e.code
-    try:
-        return code, json.loads(raw)
-    except ValueError:
-        return code, {"_raw": raw}
-
-
-UID = None
+    return post_json(CHAT_URL, sid, {"message": text}, origin=origin)
 
 
 def history(marker):
@@ -202,34 +44,6 @@ def history(marker):
 
 def clear_chat():
     dbq("DELETE FROM `ai_chat_messages` WHERE user_id=%d" % UID)
-
-
-def start_fake_server():
-    """Кладёт роутер в /tmp контейнера и поднимает встроенный сервер PHP."""
-    php = FAKE_LLM.replace("__KEY__", FAKE_KEY)
-    b64 = base64.b64encode(php.encode("utf-8")).decode("ascii")
-    web("php", "-r",
-        "@mkdir('%s', 0777, true); file_put_contents('%s/router.php', base64_decode('%s'));"
-        % (FAKE_DIR, FAKE_DIR, b64))
-    subprocess.run(
-        [DOCKER, "compose", "exec", "-d", "web", "php", "-S", "127.0.0.1:%d" % FAKE_PORT,
-         "%s/router.php" % FAKE_DIR],
-        cwd=ROOT, capture_output=True, text=True, timeout=60)
-    # ждём готовности сервера
-    for _ in range(40):
-        r = web("php", "-r",
-                "$c=@curl_init('%s/ping'); curl_setopt($c, CURLOPT_RETURNTRANSFER, true);"
-                "curl_setopt($c, CURLOPT_TIMEOUT, 2); @curl_exec($c);"
-                "echo (int)curl_getinfo($c, CURLINFO_HTTP_CODE);" % FAKE_BASE)
-        if (r.stdout or "").strip() not in ("", "0"):
-            return
-        time.sleep(0.25)
-    raise RuntimeError("фейковый LLM не поднялся")
-
-
-def stop_fake_server():
-    web("sh", "-c", "pkill -f 'php -S 127.0.0.1:%d' || true" % FAKE_PORT)
-    web("sh", "-c", "rm -rf %s" % FAKE_DIR)
 
 
 def setup_module(module):
@@ -244,15 +58,6 @@ def teardown_module(module):
     clear_ai_settings()
     clear_chat()
     stop_fake_server()
-
-
-def use_fake_provider():
-    setting("provider", "openrouter")
-    setting("api_key", FAKE_KEY)
-    setting("base_url", FAKE_BASE)
-    setting("model", "test/model")
-    setting("max_retries", 2)
-    setting("rate_limit_per_hour", 1000)   # лимит проверяется отдельным тестом
 
 
 # --- режим заглушки (без ключа) ---------------------------------------------

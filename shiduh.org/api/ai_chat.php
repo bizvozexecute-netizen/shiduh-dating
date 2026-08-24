@@ -17,6 +17,7 @@ include_once $NETCAT_FOLDER . 'vars.inc.php';
 require_once $ROOT_FOLDER . 'connect_io.php';
 require_once dirname(__FILE__) . '/admin_lib.php';
 require_once dirname(__FILE__) . '/ai_client.php';
+require_once dirname(__FILE__) . '/ai_tools.php';
 
 $nc_core = nc_core::get_object();
 $nc_core->user->attempt_to_authorize();
@@ -98,7 +99,9 @@ foreach ($rows as $r) {
     $messages[] = array('role' => $r['role'], 'content' => $r['content']);
 }
 
-$res = ai_chat($messages);
+// Инструмент автозаполнения анкеты (Э1.3): модель может попросить записать
+// то, что человек рассказал о себе.
+$res = ai_chat($messages, array('tools' => ai_tool_definitions()));
 
 if (!$res['ok']) {
     // Ответа нет — честно говорим об этом, сообщение пользователя уже сохранено.
@@ -106,6 +109,52 @@ if (!$res['ok']) {
 }
 
 $tokens = (int)$res['usage']['total_tokens'];
+
+// Второй шаг конвейера: применяем запрошенные записи и возвращаем модели
+// отчёт, чтобы она продолжила диалог естественно, а не оборвалась.
+if (!empty($res['tool_calls'])) {
+    $messages[] = array(
+        'role' => 'assistant',
+        'content' => (string)$res['content'],
+        'tool_calls' => $res['tool_calls'],
+    );
+    foreach ($res['tool_calls'] as $call) {
+        $name = isset($call['function']['name']) ? $call['function']['name'] : '';
+        $args = array();
+        if (isset($call['function']['arguments'])) {
+            $decoded = json_decode((string)$call['function']['arguments'], true);
+            if (is_array($decoded)) {
+                $args = $decoded;
+            }
+        }
+        $report = ($name === 'update_profile_fields')
+            ? ai_tool_apply($db, $uid, $args)
+            : array('applied' => array(), 'skipped' => array('_' => 'неизвестный инструмент'));
+
+        $messages[] = array(
+            'role' => 'tool',
+            'tool_call_id' => isset($call['id']) ? $call['id'] : '',
+            'name' => $name,
+            'content' => json_encode($report, JSON_UNESCAPED_UNICODE),
+        );
+    }
+
+    // Второй вызов — последний: инструменты передаём, но повторный tool_call
+    // уже не исполняем, иначе диалог мог бы уйти в цикл вызовов за деньги.
+    $res = ai_chat($messages, array('tools' => ai_tool_definitions()));
+    if (!$res['ok']) {
+        // Поля уже записаны — сообщаем о сбое, но сделанное не откатываем.
+        ai_chat_json(503, array('error' => $res['error'] ?: 'Сервис ИИ временно недоступен'));
+    }
+    $tokens += (int)$res['usage']['total_tokens'];
+}
+
+// Модель может вернуть пустой текст (например, снова попросив инструмент) —
+// не показываем пользователю пустой пузырь.
+if (trim((string)$res['content']) === '') {
+    $res['content'] = 'Записал, спасибо. Расскажите ещё что-нибудь о себе.';
+}
+
 $db->query(
     "INSERT INTO `ai_chat_messages` SET "
     . "`user_id`=$uid, `role`='assistant', "
