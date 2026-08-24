@@ -11,6 +11,7 @@
   echo_system     — эхом системного промпта (проверка, что он доехал)
   echo_tools      — эхом списка полученных инструментов и их полей
   echo_prompt     — эхом всего полученного запроса (проверка приватности)
+  classify        — строгий JSON разбора ответа (скоринг Э2.3)
   tool_call_always— просит инструмент на каждом вызове (проверка отсутствия цикла)
   fail_then_ok    — первые N вызовов отдают 500, потом успех (ретраи)
   always_500      — всегда 500 (отказ после ретраев)
@@ -153,6 +154,22 @@ if ($mode === 'tool_call_always') {
             )),
         ))),
         'usage' => array('prompt_tokens' => 4, 'completion_tokens' => 4, 'total_tokens' => 8),
+    ), JSON_UNESCAPED_UNICODE);
+    exit;
+}
+
+if ($mode === 'classify') {
+    /* Классификатор одного ответа (Э2.3-a): отдаёт строгий JSON в поле
+       content, как это делает модель со structured output. */
+    echo json_encode(array(
+        'choices' => array(array('message' => array(
+            'role' => 'assistant',
+            'content' => json_encode(
+                isset($s['tool_args']) ? $s['tool_args'] : array(),
+                JSON_UNESCAPED_UNICODE
+            ),
+        ))),
+        'usage' => array('prompt_tokens' => 6, 'completion_tokens' => 6, 'total_tokens' => 12),
     ), JSON_UNESCAPED_UNICODE);
     exit;
 }
