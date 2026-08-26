@@ -127,6 +127,7 @@ def test_shadhan_card_has_ai_blocks():
     assert "Резюме от ИИ" in html, "в карточке нет блока резюме"
     assert "js-ai-summary-refresh" in html, "в карточке нет кнопки обновления резюме"
     assert "js-invite-create" in html, "в карточке нет кнопки приглашения"
+    assert "Психологический портрет" in html, "в карточке нет блока психопрофиля"
     assert_no_php_errors(SESSIONS["card"], html)
 
 
@@ -159,6 +160,7 @@ API_ENDPOINTS = [
     "/api/cases_save.php",
     "/api/prompt_save.php",
     "/api/summary_generate.php",
+    "/api/assessment_answer.php",
 ]
 
 

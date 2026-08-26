@@ -45,3 +45,62 @@ function cases_dimension_title($group, $dim) {
     }
     return $dim;
 }
+
+/* --- состояние опроса (Э2.4) ------------------------------------------------
+ * Живёт здесь, а не в scoring_lib.php: тому нужен ai_client.php (сеть), а
+ * шаблону консультанта — только справочник кейсов и счётчики.
+ */
+
+/* Текущая версия опроса пользователя (0 — ещё не отвечал). */
+function cases_current_version($db, $user_id) {
+    $user_id = (int)$user_id;
+    return (int)$db->get_var(
+        "SELECT IFNULL(MAX(`version`),0) FROM `assessment_answers` WHERE `user_id`=$user_id"
+    );
+}
+
+/*
+ * Состояние опроса: сколько активных кейсов, сколько отвечено в текущей версии
+ * и какой кейс следующий (по sort_order). Возвращает next=null, когда пройдено
+ * всё.
+ */
+function cases_survey_state($db, $user_id, $restart = false) {
+    $user_id = (int)$user_id;
+    $version = cases_current_version($db, $user_id);
+    $total = (int)$db->get_var("SELECT COUNT(*) FROM `assessment_cases` WHERE `active`=1");
+
+    // Повторный проход: смотрим на СЛЕДУЮЩУЮ версию — там ответов ещё нет,
+    // поэтому опрос начинается с первого кейса, а прогресс честно равен нулю.
+    // Сама версия появится в базе, когда придёт первый ответ
+    // (scoring_version_for_answer), — здесь ничего не пишем.
+    $target = $restart ? $version + 1 : max(1, $version);
+
+    $answered = ($version && !$restart)
+        ? (int)$db->get_var(
+            "SELECT COUNT(DISTINCT a.`case_id`) FROM `assessment_answers` a "
+            . "JOIN `assessment_cases` c ON c.`id`=a.`case_id` AND c.`active`=1 "
+            . "WHERE a.`user_id`=$user_id AND a.`version`=$version")
+        : 0;
+
+    $next = $db->get_row(
+        "SELECT c.`id`, c.`dimension_group`, c.`dimension`, c.`scenario_text` "
+        . "FROM `assessment_cases` c "
+        . "LEFT JOIN `assessment_answers` a ON a.`case_id`=c.`id` "
+        . "AND a.`user_id`=$user_id AND a.`version`=$target "
+        . "WHERE c.`active`=1 AND a.`id` IS NULL "
+        . "ORDER BY c.`sort_order`, c.`id` LIMIT 1",
+        ARRAY_A
+    );
+
+    if ($next) {
+        // MySQL отдаёт всё строками; клиенту (и тестам) нужен настоящий int
+        $next['id'] = (int)$next['id'];
+    }
+
+    return array(
+        'version' => $version,
+        'total' => $total,
+        'answered' => $answered,
+        'next' => $next ? $next : null,
+    );
+}

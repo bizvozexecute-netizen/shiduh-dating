@@ -22,6 +22,15 @@ $nc_core->db->query(
 );
 $nc_history = $nc_core->db->last_result;
 
+// Ценностный опрос (Э2.4): следующий кейс, прогресс и собственный профиль.
+// Профиль читаем напрямую из БД — здесь это не поле NetCat, экранирования нет.
+require_once $nc_core->DOCUMENT_ROOT . '/api/profile_view_lib.php';
+// ?retake=1 — кандидат нажал «Пройти заново»: показываем опрос с первого
+// кейса. Новая версия появится в базе с первым же ответом.
+$nc_retake = !empty($_GET['retake']);
+$nc_survey = cases_survey_state($nc_core->db, $nc_uid, $nc_retake);
+$nc_my_profile = profile_load($nc_core->db, $nc_uid);
+
 // Приглашённый кандидат заходит в аккаунт-заготовку (синтетический email,
 // вход только по ссылке). Предлагаем закрепить аккаунт за собой (XI-4).
 $nc_is_placeholder = (bool)$nc_core->db->get_var(
@@ -85,6 +94,105 @@ $nc_is_placeholder = (bool)$nc_core->db->get_var(
       })
       .catch(function(){ msg.style.color = '#c0392b'; msg.textContent = 'Сервис временно недоступен.'; });
   });
+})();
+</script>
+<?php endif; ?>
+
+<?php if ($nc_survey['total'] > 0): ?>
+<style>
+.ai-survey{max-width:760px;margin:0 auto 16px;background:#fff;border:1px solid #e3ddd2;border-radius:14px;padding:18px}
+.ai-survey__h{font-size:16px;font-weight:500;margin:0 0 4px;color:#3a2b2b}
+.ai-survey__sub{font-size:13px;color:#756d65;margin:0 0 12px}
+.ai-survey__progress{height:6px;background:#e8e1d5;border-radius:99px;overflow:hidden;margin-bottom:14px}
+.ai-survey__progress>i{display:block;height:100%;background:#c8ae88;border-radius:99px}
+.ai-survey__q{font-size:14.5px;line-height:1.55;color:#3a2b2b;margin:0 0 10px}
+.ai-survey__input{width:100%;border:1px solid #e3ddd2;background:#f5f2ec;border-radius:11px;padding:11px 13px;font:inherit;font-size:14px;color:#3a2b2b;min-height:88px;resize:vertical}
+.ai-survey__btn{border:0;border-radius:11px;padding:10px 18px;font:inherit;font-size:14.5px;font-weight:500;background:#c8ae88;color:#262839;cursor:pointer;margin-top:10px}
+.ai-survey__btn:hover{background:#a68556}
+.ai-survey__btn[disabled]{opacity:.45;cursor:not-allowed}
+.ai-survey__btn--ghost{background:transparent;border:1px solid #e3ddd2;color:#3a2b2b}
+.ai-survey__msg{margin-top:8px;font-size:13px;color:#756d65}
+.ai-survey__bars{list-style:none;margin:12px 0 0;padding:0;display:flex;flex-direction:column;gap:9px}
+.ai-survey__bar{display:grid;grid-template-columns:1fr auto;gap:3px 10px;font-size:13.5px}
+.ai-survey__bar em{font-style:normal;color:#7e6440;font-weight:700}
+.ai-survey__track{grid-column:1/-1;height:7px;background:#e8e1d5;border-radius:99px;overflow:hidden}
+.ai-survey__track>i{display:block;height:100%;background:#c8ae88;border-radius:99px}
+</style>
+<section class="ai-survey" id="aiSurvey"
+         data-answered="<?= (int)$nc_survey['answered'] ?>"
+         data-total="<?= (int)$nc_survey['total'] ?>">
+  <?php if ($nc_survey['next']): ?>
+    <h2 class="ai-survey__h">Ценностный опрос</h2>
+    <p class="ai-survey__sub" id="aiSurveyProgress">Отвечено <?= (int)$nc_survey['answered'] ?> из <?= (int)$nc_survey['total'] ?></p>
+    <div class="ai-survey__progress"><i id="aiSurveyBar" style="width:<?= (int)round($nc_survey['answered'] * 100 / max(1, $nc_survey['total'])) ?>%"></i></div>
+    <p class="ai-survey__q" id="aiSurveyQ"><?= htmlspecialchars($nc_survey['next']['scenario_text'], ENT_QUOTES, 'UTF-8') ?></p>
+    <textarea class="ai-survey__input" id="aiSurveyAnswer" placeholder="Ответьте своими словами"></textarea>
+    <button type="button" class="ai-survey__btn" id="aiSurveySend"
+            data-case="<?= (int)$nc_survey['next']['id'] ?>">Ответить</button>
+    <div class="ai-survey__msg" id="aiSurveyMsg" role="status"></div>
+  <?php else: ?>
+    <h2 class="ai-survey__h">Опрос пройден</h2>
+    <p class="ai-survey__sub">Спасибо! Ответы учтены — шадхану виден ваш ценностный портрет.</p>
+    <?php if ($nc_my_profile): ?>
+      <?php /* Кандидату показываем проценты, но НЕ текст психотипа: он пишется
+         для шадхана и обращён к нему, а не к самому человеку. */ ?>
+      <?= profile_bars_html($nc_my_profile, 'love_language', 'ai-survey') ?>
+    <?php endif; ?>
+    <button type="button" class="ai-survey__btn ai-survey__btn--ghost" id="aiSurveyRetake">Пройти заново</button>
+    <div class="ai-survey__msg" id="aiSurveyMsg" role="status"></div>
+  <?php endif; ?>
+</section>
+<script>
+(function(){
+  var root = document.getElementById('aiSurvey');
+  if (!root) return;
+  var msg = document.getElementById('aiSurveyMsg');
+  var send = document.getElementById('aiSurveySend');
+  var retake = document.getElementById('aiSurveyRetake');
+
+  function post(caseId, text, done) {
+    var body = new URLSearchParams();
+    body.append('case_id', caseId);
+    body.append('answer', text);
+    fetch('/api/assessment_answer.php', { method:'POST', body: body, credentials:'same-origin' })
+      .then(function(r){ return r.json().catch(function(){ return {}; }); })
+      .then(done)
+      .catch(function(){ msg.textContent = 'Сервис временно недоступен.'; });
+  }
+
+  if (send) {
+    send.addEventListener('click', function(){
+      var box = document.getElementById('aiSurveyAnswer');
+      var text = box.value.trim();
+      if (!text) { msg.textContent = 'Напишите ответ.'; return; }
+      send.disabled = true;
+      msg.textContent = 'Сохраняю…';
+      post(send.getAttribute('data-case'), text, function(js){
+        send.disabled = false;
+        if (!js || !js.ok) { msg.textContent = (js && js.error) ? js.error : 'Не удалось сохранить ответ.'; return; }
+        if (!js.next) { window.location.reload(); return; }   // опрос закончился — покажем профиль
+        document.getElementById('aiSurveyQ').textContent = js.next.scenario_text;
+        send.setAttribute('data-case', js.next.id);
+        box.value = '';
+        document.getElementById('aiSurveyProgress').textContent =
+          'Отвечено ' + js.answered + ' из ' + js.total;
+        document.getElementById('aiSurveyBar').style.width =
+          Math.round(js.answered * 100 / Math.max(1, js.total)) + '%';
+        msg.textContent = js.classified ? 'Ответ учтён.' : 'Ответ сохранён.';
+      });
+    });
+  }
+
+  if (retake) {
+    retake.addEventListener('click', function(){
+      // Честно предупреждаем: по правилам Э2.3 новый проход начинает новую
+      // версию, и шадхан сразу увидит профиль, построенный только по новым
+      // ответам — а не прежний полный.
+      if (!window.confirm('Опрос начнётся заново. Прошлые ответы останутся в истории, '
+        + 'но шадхан увидит новый профиль — он будет построен только по новым ответам. Продолжить?')) return;
+      window.location.search = '?retake=1';
+    });
+  }
 })();
 </script>
 <?php endif; ?>
