@@ -294,6 +294,10 @@ def use_fake_provider(rate_limit=1000):
     setting("model", "test/model")
     setting("max_retries", 2)
     setting("rate_limit_per_hour", rate_limit)
+    # пейволл Э4 не должен мешать чужим наборам тестов: лимит с запасом
+    setting("free_message_limit", 1000)
+    # и счётчик тестового кандидата не должен копиться между прогонами
+    dbq("DELETE FROM `ai_subscriptions` WHERE user_id=50")
 
 
 def start_fake_server():

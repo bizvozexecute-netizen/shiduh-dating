@@ -18,6 +18,7 @@ require_once $ROOT_FOLDER . 'connect_io.php';
 require_once dirname(__FILE__) . '/admin_lib.php';
 require_once dirname(__FILE__) . '/ai_client.php';
 require_once dirname(__FILE__) . '/ai_tools.php';
+require_once dirname(__FILE__) . '/subscription_lib.php';
 
 $nc_core = nc_core::get_object();
 $nc_core->user->attempt_to_authorize();
@@ -75,8 +76,23 @@ if ($limit > 0) {
     }
 }
 
+// Пейволл (Э4-2): у free после N сообщений — блок с окном подписки;
+// trial/paid без лимита; заглушка (нет реального ИИ) бесплатна и счётчик
+// не копит. Решение принимает ОДИН атомарный UPDATE (subscription_take_slot):
+// залп параллельных запросов не проскочит мимо лимита. ДО записи сообщения:
+// заблокированное в историю не попадает.
+$gate = subscription_gate_chat($db, $uid, $cfg);
+if ($gate['billable'] && !subscription_take_slot($db, $uid, $gate['limit'])) {
+    ai_chat_json(402, array(
+        'error' => 'Бесплатный лимит из ' . (int)$gate['limit'] . ' сообщений исчерпан. '
+                 . 'Оформите подписку, чтобы продолжить общение с консультантом.',
+        'paywall' => true,
+    ));
+}
+
 // Сообщение пользователя сохраняем сразу: даже если модель не ответит,
-// написанное не пропадёт.
+// написанное не пропадёт. (Слот при этом уже занят: упавшая модель не повод
+// не считать — попытка потратила запрос к провайдеру.)
 $db->query(
     "INSERT INTO `ai_chat_messages` SET "
     . "`user_id`=$uid, `role`='user', "
