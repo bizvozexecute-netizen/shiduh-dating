@@ -8,6 +8,7 @@
 
 Режимы (set_fake_mode):
   ok              — обычный ответ, эхом последнего сообщения пользователя
+  emoji           — ответ с эмодзи (4-байтовый UTF-8): проверка санитайза
   echo_system     — эхом системного промпта (проверка, что он доехал)
   echo_tools      — эхом списка полученных инструментов и их полей
   echo_prompt     — эхом всего полученного запроса (проверка приватности)
@@ -63,6 +64,18 @@ $mode = $s['mode'];
 if ($mode === 'fail_then_ok' && $s['calls'] <= (int)$s['fail_first']) {
     http_response_code(500);
     echo json_encode(array('error' => array('message' => 'temporary')));
+    exit;
+}
+if ($mode === 'emoji') {
+    /* Модель вернула эмодзи (4-байтовый UTF-8): база в utf8 (3 байта) молча
+       обрезала бы текст — проверяем санитайз перед кэшем (ревью Э3.3-a, Б2). */
+    echo json_encode(array(
+        'choices' => array(array('message' => array(
+            'role' => 'assistant',
+            'content' => "ð Отличная пара ð по ценностям",
+        ))),
+        'usage' => array('prompt_tokens' => 3, 'completion_tokens' => 3, 'total_tokens' => 6),
+    ), JSON_UNESCAPED_UNICODE);
     exit;
 }
 if ($mode === 'always_500') {

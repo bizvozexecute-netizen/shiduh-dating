@@ -678,6 +678,154 @@ if($f_User_ID === $current_user['User_ID'] || $f_Shadhan_1 === $current_user['Us
     </div>
     <? endif; ?>
 
+    <?php /* Э3.3-a. Рекомендации ИИ — подбор пар для этой анкеты, только шадхану.
+       Список считает сервер (match_list.php: жёсткие фильтры + ранжирование),
+       грузится ПО КНОПКЕ, а не при открытии карточки: подбор раскрывает шадхану
+       анкеты по всей базе и попадает в аудит-лог — незачем делать это молча при
+       каждом просмотре. Обоснование — match_explain.php (LLM, кэшируется);
+       решения «предложить/отклонить» — match_feedback.php (Э3.3-b): отклонённая
+       пара уходит из выдачи, причина подстраивает веса. Разметка — по прототипу
+       (экран «Подбор пар»), стили инлайном: в бандле styles-90 своих классов нет. */ ?>
+    <? if($current_user['Type_id'] === 2): ?>
+    <style>
+    .lk-match__rec{background:#fff;border:1px solid #e3ddd2;border-radius:12px;padding:14px;margin-top:12px}
+    .lk-match__top{display:flex;gap:12px;align-items:center;flex-wrap:wrap}
+    .lk-match__who b{font-weight:600}
+    .lk-match__who span{display:block;font-size:12.5px;color:#756d65}
+    .lk-match__score{margin-left:auto;text-align:right}
+    .lk-match__score b{font-size:19px;color:#7e6440;font-variant-numeric:tabular-nums}
+    .lk-match__sbar{width:120px;height:7px;background:#e8e1d5;border-radius:99px;overflow:hidden;margin-top:4px}
+    .lk-match__sbar>i{display:block;height:100%;background:#a68556}
+    .lk-match__parts{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin-top:11px}
+    .lk-match__part{font-size:12.5px;color:#756d65}
+    .lk-match__part b{color:#3a2b2b;font-variant-numeric:tabular-nums}
+    .lk-match__track{height:6px;background:#e8e1d5;border-radius:99px;overflow:hidden;margin-top:4px}
+    .lk-match__track>i{display:block;height:100%;background:#c8ae88}
+    .lk-match__why{font-size:13.5px;line-height:1.6;background:#f5f2ec;border-radius:9px;padding:10px 12px;margin-top:11px}
+    .lk-match__acts{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-top:11px}
+    .lk-match__sel{border:1px solid #e3ddd2;background:#f5f2ec;border-radius:9px;padding:7px 9px;font-size:13px;color:#3a2b2b}
+    .lk-match__done{font-size:13px;color:#7e6440}
+    .lk-match__msg{font-size:13px;margin-top:10px}
+    </style>
+    <div class="lk-questionnaire__section">
+      <div class="lk-questionnaire__section-title title title--lk">Рекомендации ИИ
+        <span style="font-weight:400;font-size:13px;color:#8a6d1a">— подбор пар для этой анкеты</span></div>
+      <div class="lk-questionnaire__body">
+        <p style="color:#756d65;margin:0 0 10px">В списке только пары, прошедшие жёсткие фильтры: пол, возраст с обеих сторон, религиозная совместимость и география. У каждой пары видно, из чего сложился балл.</p>
+        <button type="button" class="button button--secondary js-match-load" data-anketa="<?= (int)$f_Message_ID ?>">Показать подбор</button>
+        <div class="js-match-msg lk-match__msg" role="status"></div>
+        <div class="js-match-list"></div>
+      </div>
+    </div>
+    <script>
+    (function(){
+      var root = document.currentScript.previousElementSibling;
+      var btn = root.querySelector('.js-match-load');
+      if (!btn) return;
+      var anketa = parseInt(btn.getAttribute('data-anketa'), 10);
+      var list = root.querySelector('.js-match-list');
+      var msg = root.querySelector('.js-match-msg');
+      var REASONS = [['', 'Причина отклонения…'], ['values', 'Не совпали ценности'],
+        ['love_language', 'Языки любви'], ['geography', 'География'],
+        ['age', 'Возраст'], ['other', 'Другое']];
+
+      /* и кавычки тоже: сегодня все вызовы в текстовом контексте, но функция
+         общая — не оставляем заряженное ружьё для атрибутного контекста */
+      function esc(s){ var d = document.createElement('div'); d.textContent = String(s == null ? '' : s); return d.innerHTML.replace(/"/g, '&quot;').replace(/'/g, '&#39;'); }
+      function pct(x){ return Math.round(100 * x) + '%'; }
+
+      function post(url, fields){
+        var fd = new FormData();
+        Object.keys(fields).forEach(function(k){ fd.append(k, fields[k]); });
+        return fetch(url, {method:'POST', credentials:'same-origin', body:fd})
+          .then(function(r){ return r.json().then(function(j){ return {code:r.status, data:j}; }); });
+      }
+
+      function partHtml(title, value){
+        return '<div class="lk-match__part">' + title + ' <b>' + pct(value) + '</b>' +
+          '<div class="lk-match__track"><i style="width:' + pct(value) + '"></i></div></div>';
+      }
+
+      function render(rows){
+        if (!rows.length){
+          list.innerHTML = '<p class="lk-match__done" style="margin-top:10px">Подходящих пар по жёстким фильтрам не нашлось.</p>';
+          return;
+        }
+        list.innerHTML = rows.map(function(r){
+          var reasons = REASONS.map(function(o){ return '<option value="' + o[0] + '">' + o[1] + '</option>'; }).join('');
+          return '<article class="lk-match__rec" data-target="' + parseInt(r.anketa_id, 10) + '">' +
+            '<div class="lk-match__top"><div class="lk-match__who"><b>' + esc(r.name) + '</b>' +
+            '<span>' + parseInt(r.age, 10) + ' · ' + esc(r.city) + (r.shadhan ? ' · шадхан: ' + esc(r.shadhan) : '') + '</span></div>' +
+            '<div class="lk-match__score"><b>' + pct(r.score) + '</b><div class="lk-match__sbar"><i style="width:' + pct(r.score) + '"></i></div></div></div>' +
+            '<div class="lk-match__parts">' +
+            partHtml('Ценности', r.breakdown.values_match) +
+            partHtml('Языки любви', r.breakdown.love_language_match) +
+            partHtml('Смысловая близость', r.breakdown.semantic_similarity) +
+            '</div>' +
+            '<div class="js-match-why"></div>' +
+            '<div class="lk-match__acts">' +
+            '<button type="button" class="button button--secondary js-match-propose">Предложить шидух</button>' +
+            '<select class="lk-match__sel js-match-reason">' + reasons + '</select>' +
+            '<button type="button" class="button button--secondary js-match-reject">Отклонить</button>' +
+            '<button type="button" class="button button--secondary js-match-explain">Почему эта пара</button>' +
+            '<span class="js-match-state lk-match__done"></span>' +
+            '</div></article>';
+        }).join('');
+      }
+
+      btn.addEventListener('click', function(){
+        msg.style.color = '#756d65'; msg.textContent = 'Считаем подбор…';
+        post('/api/match_list.php', {anketa_id: anketa, limit: 20}).then(function(r){
+          if (r.code !== 200){
+            msg.style.color = '#8a2a2a';
+            msg.textContent = (r.data && r.data.error) ? r.data.error : 'Сервис временно недоступен.';
+            return;
+          }
+          msg.textContent = '';
+          render(r.data.matches);
+        }).catch(function(){ msg.style.color = '#8a2a2a'; msg.textContent = 'Сервис временно недоступен.'; });
+      });
+
+      list.addEventListener('click', function(e){
+        var t = e.target;
+        var rec = (t.closest) ? t.closest('.lk-match__rec') : null;
+        if (!rec) return;
+        var target = parseInt(rec.getAttribute('data-target'), 10);
+        var state = rec.querySelector('.js-match-state');
+
+        if (t.classList.contains('js-match-propose') || t.classList.contains('js-match-reject')){
+          var rejected = t.classList.contains('js-match-reject');
+          post('/api/match_feedback.php', {anketa_id: anketa, target_id: target,
+            action: rejected ? 'rejected' : 'proposed',
+            reason: rejected ? rec.querySelector('.js-match-reason').value : ''
+          }).then(function(r){
+            if (r.code !== 200){
+              state.style.color = '#8a2a2a';
+              state.textContent = (r.data && r.data.error) ? r.data.error : 'Не сохранилось.';
+              return;
+            }
+            state.style.color = '#7e6440';
+            if (rejected){ rec.style.opacity = '.45'; state.textContent = 'Пара отклонена и уйдёт из выдачи.'; }
+            else { state.textContent = 'Предложение зафиксировано.'; }
+          }).catch(function(){ state.style.color = '#8a2a2a'; state.textContent = 'Сервис временно недоступен.'; });
+        }
+
+        if (t.classList.contains('js-match-explain')){
+          var why = rec.querySelector('.js-match-why');
+          why.innerHTML = '<div class="lk-match__why" style="color:#756d65">Готовим обоснование…</div>';
+          post('/api/match_explain.php', {anketa_id: anketa, target_id: target}).then(function(r){
+            if (r.code !== 200){
+              why.innerHTML = '<div class="lk-match__why" style="color:#8a2a2a">' + esc((r.data && r.data.error) ? r.data.error : 'Сервис временно недоступен.') + '</div>';
+              return;
+            }
+            why.innerHTML = '<div class="lk-match__why">' + esc(r.data.explanation) + '</div>';
+          }).catch(function(){ why.innerHTML = '<div class="lk-match__why" style="color:#8a2a2a">Сервис временно недоступен.</div>'; });
+        }
+      });
+    })();
+    </script>
+    <? endif; ?>
+
 
     <?php /* XI-5. «Пригласить по ссылке» — только шадхану. Создаёт кандидату
        аккаунт-заготовку и одноразовую ссылку (api/invite_create.php); кандидат

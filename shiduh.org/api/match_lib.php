@@ -92,7 +92,7 @@ function match_religion_compatible($a, $b) {
  * Жёсткие фильтры: SQL по индексу + религиозная матрица.
  * Возвращает массив строк-кандидатов (анкета + владелец + шадхан + профиль).
  */
-function match_hard_filter($db, $anketa, $limit = 2000) {
+function match_hard_filter($db, $anketa, $limit = 2000, $only_id = 0) {
     $id = (int)$anketa['Message_ID'];
     $gender = (int)$anketa['Gender'];
     if ($gender !== 1 && $gender !== 2) {
@@ -100,6 +100,9 @@ function match_hard_filter($db, $anketa, $limit = 2000) {
     }
     $want = ($gender === 1) ? 2 : 1;
     $limit = (int)$limit;
+    // $only_id: проверить ОДНУ конкретную пару (Э3.3-a) — те же фильтры,
+    // но индексированный точечный запрос вместо прохода по всей базе
+    $only = ((int)$only_id > 0) ? " AND m.`Message_ID`=" . (int)$only_id : "";
 
     $city = trim((string)$anketa['City']);
     // без LOWER(): коллация utf8_general_ci и так без регистра, а функция
@@ -143,7 +146,7 @@ function match_hard_filter($db, $anketa, $limit = 2000) {
         . "FROM `Message204` m "
         . "WHERE m.`Checked`=1 AND m.`Gender`=$want AND m.`Message_ID`<>$id "
         . "AND m.`Date_of_birth` IS NOT NULL AND m.`Date_of_birth` NOT LIKE '0000%' "
-        . "AND $geo AND $age_mine AND ($age_theirs) "
+        . "AND $geo AND $age_mine AND ($age_theirs)$only "
         . "ORDER BY m.`Message_ID` LIMIT $limit",   // предохранитель, а не пагинация:
                                                      // база в разы меньше
         ARRAY_A
@@ -218,6 +221,152 @@ function match_parse_profile($raw) {
     }
     $data = json_decode($raw, true);
     return is_array($data) ? $data : null;
+}
+
+/* --- обоснование пары (Э3.3-a) ---------------------------------------------
+ * Факты для промпта собираются ТОЛЬКО из посчитанных компонентов и белого
+ * списка: возраст, город, переезд, уровни соблюдения, ведущие измерения
+ * профиля. Имён, идентификаторов и чувствительных полей (здоровье, доход)
+ * здесь нет по построению — во внешнюю модель они не уходят (Раздел X).
+ */
+
+/* Топ-2 измерения группы с человекочитаемыми названиями: «Время вдвоём 60%». */
+function match_explain_top($profile, $key, $group) {
+    require_once dirname(__FILE__) . '/cases_lib.php';
+    $arr = ($profile && isset($profile[$key])) ? (array)$profile[$key] : array();
+    arsort($arr);
+    $out = array();
+    foreach (array_slice($arr, 0, 2, true) as $dim => $pc) {
+        $out[] = cases_dimension_title($group, $dim) . ' ' . (int)$pc . '%';
+    }
+    return implode(', ', $out);
+}
+
+/* Одна сторона пары: белый список фактов. $row обязан содержать age. */
+function match_explain_side($row) {
+    $profile = match_parse_profile($row['Psychological_profile']);
+    $side = array(
+        'пол' => ((int)$row['Gender'] === 1) ? 'мужчина' : 'женщина',
+        'возраст' => (int)$row['age'],
+        'город' => (string)$row['City'],
+        'готовность к переезду' => ((int)$row['Are_you_ready_to_move'] === 1) ? 'да' : 'нет',
+    );
+    if ((int)$row['Kashrut_level'] > 0) {
+        $side['кашрут (уровень 1-4)'] = (int)$row['Kashrut_level'];
+    }
+    if ((int)$row['Shabbat_level'] > 0) {
+        $side['шаббат (уровень 1-4)'] = (int)$row['Shabbat_level'];
+    }
+    if ($profile) {
+        $love = match_explain_top($profile, 'love_languages', 'love_language');
+        $values = match_explain_top($profile, 'family_values_scores', 'family_value');
+        if ($love !== '') {
+            $side['ведущие языки любви'] = $love;
+        }
+        if ($values !== '') {
+            $side['ведущие семейные ценности'] = $values;
+        }
+    }
+    return $side;
+}
+
+/*
+ * Все факты пары: две стороны + посчитанные компоненты + география словами.
+ * Стороны НОРМАЛИЗУЮТСЯ по Message_ID (меньший — «кандидат А»): кэш общий
+ * для обоих направлений, иначе шадханы двух половин пары платили бы за одно
+ * и то же обоснование дважды.
+ */
+function match_explain_facts($anketa, $target, $scored) {
+    if ((int)$target['Message_ID'] < (int)$anketa['Message_ID']) {
+        list($anketa, $target) = array($target, $anketa);
+    }
+    $city_a = trim((string)$anketa['City']);
+    $city_b = trim((string)$target['City']);
+    $same_city = ($city_a !== '')
+        && (function_exists('mb_strtolower')
+            ? mb_strtolower($city_a, 'UTF-8') === mb_strtolower($city_b, 'UTF-8')
+            : strcasecmp($city_a, $city_b) === 0);
+    // «города разные» утверждаем только когда оба города известны: при пустом
+    // городе пара в пуле лишь благодаря чьей-то релокации, но сами города
+    // могут и совпадать — модели такое выдавать нельзя («только факты»)
+    if ($same_city) {
+        $geo = 'живут в одном городе';
+    } elseif ($city_a !== '' && $city_b !== '') {
+        $geo = 'города разные, у одной из сторон есть готовность к переезду';
+    } else {
+        $geo = 'город указан не у обеих сторон, есть готовность к переезду';
+    }
+    return array(
+        'кандидат А' => match_explain_side($anketa),
+        'кандидат Б' => match_explain_side($target),
+        'совпадение семейных ценностей'
+            => (int)round($scored['breakdown']['values_match'] * 100) . '%',
+        'совпадение языков любви'
+            => (int)round($scored['breakdown']['love_language_match'] * 100) . '%',
+        'география' => $geo,
+    );
+}
+
+/*
+ * Хэш фактов — ключ кэша. Версия v1 в начале: изменение СТРУКТУРЫ фактов или
+ * ТЕКСТА системного промпта должно инвалидировать кэш — поднимайте версию.
+ * $salt — внешние параметры генерации (модель): их смена тоже меняет ключ.
+ */
+function match_explain_hash($facts, $salt = '') {
+    $json = json_encode($facts, JSON_UNESCAPED_UNICODE);
+    if ($json === false) {
+        // битый UTF-8 в свободном тексте анкеты: иначе хэш стал бы константой
+        // и изменение профиля перестало бы инвалидировать кэш
+        $json = serialize($facts);
+    }
+    return md5('v1|' . $salt . '|' . $json);
+}
+
+/*
+ * Санитайз текста от модели перед кэшем: соединение и база в utf8 (3 байта),
+ * эмодзи и прочие 4-байтовые символы MySQL молча ОБРЕЗАЛ бы вместе со всем
+ * хвостом текста (STRICT_TRANS_TABLES не строг к MyISAM) — а пустой/битый
+ * кэш означает вечный промах и безлимитные платные генерации одной пары.
+ */
+function match_explain_sanitize($text) {
+    $clean = preg_replace('/[\x{10000}-\x{10FFFF}]/u', '', (string)$text);
+    // preg_replace вернёт null на битом UTF-8 — тогда режем жёстче, до ASCII+кириллицы
+    if ($clean === null) {
+        $clean = preg_replace('/[^\x20-\x7E\x{0400}-\x{04FF}\s]/u', '', (string)$text);
+    }
+    return trim((string)$clean);
+}
+
+/* Факты в текст промпта: по строке на пункт, стороны — одной строкой. */
+function match_explain_prompt_text($facts) {
+    $lines = array('Факты о паре:');
+    foreach ($facts as $label => $value) {
+        if (is_array($value)) {
+            $pairs = array();
+            foreach ($value as $k => $v) {
+                $pairs[] = $k . ': ' . $v;
+            }
+            $lines[] = $label . ' — ' . implode('; ', $pairs);
+        } else {
+            $lines[] = $label . ': ' . $value;
+        }
+    }
+    return implode("\n", $lines);
+}
+
+/*
+ * Детерминированное обоснование без LLM (провайдер stub): честный текст из
+ * посчитанных компонентов. Бесплатно, поэтому в кэш не пишется.
+ */
+function match_explain_stub_text($facts) {
+    $parts = array(
+        'Совпадение семейных ценностей — ' . $facts['совпадение семейных ценностей'] . '.',
+        'Совпадение языков любви — ' . $facts['совпадение языков любви'] . '.',
+        ($facts['география'] === 'живут в одном городе')
+            ? 'Живут в одном городе.'
+            : 'Города разные, но есть готовность к переезду.',
+    );
+    return implode(' ', $parts);
 }
 
 /*
