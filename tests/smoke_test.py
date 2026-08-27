@@ -161,6 +161,7 @@ API_ENDPOINTS = [
     "/api/prompt_save.php",
     "/api/summary_generate.php",
     "/api/assessment_answer.php",
+    "/api/match_list.php",
 ]
 
 
