@@ -60,8 +60,16 @@ if (!$leads) {
     shiduh_json(403, array('error' => 'Эта анкета не в вашем ведении'));
 }
 
+// limit опционален (по умолчанию 50, не больше 500): шадхану — листать
+// глубже, тестам — видеть полную выборку, а не хвост топ-50.
+$limit = (int)$nc_core->input->fetch_post('limit');
+if ($limit <= 0) {
+    $limit = 50;
+}
+$limit = min(500, $limit);
+
 shiduh_json(200, array(
     'ok' => true,
     'anketa_id' => $anketa_id,
-    'matches' => match_list($db, $anketa),
+    'matches' => match_list($db, $anketa, $limit),
 ));

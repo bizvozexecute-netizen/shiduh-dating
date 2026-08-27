@@ -57,8 +57,12 @@ def set_fields(anketa, **kw):
 
 
 def match(sid, anketa_id=None, origin=None):
+    # limit=500: после починки NULL-диапазонов выдача реальной базы шире 50,
+    # и тестовые цели с «хвостовыми» Message_ID не влезали бы в топ при
+    # равных (нулевых) баллах
     return post_json("/api/match_list.php", sid,
-                     {"anketa_id": anketa_id if anketa_id is not None else A},
+                     {"anketa_id": anketa_id if anketa_id is not None else A,
+                      "limit": 500},
                      origin=origin)
 
 
@@ -198,6 +202,19 @@ def test_unknown_religion_is_compatible():
     # у всей базы уровни пока не заполнены — «не указано» не должно резать выдачу
     _, data = match(login(SHADHAN))
     assert TARGETS[0] in ids(data), "неуказанная религия отфильтровала пару"
+
+
+def test_null_age_range_does_not_exclude():
+    """У 674 из 1133 анкет Search_age_start — NULL. CAST(NULL AS UNSIGNED)=0
+    даёт NULL, а не TRUE, и такие анкеты молча выпадали из выдачи —
+    «незаданный диапазон не ограничивает» обязан работать и для NULL,
+    не только для пустой строки."""
+    set_fields(TARGETS[0], Search_age_start=None, Search_age_end=None)
+    try:
+        _, data = match(login(SHADHAN))
+        assert TARGETS[0] in ids(data),             "анкета с NULL-диапазоном выпала из выдачи: %s" % ids(data)
+    finally:
+        set_fields(TARGETS[0], Search_age_start=28, Search_age_end=38)
 
 
 def test_unchecked_anketa_never():

@@ -52,7 +52,7 @@ function match_religion_compatible($a, $b) {
  * Жёсткие фильтры: SQL по индексу + религиозная матрица.
  * Возвращает массив строк-кандидатов (анкета + владелец + шадхан + профиль).
  */
-function match_hard_filter($db, $anketa, $limit = 200) {
+function match_hard_filter($db, $anketa, $limit = 600) {
     $id = (int)$anketa['Message_ID'];
     $gender = (int)$anketa['Gender'];
     if ($gender !== 1 && $gender !== 2) {
@@ -83,9 +83,13 @@ function match_hard_filter($db, $anketa, $limit = 200) {
     if ($my_end > 0) {
         $age_mine .= " AND $their_age <= $my_end";
     }
-    // их диапазон: незаданный (0/пусто) не ограничивает
-    $age_theirs = "(CAST(m.`Search_age_start` AS UNSIGNED) = 0 OR $my_age >= CAST(m.`Search_age_start` AS UNSIGNED))"
-        . " AND (CAST(m.`Search_age_end` AS UNSIGNED) = 0 OR $my_age <= CAST(m.`Search_age_end` AS UNSIGNED))";
+    // Их диапазон: незаданный не ограничивает. IFNULL обязателен: у 674 из
+    // 1133 анкет поле NULL, а CAST(NULL AS UNSIGNED)=NULL превращает всё
+    // условие в NULL — строка молча выпадала бы из выдачи (ловил тест).
+    $age_theirs = "(CAST(IFNULL(m.`Search_age_start`,'') AS UNSIGNED) = 0"
+        . " OR $my_age >= CAST(m.`Search_age_start` AS UNSIGNED))"
+        . " AND (CAST(IFNULL(m.`Search_age_end`,'') AS UNSIGNED) = 0"
+        . " OR $my_age <= CAST(m.`Search_age_end` AS UNSIGNED))";
 
     $db->query(
         "SELECT m.`Message_ID`, m.`User_ID`, m.`Name`, m.`City`, m.`Gender`, "
