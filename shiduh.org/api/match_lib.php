@@ -141,7 +141,9 @@ function match_hard_filter($db, $anketa, $limit = 2000, $only_id = 0) {
     $db->query(
         "SELECT m.`Message_ID`, m.`User_ID`, m.`Name`, m.`City`, m.`Gender`, "
         . "m.`Date_of_birth`, m.`Kashrut_level`, m.`Shabbat_level`, "
-        . "m.`Shadhan_1`, m.`Psychological_profile`, "
+        // ведущий — первый заполненный из трёх слотов, не только Shadhan_1
+        . "COALESCE(NULLIF(m.`Shadhan_1`,0), NULLIF(m.`Shadhan_2`,0), NULLIF(m.`Shadhan_3`,0)) AS lead_shadhan, "
+        . "m.`Psychological_profile`, "
         . "$their_age AS age "
         . "FROM `Message204` m "
         . "WHERE m.`Checked`=1 AND m.`Gender`=$want AND m.`Message_ID`<>$id "
@@ -396,7 +398,7 @@ function match_list($db, $anketa, $limit = 50, $shadhan_id = 0) {
             'city' => (string)$r['City'],
             'score' => $scored['score'],
             'breakdown' => $scored['breakdown'],
-            'shadhan_id' => (int)$r['Shadhan_1'],
+            'shadhan_id' => (int)$r['lead_shadhan'],
         );
     }
 

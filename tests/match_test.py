@@ -305,6 +305,27 @@ def test_match_row_shows_target_shadhan():
     assert "shadhan" in row, "в паре не показан ведущий шадхан"
 
 
+def test_lead_shadhan_falls_back_to_second_slot():
+    # ведущий — первый ЗАПОЛНЕННЫЙ слот: у части анкет Shadhan_1 пуст,
+    # а кандидата реально ведёт Shadhan_2/3
+    t = TARGETS[0]
+    saved = dbq("SELECT IFNULL(Shadhan_1,'\\0'), IFNULL(Shadhan_2,'\\0'), "
+                "IFNULL(Shadhan_3,'\\0') FROM `Message204` WHERE Message_ID=%d" % t).split("\t")
+    name57 = dbq("SELECT Name FROM `User` WHERE User_ID=57")
+    dbq("UPDATE `Message204` SET Shadhan_1=NULL, Shadhan_2=57, Shadhan_3=NULL "
+        "WHERE Message_ID=%d" % t)
+    try:
+        _, data = match(login(SHADHAN))
+        row = next(r for r in data["matches"] if r["anketa_id"] == t)
+        assert row["shadhan"] == name57, \
+            "ведущий из Shadhan_2 не показан: %r" % row.get("shadhan")
+    finally:
+        parts = []
+        for col, v in zip(("Shadhan_1", "Shadhan_2", "Shadhan_3"), saved):
+            parts.append("`%s`=%s" % (col, "NULL" if v == "\0" else "'%s'" % sql_str(v)))
+        dbq("UPDATE `Message204` SET %s WHERE Message_ID=%d" % (", ".join(parts), t))
+
+
 # --- инварианты против прямого SQL (гэпы из ревью) ----------------------------
 
 def test_pool_count_matches_direct_sql():
