@@ -162,6 +162,7 @@ API_ENDPOINTS = [
     "/api/summary_generate.php",
     "/api/assessment_answer.php",
     "/api/match_list.php",
+    "/api/match_feedback.php",
 ]
 
 

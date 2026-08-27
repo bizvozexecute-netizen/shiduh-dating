@@ -303,3 +303,48 @@ def test_match_row_shows_target_shadhan():
     _, data = match(login(SHADHAN))
     row = next(r for r in data["matches"] if r["anketa_id"] == TARGETS[0])
     assert "shadhan" in row, "в паре не показан ведущий шадхан"
+
+
+# --- инварианты против прямого SQL (гэпы из ревью) ----------------------------
+
+def test_pool_count_matches_direct_sql():
+    """Счётный инвариант: сколько анкет проходит фильтры по прямому SQL,
+    столько и в выдаче. Точечный тест «цель нашлась» такой регресс не ловит:
+    NULL-баг выкидывал 82% пар, а конкретная цель уцелела бы."""
+    _, data = match(login(SHADHAN))
+    got = len(ids(data))
+    my_age = "TIMESTAMPDIFF(YEAR, '1994-01-01', CURDATE())"
+    expected = int(dbq(
+        "SELECT COUNT(*) FROM `Message204` m WHERE m.Checked=1 AND m.Gender=2 "
+        "AND m.Message_ID<>%d AND m.Date_of_birth IS NOT NULL "
+        "AND m.Date_of_birth NOT LIKE '0000%%' "
+        "AND ((m.City='%s') OR m.Are_you_ready_to_move=1) "
+        "AND TIMESTAMPDIFF(YEAR, m.Date_of_birth, CURDATE()) BETWEEN 25 AND 35 "
+        "AND (m.Search_age_start IS NULL OR m.Search_age_start <= 0 OR %s >= m.Search_age_start) "
+        "AND (m.Search_age_end IS NULL OR m.Search_age_end <= 0 OR %s <= m.Search_age_end)"
+        % (A, CITY, my_age, my_age)))
+    assert got == expected, "выдача (%d) разошлась с прямым SQL (%d)" % (got, expected)
+
+
+def test_requester_null_range_means_unbounded():
+    # симметричная половина инварианта: NULL-диапазон у ЗАПРАШИВАЮЩЕГО
+    set_fields(A, Search_age_start=None, Search_age_end=None)
+    try:
+        _, data = match(login(SHADHAN))
+        # T2 (45 лет) была вне диапазона 25–35 — без диапазона обязана войти
+        assert TARGETS[2] in ids(data),             "NULL-диапазон запрашивающего не снял ограничение возраста"
+    finally:
+        set_fields(A, Search_age_start=25, Search_age_end=35)
+
+
+def test_empty_city_is_not_a_match():
+    """«Пустой город не считается совпадением»: 367 из 1133 анкет без города —
+    они не должны липнуть к анкете, у которой города тоже нет."""
+    set_fields(A, City=None)
+    set_fields(TARGETS[0], City=None, Are_you_ready_to_move=0)
+    try:
+        _, data = match(login(SHADHAN))
+        assert TARGETS[0] not in ids(data),             "две анкеты без города совпали по географии"
+    finally:
+        set_fields(A, City=CITY)
+        set_fields(TARGETS[0], City=CITY)

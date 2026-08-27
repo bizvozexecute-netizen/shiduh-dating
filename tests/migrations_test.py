@@ -62,7 +62,7 @@ PROFILE_FIELDS = [
 ]
 NEW_TABLES = ["ai_chat_messages", "ai_prompts", "ai_field_writes", "invite_tokens",
               "mailings", "mailing_log", "mailing_optout", "assessment_cases",
-              "assessment_answers"]
+              "assessment_answers", "match_feedback"]
 NEW_DICTS = ["Classificator_Kashrut_level", "Classificator_Shabbat_level",
              "Classificator_Value_dimension"]
 DICT_NAMES = ["Kashrut_level", "Shabbat_level", "Value_dimension"]

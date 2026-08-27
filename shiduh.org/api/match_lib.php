@@ -28,11 +28,51 @@
  * при подключении эмбеддингов.
  */
 
-require_once dirname(__FILE__) . '/profile_view_lib.php';
+/*
+ * Веса компонентов (Э3.2-a) с эвристикой Э3.3-b: причина отклонения пары
+ * понижает вес компонента, который дал ложный сигнал, — В ПОДБОРЕ ЭТОГО
+ * шадхана. Отклонил три пары «не совпали ценности» → компонент values ему
+ * очевидно мало помогает, приглушаем.
+ *
+ * Эвристика намеренно простая и ограниченная: −0.03 за отклонение, не ниже
+ * пола 0.15 (компонент никогда не выключается совсем). Причины geography и
+ * age на веса не влияют — это жёсткие фильтры, а не компоненты балла.
+ */
+function match_weights($db = null, $shadhan_id = 0) {
+    $w = array('values' => 0.4, 'love' => 0.3, 'semantic' => 0.3);
+    $shadhan_id = (int)$shadhan_id;
+    if (!$db || !$shadhan_id) {
+        return $w;
+    }
+    $db->query(
+        "SELECT `reason`, COUNT(*) AS n FROM `match_feedback` "
+        . "WHERE `shadhan_id`=$shadhan_id AND `action`='rejected' "
+        . "AND `reason` IN ('values','love_language') GROUP BY `reason`",
+        ARRAY_A
+    );
+    foreach ((array)$db->last_result as $r) {
+        $key = ($r['reason'] === 'values') ? 'values' : 'love';
+        $w[$key] = max(0.15, $w[$key] - 0.03 * (int)$r['n']);
+    }
+    return $w;
+}
 
-/* Веса компонентов (Э3.2-a). В конфиг выносить рано: менять их будет Э3.3-b. */
-function match_weights() {
-    return array('values' => 0.4, 'love' => 0.3, 'semantic' => 0.3);
+/* Пары, отклонённые этим шадханом: set ключей "a-b" (a < b). */
+function match_rejected_pairs($db, $shadhan_id) {
+    $shadhan_id = (int)$shadhan_id;
+    if (!$shadhan_id) {
+        return array();
+    }
+    $db->query(
+        "SELECT `anketa_a`, `anketa_b` FROM `match_feedback` "
+        . "WHERE `shadhan_id`=$shadhan_id AND `action`='rejected'",
+        ARRAY_A
+    );
+    $out = array();
+    foreach ((array)$db->last_result as $r) {
+        $out[$r['anketa_a'] . '-' . $r['anketa_b']] = true;
+    }
+    return $out;
 }
 
 /*
@@ -52,7 +92,7 @@ function match_religion_compatible($a, $b) {
  * Жёсткие фильтры: SQL по индексу + религиозная матрица.
  * Возвращает массив строк-кандидатов (анкета + владелец + шадхан + профиль).
  */
-function match_hard_filter($db, $anketa, $limit = 600) {
+function match_hard_filter($db, $anketa, $limit = 2000) {
     $id = (int)$anketa['Message_ID'];
     $gender = (int)$anketa['Gender'];
     if ($gender !== 1 && $gender !== 2) {
@@ -62,13 +102,15 @@ function match_hard_filter($db, $anketa, $limit = 600) {
     $limit = (int)$limit;
 
     $city = trim((string)$anketa['City']);
-    $city_esc = $db->prepare(mb_strtolower($city));
+    // без LOWER(): коллация utf8_general_ci и так без регистра, а функция
+    // на колонке лишила бы City индекса
+    $city_esc = $db->prepare($city);
     $i_move = ((int)$anketa['Are_you_ready_to_move'] === 1) ? 1 : 0;
 
     // география: общий город ИЛИ чья-то релокация; пустой город не совпадает
     $geo = $i_move
         ? "1=1"
-        : "((" . ($city !== '' ? "LOWER(m.`City`)='$city_esc'" : "0") . ") OR m.`Are_you_ready_to_move`=1)";
+        : "((" . ($city !== '' ? "m.`City`='$city_esc'" : "0") . ") OR m.`Are_you_ready_to_move`=1)";
 
     // возраст обеих сторон
     $my_age = "TIMESTAMPDIFF(YEAR, '" . $db->prepare($anketa['Date_of_birth']) . "', CURDATE())";
@@ -83,13 +125,15 @@ function match_hard_filter($db, $anketa, $limit = 600) {
     if ($my_end > 0) {
         $age_mine .= " AND $their_age <= $my_end";
     }
-    // Их диапазон: незаданный не ограничивает. IFNULL обязателен: у 674 из
-    // 1133 анкет поле NULL, а CAST(NULL AS UNSIGNED)=NULL превращает всё
-    // условие в NULL — строка молча выпадала бы из выдачи (ловил тест).
-    $age_theirs = "(CAST(IFNULL(m.`Search_age_start`,'') AS UNSIGNED) = 0"
-        . " OR $my_age >= CAST(m.`Search_age_start` AS UNSIGNED))"
-        . " AND (CAST(IFNULL(m.`Search_age_end`,'') AS UNSIGNED) = 0"
-        . " OR $my_age <= CAST(m.`Search_age_end` AS UNSIGNED))";
+    // Их диапазон: незаданный не ограничивает. NULL проверяется ЯВНО: у 674
+    // из 1133 анкет поле NULL, а CAST(NULL...)=NULL превращал всё условие в
+    // NULL — строка молча выпадала из выдачи (82% допустимых пар; ловил тест).
+    // Колонка double, поэтому без CAST-трюков: они по-разному округляют и
+    // по-разному видят отрицательные значения в двух половинах одного OR.
+    $age_theirs = "(m.`Search_age_start` IS NULL OR m.`Search_age_start` <= 0"
+        . " OR $my_age >= m.`Search_age_start`)"
+        . " AND (m.`Search_age_end` IS NULL OR m.`Search_age_end` <= 0"
+        . " OR $my_age <= m.`Search_age_end`)";
 
     $db->query(
         "SELECT m.`Message_ID`, m.`User_ID`, m.`Name`, m.`City`, m.`Gender`, "
@@ -100,7 +144,8 @@ function match_hard_filter($db, $anketa, $limit = 600) {
         . "WHERE m.`Checked`=1 AND m.`Gender`=$want AND m.`Message_ID`<>$id "
         . "AND m.`Date_of_birth` IS NOT NULL AND m.`Date_of_birth` NOT LIKE '0000%' "
         . "AND $geo AND $age_mine AND ($age_theirs) "
-        . "ORDER BY m.`Message_ID` LIMIT $limit",
+        . "ORDER BY m.`Message_ID` LIMIT $limit",   // предохранитель, а не пагинация:
+                                                     // база в разы меньше
         ARRAY_A
     );
     $rows = (array)$db->last_result;
@@ -142,8 +187,8 @@ function match_distribution_similarity($a, $b) {
  * (или null). semantic_similarity — честный 0 до появления эмбеддингов,
  * а не выдуманное число.
  */
-function match_score($profile_a, $profile_b) {
-    $w = match_weights();
+function match_score($profile_a, $profile_b, $weights = null) {
+    $w = $weights ? $weights : match_weights();
     $values = match_distribution_similarity(
         $profile_a ? (array)$profile_a['family_values_scores'] : null,
         $profile_b ? (array)$profile_b['family_values_scores'] : null
@@ -180,14 +225,21 @@ function match_parse_profile($raw) {
  * Сортировка по убыванию балла, при равенстве по Message_ID — чтобы
  * порядок был воспроизводим («Готовность Э3»).
  */
-function match_list($db, $anketa, $limit = 50) {
+function match_list($db, $anketa, $limit = 50, $shadhan_id = 0) {
     $candidates = match_hard_filter($db, $anketa);
     $profile_a = match_parse_profile($anketa['Psychological_profile']);
+    $weights = match_weights($db, $shadhan_id);
+    $rejected = match_rejected_pairs($db, $shadhan_id);
+    $my_id = (int)$anketa['Message_ID'];
 
     $out = array();
     foreach ($candidates as $r) {
-        $scored = match_score($profile_a, match_parse_profile($r['Psychological_profile']));
-        $shadhan_id = (int)$r['Shadhan_1'];
+        // отклонённая этим шадханом пара исключается из его выдачи
+        $key = min($my_id, (int)$r['Message_ID']) . '-' . max($my_id, (int)$r['Message_ID']);
+        if (isset($rejected[$key])) {
+            continue;
+        }
+        $scored = match_score($profile_a, match_parse_profile($r['Psychological_profile']), $weights);
         $out[] = array(
             'anketa_id' => (int)$r['Message_ID'],
             'name' => (string)$r['Name'],
@@ -195,10 +247,7 @@ function match_list($db, $anketa, $limit = 50) {
             'city' => (string)$r['City'],
             'score' => $scored['score'],
             'breakdown' => $scored['breakdown'],
-            // Э3.3-c: кто ведёт кандидата
-            'shadhan' => $shadhan_id
-                ? (string)$db->get_var("SELECT `Name` FROM `User` WHERE `User_ID`=$shadhan_id")
-                : '',
+            'shadhan_id' => (int)$r['Shadhan_1'],
         );
     }
 
@@ -208,6 +257,32 @@ function match_list($db, $anketa, $limit = 50) {
         }
         return ($x['anketa_id'] < $y['anketa_id']) ? -1 : 1;
     });
+    $out = array_slice($out, 0, max(1, (int)$limit));
 
-    return array_slice($out, 0, max(1, (int)$limit));
+    // Имена ведущих шадханов (Э3.3-c) — ПОСЛЕ среза и одним запросом:
+    // до среза это было бы N+1 на сотни строк ради топ-50.
+    $ids = array();
+    foreach ($out as $row) {
+        if ($row['shadhan_id']) {
+            $ids[$row['shadhan_id']] = true;
+        }
+    }
+    $names = array();
+    if ($ids) {
+        $db->query(
+            "SELECT `User_ID`, `Name` FROM `User` WHERE `User_ID` IN ("
+            . implode(',', array_map('intval', array_keys($ids))) . ")",
+            ARRAY_A
+        );
+        foreach ((array)$db->last_result as $u) {
+            $names[(int)$u['User_ID']] = (string)$u['Name'];
+        }
+    }
+    foreach ($out as &$row) {
+        $row['shadhan'] = isset($names[$row['shadhan_id']]) ? $names[$row['shadhan_id']] : '';
+        unset($row['shadhan_id']);
+    }
+    unset($row);
+
+    return $out;
 }

@@ -68,8 +68,12 @@ if ($limit <= 0) {
 }
 $limit = min(500, $limit);
 
+// Аудит: подбор раскрывает шадхану анкеты по всей базе — фиксируем, кто и
+// по какой анкете запрашивал (рекомендация security-ревью).
+error_log('[match] шадхан ' . $uid . ' запросил подбор по анкете ' . $anketa_id);
+
 shiduh_json(200, array(
     'ok' => true,
     'anketa_id' => $anketa_id,
-    'matches' => match_list($db, $anketa, $limit),
+    'matches' => match_list($db, $anketa, $limit, $uid),
 ));
