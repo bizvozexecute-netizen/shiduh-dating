@@ -37,14 +37,8 @@ if (!$uid) {
 }
 
 // Каждый ответ — обращение к модели (а на смене версии ещё одно, за текстом
-// психотипа). Потолок за сутки: опрос из 12 кейсов проходится многократно, но
-// бесконечно жать кнопку не выйдет.
-define('ASSESSMENT_MAX_PER_DAY', 300);
-$today = (int)$db->get_var(
-    "SELECT COUNT(*) FROM `assessment_answers` WHERE `user_id`=$uid "
-    . "AND `created_at` > DATE_SUB(NOW(), INTERVAL 1 DAY)"
-);
-if ($today >= ASSESSMENT_MAX_PER_DAY) {
+// психотипа). Потолок за сутки — общий с путём диалога (Э2.2-c).
+if (scoring_daily_cap_reached($db, $uid)) {
     shiduh_json(429, array(
         'error' => 'Слишком много ответов за сутки. Продолжите завтра.',
     ));
@@ -72,36 +66,15 @@ if (!$case_row) {
     shiduh_json(404, array('error' => 'Кейс не найден'));
 }
 
-// Один ответ — один разбор моделью (Э2.3-a). Ошибка модели не теряет ответ.
-$classification = scoring_classify($case_row, $answer);
-
-$version = scoring_version_for_answer($db, $uid, $case_id);
-$answer_id = scoring_store_answer($db, $uid, $case_id, $answer, $classification, $version);
-if (!$answer_id) {
+// Общий конвейер с путём диалога (Э2.2-c): классификация -> баллы ->
+// профиль КОДОМ -> психотип раз на версию -> фиксация в анкете.
+$result = scoring_record_answer($db, $uid, $case_row, $answer);
+if (!$result['answer_id']) {
     shiduh_json(500, array('error' => 'Не удалось сохранить ответ'));
 }
-
-// Профиль считает КОД по сохранённым баллам (Э2.3-b), а не модель.
-$profile = scoring_compute_profile($db, $uid);
-if ($profile) {
-    // Текст психотипа — один раз на версию (Э2.3-c). Если он уже посчитан
-    // для этой версии, переносим как есть: при просмотрах и следующих
-    // ответах модель не тревожим.
-    $stored = json_decode((string)$db->get_var(
-        "SELECT `Psychological_profile` FROM `Message204` WHERE `User_ID`=$uid "
-        . "ORDER BY `Message_ID` LIMIT 1"
-    ), true);
-    $cached = (is_array($stored)
-        && (int)(isset($stored['version']) ? $stored['version'] : 0) === (int)$profile['version']
-        && !empty($stored['psychotype_text']))
-        ? $stored['psychotype_text'] : null;
-
-    $profile['psychotype_text'] = $cached !== null
-        ? $cached
-        : scoring_psychotype_text($profile);
-
-    scoring_save_profile($db, $uid, $profile);
-}
+$classification_ok = $result['classified'];
+$version = $result['version'];
+$profile = $result['profile'];
 
 // Следующий вопрос и прогресс отдаём в этом же ответе — отдельный эндпоинт
 // ради этого заводить незачем (Э2.4).
@@ -117,7 +90,7 @@ if (is_array($public_profile)) {
 
 shiduh_json(200, array(
     'ok' => true,
-    'classified' => $classification !== null,
+    'classified' => $classification_ok,
     'version' => $version,
     'profile' => $public_profile,
     'next' => $state['next'],

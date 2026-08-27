@@ -9,6 +9,8 @@
 Режимы (set_fake_mode):
   ok              — обычный ответ, эхом последнего сообщения пользователя
   emoji           — ответ с эмодзи (4-байтовый UTF-8): проверка санитайза
+  case_flow       — вплетение кейса (Э2.2-c): tool_call ответа на кейс ->
+                    классификация -> финальная реплика
   echo_system     — эхом системного промпта (проверка, что он доехал)
   echo_tools      — эхом списка полученных инструментов и их полей
   echo_prompt     — эхом всего полученного запроса (проверка приватности)
@@ -147,6 +149,61 @@ if ($mode === 'tool_call') {
     exit;
 }
 
+if ($mode === 'case_flow') {
+    /* Вплетение кейса в диалог (Э2.2-c): 1-й вызов — модель просит записать
+       ответ на кейс; 2-й — классификатор (scoring_classify) получает строгий
+       JSON; 3-й — финальная реплика по результату инструмента. */
+    if ($s['calls'] === 1) {
+        /* multi > 1 — parallel tool calls: модель просит записать ответ
+           несколько раз за один ход (проверка «не больше одного за запрос») */
+        $n = isset($s['multi']) ? max(1, (int)$s['multi']) : 1;
+        $calls_arr = array();
+        for ($i = 0; $i < $n; $i++) {
+            $calls_arr[] = array(
+                'id' => 'case_' . ($i + 1),
+                'type' => 'function',
+                'function' => array(
+                    'name' => 'record_case_answer',
+                    'arguments' => json_encode(
+                        isset($s['tool_args']) ? $s['tool_args'] : array(),
+                        JSON_UNESCAPED_UNICODE
+                    ),
+                ),
+            );
+        }
+        echo json_encode(array(
+            'choices' => array(array('message' => array(
+                'role' => 'assistant',
+                'content' => null,
+                'tool_calls' => $calls_arr,
+            ))),
+            'usage' => array('prompt_tokens' => 9, 'completion_tokens' => 5, 'total_tokens' => 14),
+        ), JSON_UNESCAPED_UNICODE);
+        exit;
+    }
+    if ($s['calls'] === 2) {
+        echo json_encode(array(
+            'choices' => array(array('message' => array(
+                'role' => 'assistant',
+                'content' => json_encode(
+                    isset($s['classify']) ? $s['classify'] : array(),
+                    JSON_UNESCAPED_UNICODE
+                ),
+            ))),
+            'usage' => array('prompt_tokens' => 6, 'completion_tokens' => 6, 'total_tokens' => 12),
+        ), JSON_UNESCAPED_UNICODE);
+        exit;
+    }
+    echo json_encode(array(
+        'choices' => array(array('message' => array(
+            'role' => 'assistant',
+            'content' => 'ВПЛЕТЕНО. Результат инструмента: ' . $tool_seen,
+        ))),
+        'usage' => array('prompt_tokens' => 7, 'completion_tokens' => 7, 'total_tokens' => 14),
+    ), JSON_UNESCAPED_UNICODE);
+    exit;
+}
+
 if ($mode === 'tool_call_always') {
     /* Модель просит инструмент на каждом вызове: проверяем, что конвейер
        не уходит в цикл и пользователь не видит пустой ответ. */
@@ -256,12 +313,16 @@ def web(*args):
                           encoding="utf-8", errors="replace", timeout=60)
 
 
-def set_fake_mode(mode, fail_first=0, tool_args=None):
+def set_fake_mode(mode, fail_first=0, tool_args=None, classify=None, multi=None):
     # chmod 0666: файл пишет и CLI-PHP (root), и веб-сервер (www-data) —
     # без этого счётчик попыток не увеличивается и ретраи не проверить
     state = {"mode": mode, "calls": 0, "fail_first": fail_first}
     if tool_args is not None:
         state["tool_args"] = tool_args
+    if classify is not None:
+        state["classify"] = classify
+    if multi is not None:
+        state["multi"] = multi
     payload = base64.b64encode(
         json.dumps(state, ensure_ascii=False).encode("utf-8")).decode("ascii")
     web("php", "-r",

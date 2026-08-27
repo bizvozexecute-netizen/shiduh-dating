@@ -140,15 +140,30 @@ function scoring_store_answer($db, $user_id, $case_id, $answer, $classification,
         ? json_encode($classification['scores'], JSON_UNESCAPED_UNICODE) : '';
     $confidence = $classification ? (float)$classification['confidence'] : 0.0;
 
+    // IGNORE + UNIQUE user_case_version (миграция 015): гонка двух путей
+    // ответа (опрос и диалог, Э2.2-c) не плодит дубль в одной версии.
+    // number_format, не sprintf('%f'): NetCat ставит ru_RU-локаль, и sprintf
+    // дал бы '0,90' — SQL-ошибка только на проде (ловушка из Э2.4).
     $db->query(
-        "INSERT INTO `assessment_answers` SET "
+        "INSERT IGNORE INTO `assessment_answers` SET "
         . "`user_id`=$user_id, `case_id`=$case_id, "
         . "`answer`='" . $db->prepare(mb_substr((string)$answer, 0, 4000)) . "', "
         . "`scores`='" . $db->prepare($scores) . "', "
-        . "`confidence`=" . sprintf('%.2f', $confidence) . ", "
+        . "`confidence`=" . number_format($confidence, 2, '.', '') . ", "
         . "`version`=$version, `created_at`=NOW()"
     );
-    return $db->is_error ? 0 : (int)$db->insert_id;
+    if ($db->is_error) {
+        return 0;
+    }
+    if (!$db->rows_affected) {
+        // дубль по UNIQUE: ответ на этот кейс в этой версии уже записан
+        // параллельным запросом — идемпотентно возвращаем существующий
+        return (int)$db->get_var(
+            "SELECT `id` FROM `assessment_answers` WHERE `user_id`=$user_id "
+            . "AND `case_id`=$case_id AND `version`=$version LIMIT 1"
+        );
+    }
+    return (int)$db->insert_id;
 }
 
 /*
@@ -290,4 +305,106 @@ function scoring_save_profile($db, $user_id, $profile) {
         . "WHERE `Message_ID`=$anketa_id"
     );
     return !$db->is_error;
+}
+
+/*
+ * Потолок обращений к модели за сутки на пользователя: опрос из 12 кейсов
+ * проходится многократно, но бесконечно жать кнопку (или гонять диалог,
+ * Э2.2-c) не выйдет. Живёт здесь, потому что ответы принимают ДВА пути:
+ * явный опрос (assessment_answer.php) и инструмент диалога (ai_tools.php).
+ */
+if (!defined('ASSESSMENT_MAX_PER_DAY')) {
+    define('ASSESSMENT_MAX_PER_DAY', 300);
+}
+
+function scoring_daily_cap_reached($db, $user_id) {
+    $user_id = (int)$user_id;
+    $today = (int)$db->get_var(
+        "SELECT COUNT(*) FROM `assessment_answers` WHERE `user_id`=$user_id "
+        . "AND `created_at` > DATE_SUB(NOW(), INTERVAL 1 DAY)"
+    );
+    return $today >= ASSESSMENT_MAX_PER_DAY;
+}
+
+/*
+ * Полный конвейер приёма одного ответа на кейс (Э2.3): классификация
+ * моделью -> сохранение с баллами (негодный разбор не роняет конвейер —
+ * ответ хранится без баллов) -> пересчёт профиля КОДОМ -> текст психотипа
+ * (один раз на версию) -> фиксация в анкете.
+ *
+ * Общий для явного опроса и вплетения в диалог (Э2.2-c): оба пути обязаны
+ * вести себя одинаково, иначе профиль зависел бы от способа ответа.
+ *
+ * Возвращает array(answer_id, classified, version, profile); answer_id=0 —
+ * ответ сохранить не удалось; profile — зафиксированный профиль или null.
+ *
+ * Сериализация: GET_LOCK на пользователя. Ответы приходят ДВУМЯ дверями
+ * (форма опроса и инструмент диалога), и без замка гонка «прочитал версию →
+ * вставил» либо дублирует кейс в версии, либо, хуже, уводит второй ответ в
+ * версию V+1 — профиль молча пересчитывается по одному ответу (ревью Э2.2-c).
+ * UNIQUE user_case_version в схеме — страховка от первой ветки, замок
+ * закрывает обе. MySQL 5.7: GET_LOCK честно ждёт и не сбрасывает чужие замки.
+ */
+function scoring_record_answer($db, $user_id, $case_row, $answer) {
+    $user_id = (int)$user_id;
+
+    // классификация — долгий вызов модели: ДО замка, чтобы не держать
+    // сериализацию на время сети
+    $classification = scoring_classify($case_row, $answer);
+
+    $lock = 'shiduh_scoring_' . $user_id;
+    $got = (int)$db->get_var("SELECT GET_LOCK('" . $db->prepare($lock) . "', 5)");
+    if (!$got) {
+        // параллельная запись держит замок дольше 5с — честно отказываем,
+        // а не пишем вслепую мимо сериализации
+        return array('answer_id' => 0, 'classified' => false, 'version' => 0,
+            'profile' => null);
+    }
+
+    $version = scoring_version_for_answer($db, $user_id, (int)$case_row['id']);
+    $answer_id = scoring_store_answer($db, $user_id, (int)$case_row['id'],
+        $answer, $classification, $version);
+    if (!$answer_id) {
+        $db->get_var("SELECT RELEASE_LOCK('" . $db->prepare($lock) . "')");
+        return array('answer_id' => 0, 'classified' => false, 'version' => $version,
+            'profile' => null);
+    }
+
+    $profile = scoring_compute_profile($db, $user_id);
+    // Профиль и текст психотипа живут в анкете. Без анкеты сохранять некуда,
+    // и кэш «психотип раз на версию» не работал бы — каждый ответ порождал бы
+    // новую платную генерацию текста. Поэтому без анкеты не генерируем вовсе.
+    $anketa_id = (int)$db->get_var(
+        "SELECT `Message_ID` FROM `Message204` WHERE `User_ID`=$user_id "
+        . "ORDER BY `Message_ID` LIMIT 1"
+    );
+    if ($profile && $anketa_id) {
+        // Текст психотипа — один раз на версию: если уже посчитан, переносим
+        // как есть, модель не тревожим.
+        $stored = json_decode((string)$db->get_var(
+            "SELECT `Psychological_profile` FROM `Message204` "
+            . "WHERE `Message_ID`=$anketa_id"
+        ), true);
+        $cached = (is_array($stored)
+            && (int)(isset($stored['version']) ? $stored['version'] : 0) === (int)$profile['version']
+            && !empty($stored['psychotype_text']))
+            ? $stored['psychotype_text'] : null;
+
+        $profile['psychotype_text'] = $cached !== null
+            ? $cached
+            : scoring_psychotype_text($profile);
+
+        if (!scoring_save_profile($db, $user_id, $profile)) {
+            // молчать нельзя: профиль посчитан, но в анкете его нет
+            error_log('[scoring] профиль не сохранён для пользователя ' . $user_id);
+        }
+    }
+    $db->get_var("SELECT RELEASE_LOCK('" . $db->prepare($lock) . "')");
+
+    return array(
+        'answer_id' => (int)$answer_id,
+        'classified' => $classification !== null,
+        'version' => $version,
+        'profile' => ($profile && $anketa_id) ? $profile : null,
+    );
 }

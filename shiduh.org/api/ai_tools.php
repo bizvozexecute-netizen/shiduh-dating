@@ -18,6 +18,11 @@
  * Экранирование строк — prepare() (№35), числа — (int).
  */
 
+// В шапке, а не внутри функций: include в теле функции делает top-level
+// переменные подключаемого файла локальными для будущих точек входа
+require_once dirname(__FILE__) . '/cases_lib.php';
+require_once dirname(__FILE__) . '/scoring_lib.php';
+
 /*
  * Карта: ключ инструмента → колонка Message204 + тип.
  *   text — свободный текст/строка
@@ -46,8 +51,43 @@ function ai_tool_field_map() {
     );
 }
 
-/* Описание инструмента для модели (OpenAI function calling). */
-function ai_tool_definitions() {
+/*
+ * Описание инструментов для модели (OpenAI function calling).
+ * $with_case — у пользователя есть неотвеченный кейс опроса (Э2.2-c):
+ * добавляется инструмент записи ответа на кейс. КАКОЙ кейс — определяет
+ * сервер (следующий неотвеченный), модель передаёт только сам ответ:
+ * доверять ей выбор кейса нельзя.
+ */
+function ai_tool_definitions($with_case = false) {
+    $tools = ai_tool_profile_definitions();
+    if ($with_case) {
+        $tools[] = array(
+            'type' => 'function',
+            'function' => array(
+                'name' => 'record_case_answer',
+                'description' => 'Записать ответ собеседника на предложенный вами '
+                    . 'сценарий ценностного опроса. Вызывайте только когда он '
+                    . 'содержательно ответил именно на сценарий; передавайте его '
+                    . 'слова, не пересказ.',
+                'parameters' => array(
+                    'type' => 'object',
+                    'properties' => array(
+                        'answer' => array(
+                            'type' => 'string',
+                            'description' => 'Ответ собеседника на сценарий, близко к его словам',
+                        ),
+                    ),
+                    'required' => array('answer'),
+                    'additionalProperties' => false,
+                ),
+            ),
+        );
+    }
+    return $tools;
+}
+
+/* Инструмент автозаполнения анкеты (Э1.3). */
+function ai_tool_profile_definitions() {
     $props = array();
     $descr = array(
         'city' => 'Город, где человек живёт сейчас',
@@ -184,4 +224,57 @@ function ai_tool_apply($db, $user_id, $args) {
     }
 
     return $report;
+}
+
+/*
+ * Запись ответа на кейс из диалога (Э2.2-c). Кейс определяет СЕРВЕР —
+ * следующий неотвеченный по cases_survey_state, тем же правилом, что и
+ * явный опрос: модель не выбирает, на какой кейс «зачесть» ответ.
+ * Конвейер записи общий (scoring_record_answer) — путь ответа не должен
+ * влиять на профиль.
+ */
+function ai_tool_record_case($db, $user_id, $args) {
+    $user_id = (int)$user_id;
+
+    $answer = isset($args['answer']) && (is_string($args['answer']) || is_numeric($args['answer']))
+        ? trim((string)$args['answer']) : '';
+    if ($answer === '') {
+        return array('recorded' => false, 'reason' => 'пустой ответ');
+    }
+    if (mb_strlen($answer) > 4000) {
+        $answer = mb_substr($answer, 0, 4000);
+    }
+
+    if (scoring_daily_cap_reached($db, $user_id)) {
+        return array('recorded' => false, 'reason' => 'дневной лимит ответов исчерпан');
+    }
+
+    $state = cases_survey_state($db, $user_id);
+    if (empty($state['next'])) {
+        return array('recorded' => false, 'reason' => 'опрос уже пройден');
+    }
+    $case_row = $db->get_row(
+        "SELECT `id`, `dimension_group`, `dimension`, `scenario_text` "
+        . "FROM `assessment_cases` WHERE `id`=" . (int)$state['next']['id'] . " AND `active`=1",
+        ARRAY_A
+    );
+    if (!$case_row) {
+        return array('recorded' => false, 'reason' => 'кейс недоступен');
+    }
+
+    $result = scoring_record_answer($db, $user_id, $case_row, $answer);
+    if (!$result['answer_id']) {
+        return array('recorded' => false, 'reason' => 'не удалось сохранить');
+    }
+
+    $after = cases_survey_state($db, $user_id);
+    return array(
+        'recorded' => true,
+        'classified' => $result['classified'],
+        'answered' => (int)$after['answered'],
+        'total' => (int)$after['total'],
+        // подсказка модели: есть ли следующий сценарий (сам текст придёт в
+        // системном промпте следующего сообщения — не раздуваем ответ)
+        'has_next' => !empty($after['next']),
+    );
 }

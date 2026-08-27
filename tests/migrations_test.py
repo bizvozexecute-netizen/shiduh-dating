@@ -177,6 +177,11 @@ class TestUp:
         for f in ("Health_status", "EN_Health_status", "Search_health_status"):
             assert f in reg, "поле о здоровье не защищено реестром: " + f
 
+    def test_answers_unique_per_case_version(self):
+        # миграция 015: гонка двух путей ответа (опрос + диалог Э2.2-c) не
+        # должна плодить дубль кейса внутри версии
+        assert index_exists("assessment_answers", "user_case_version"),             "нет UNIQUE user_case_version на assessment_answers"
+
     def test_invite_tokens_unique_token(self):
         # миграция 007: токен-приглашение (Раздел XI). UNIQUE по token —
         # защита от коллизий и заготовка одноразовости
