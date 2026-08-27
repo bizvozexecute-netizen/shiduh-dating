@@ -13,7 +13,8 @@ if($nc_core->user->get_by_id($f_User_ID, 'Checked') && $f_Checked):
     <div class="lk-search-candidate-result__table-cell-name">Фото</div>
     <div class="lk-search-candidate-result__table-cell-value">
       <picture class="lk-search-candidate-result__table-cell-picture">
-        <img class="lk-search-candidate-result__table-cell-picture-img js-lazy" data-src="<?= $f_Photo_avatar ? $f_Photo_avatar->resize(45, 45) : ($f_Gender_id == 1 ? '/images/avatar/man.png' : '/images/avatar/woman.png'); ?>" alt="">
+        <img class="lk-search-candidate-result__table-cell-picture-img js-lazy" data-src="<?php /* B-1: фото идентифицирует — постороннему кандидату в списке показываем плейсхолдер */ $nc_l_uid = (int)$current_user['User_ID']; $nc_l_anon = (int)$current_user['Type_id'] !== 2 && $nc_l_uid > 0 && $nc_l_uid !== (int)$f_User_ID && !in_array($nc_l_uid, array((int)$f_Shadhan_1, (int)$f_Shadhan_2, (int)$f_Shadhan_3), true) && $nc_l_uid !== 1 && $nc_l_uid !== 119; ?>
+        <?= (!$nc_l_anon && $f_Photo_avatar) ? $f_Photo_avatar->resize(45, 45) : ($f_Gender_id == 1 ? '/images/avatar/man.png' : '/images/avatar/woman.png'); ?>" alt="">
       </picture>
     </div>
   </a>  

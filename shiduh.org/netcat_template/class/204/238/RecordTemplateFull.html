@@ -1,8 +1,25 @@
+<?php
+/* B-1: same anonymization as the RU template — an outside candidate sees
+   a foreign profile only when it is Open, and without identity: no name,
+   Jewish name, rabbi/synagogue contacts, email, phone or photos. */
+$nc_b1_uid = (int)$current_user['User_ID'];
+$nc_b1_related = $nc_b1_uid > 0 && (((int)$f_User_ID === $nc_b1_uid)
+    || in_array($nc_b1_uid, array((int)$f_Shadhan_1, (int)$f_Shadhan_2, (int)$f_Shadhan_3), true)
+    || $nc_b1_uid === 1 || $nc_b1_uid === 119);
+$nc_anon = !$nc_b1_related && (int)$current_user['Type_id'] !== 2;
+?>
+<? if($nc_anon && !$f_Open): ?>
+<section class="lk-questionnaire lk-questionnaire--candidate">
+  <div class="lk-questionnaire__wrapper">
+    <p style="text-align:center;color:#756d65;padding:60px 20px">The profile is closed by its owner. To get acquainted, please contact your shadchan.</p>
+  </div>
+</section>
+<? else: ?>
 <section class="lk-questionnaire lk-questionnaire--candidate">
   <div class="lk-questionnaire__wrapper">
     <div class="lk-head lk-questionnaire__head">
       <div class="lk-questionnaire__head-row">
-        <h1 class="lk-head__title lk-questionnaire__head-title">ID: <?= $f_Message_ID; ?> <?= $f_Open ? '- '.$f_Name : ''; ?></h1>
+        <h1 class="lk-head__title lk-questionnaire__head-title">ID: <?= $f_Message_ID; ?> <?= $f_Open && !$nc_anon ? '- '.$f_Name : ''; ?></h1>
         <div class="lk-questionnaire__head-manage">
           <?= nc_objects_list(73, 77, "&IDCandidate=$f_Message_ID&nc_ctpl=273" ); ?>
           <? if($f_User_ID === $current_user['User_ID']): ?>
@@ -34,13 +51,13 @@
     <div class="lk-questionnaire__body">
       <div class="lk-questionnaire__body-main">
         <div class="lk-questionnaire__body-table">
-          <? if($current_user['User_ID'] == 1 || $f_User_ID === $current_user['User_ID'] || $f_Shadhan_1 === $current_user['User_ID'] || $f_Shadhan_2 === $current_user['User_ID'] || $f_Shadhan_3 === $current_user['User_ID'] || $f_Open): ?>  
+          <? if($current_user['User_ID'] == 1 || $f_User_ID === $current_user['User_ID'] || $f_Shadhan_1 === $current_user['User_ID'] || $f_Shadhan_2 === $current_user['User_ID'] || $f_Shadhan_3 === $current_user['User_ID'] || ($f_Open && !$nc_anon)): ?>  
           <div class="lk-questionnaire__body-table-row">
             <div class="lk-questionnaire__body-table-cell lk-questionnaire__body-table-cell--key"><b>Full Name:</b></div>
             <div class="lk-questionnaire__body-table-cell lk-questionnaire__body-table-cell--value"><?= $f_Name; ?></div>
           </div>
           <? endif; ?>
-          <? if($f_Jewish_name && $f_Open): ?>  
+          <? if($f_Jewish_name && $f_Open && !$nc_anon): ?>  
           <div class="lk-questionnaire__body-table-row">
             <div class="lk-questionnaire__body-table-cell lk-questionnaire__body-table-cell--key"><b>Еврейское имя:</b></div>
             <div class="lk-questionnaire__body-table-cell lk-questionnaire__body-table-cell--value"><?= $f_Jewish_name; ?></div>
@@ -196,32 +213,32 @@
             <div class="lk-questionnaire__body-table-cell lk-questionnaire__body-table-cell--value"><?= nc_array_to_string($f_Country_of_relocation, $arfloor)?></div>
           </div>
           <? endif; ?>
-          <? if($f_Your_ravin): ?>  
+          <? if($f_Your_ravin && !$nc_anon): ?>  
           <div class="lk-questionnaire__body-table-row">
             <div class="lk-questionnaire__body-table-cell lk-questionnaire__body-table-cell--key"><b>Раввин:</b></div>
             <div class="lk-questionnaire__body-table-cell lk-questionnaire__body-table-cell--value"><?= $f_Your_ravin; ?></div>
           </div>
           <? endif; ?>
-          <? if($f_Your_ravin_contact): ?>  
+          <? if($f_Your_ravin_contact && !$nc_anon): ?>  
           <div class="lk-questionnaire__body-table-row">
             <div class="lk-questionnaire__body-table-cell lk-questionnaire__body-table-cell--key"><b>Контактные данные раввина:</b></div>
             <div class="lk-questionnaire__body-table-cell lk-questionnaire__body-table-cell--value"><?= $f_Your_ravin_contact; ?></div>
           </div>
           <? endif; ?>
-          <? if($f_Your_sinagoga): ?>  
+          <? if($f_Your_sinagoga && !$nc_anon): ?>  
           <div class="lk-questionnaire__body-table-row">
             <div class="lk-questionnaire__body-table-cell lk-questionnaire__body-table-cell--key"><b>Синагога:</b></div>
             <div class="lk-questionnaire__body-table-cell lk-questionnaire__body-table-cell--value"><?= $f_Your_sinagoga; ?></div>
           </div>
           <? endif; ?>
           
-          <? if($f_Email || $f_Shadhan_1 === $current_user['User_ID'] || $f_Shadhan_2 === $current_user['User_ID'] || $f_Shadhan_3 === $current_user['User_ID']): ?>  
+          <? if(!$nc_anon && $f_Email || $f_Shadhan_1 === $current_user['User_ID'] || $f_Shadhan_2 === $current_user['User_ID'] || $f_Shadhan_3 === $current_user['User_ID']): ?>  
           <div class="lk-questionnaire__body-table-row">
             <div class="lk-questionnaire__body-table-cell lk-questionnaire__body-table-cell--key"><b>Email:</b></div>
             <div class="lk-questionnaire__body-table-cell lk-questionnaire__body-table-cell--value"><?= $f_Email; ?></div>
           </div>
           <? endif; ?>
-          <? if($f_Phone || $f_Shadhan_1 === $current_user['User_ID'] || $f_Shadhan_2 === $current_user['User_ID'] || $f_Shadhan_3 === $current_user['User_ID']): ?>  
+          <? if(!$nc_anon && $f_Phone || $f_Shadhan_1 === $current_user['User_ID'] || $f_Shadhan_2 === $current_user['User_ID'] || $f_Shadhan_3 === $current_user['User_ID']): ?>  
           <div class="lk-questionnaire__body-table-row">
             <div class="lk-questionnaire__body-table-cell lk-questionnaire__body-table-cell--key"><b>Телефон:</b></div>
             <div class="lk-questionnaire__body-table-cell lk-questionnaire__body-table-cell--value"><?= $f_Phone; ?></div>
@@ -230,7 +247,9 @@
         </div>
         
         <div class="lk-questionnaire__body-buttons">
-          <? if($f_User_ID !== $current_user['User_ID']): ?>
+          <? /* B-1: постороннему кнопку «Написать» не показываем — экран «Написать»
+             раскрывает Name адресата, обходя обезличивание */ ?>
+          <? if(!$nc_anon && $f_User_ID !== $current_user['User_ID']): ?>
           <a href="<?= nc_auth_messages_url($f_User_ID); ?>" class="lk-questionnaire__body-write button button--write">
             <svg class="button__icon">
               <use xlink:href="/images/sprite.svg#letter"></use>
@@ -241,7 +260,7 @@
         </div>
         
       </div>
-      <? if($current_user['User_ID'] == 1 || $f_User_ID === $current_user['User_ID'] || $f_Shadhan_1 === $current_user['User_ID'] || $f_Shadhan_2 === $current_user['User_ID'] || $f_Shadhan_3 === $current_user['User_ID'] || $f_Open): ?>  
+      <? if($current_user['User_ID'] == 1 || $f_User_ID === $current_user['User_ID'] || $f_Shadhan_1 === $current_user['User_ID'] || $f_Shadhan_2 === $current_user['User_ID'] || $f_Shadhan_3 === $current_user['User_ID'] || ($f_Open && !$nc_anon)): ?>  
       <picture class="lk-questionnaire__body-picture">
         <img class="lk-questionnaire__body-img js-lazy" data-src="<?= $f_Photo_avatar; ?>" alt="">
       </picture>
@@ -428,7 +447,7 @@
       </div>
     </div>
     <? endif; ?>
-    <? if($current_user['User_ID'] == 1 || $f_User_ID === $current_user['User_ID'] || $f_Shadhan_1 === $current_user['User_ID'] || $f_Shadhan_2 === $current_user['User_ID'] || $f_Shadhan_3 === $current_user['User_ID'] || $f_Open): ?>
+    <? if($current_user['User_ID'] == 1 || $f_User_ID === $current_user['User_ID'] || $f_Shadhan_1 === $current_user['User_ID'] || $f_Shadhan_2 === $current_user['User_ID'] || $f_Shadhan_3 === $current_user['User_ID'] || ($f_Open && !$nc_anon)): ?>
     <? if ($f_Photo_questionnaire->count()): ?>
     <div class="lk-questionnaire__gallery">
       <div class="lk-questionnaire__gallery-title title title--lk">Photo</div>
@@ -463,4 +482,4 @@
        <a class="lk-questionnaire__goback-link" href="<?= $_SERVER['HTTP_REFERER'] ? $_SERVER['HTTP_REFERER'] : '/en/my/candidate/'; ?>" title="">Back</a>
     </div>
   </div>
-</section>
+</section><? endif; ?>

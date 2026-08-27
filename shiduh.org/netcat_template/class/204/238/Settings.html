@@ -3,18 +3,32 @@ $arfloor['element'] = '%ELEMENT';
 $arfloor['divider'] = ', ';
 $arfloor['suffix']  = '';
 
+/*
+ * Экранирование ввода из $_GET (B-1: зеркало RU-версии).
+ * Раньше значения подставлялись в WHERE напрямую — открытая SQL-инъекция.
+ * Числа приводим к (int), строки экранируем через nc_db()->prepare()
+ * (именно prepare, не escape: escape делает stripslashes и для фильтров
+ * не годится — AUDIT.md, находка №35). Списки id — каждый элемент к (int)
+ * перед implode, чтобы IN(...) принимал только числа.
+ */
+$db = $nc_core->db;
+$nc_int_list = function($v) {
+  $ids = array_filter(array_map('intval', (array)$v), function($x){ return $x !== 0; });
+  return $ids ? implode(',', $ids) : '0';
+};
+
 if(!count($_GET["srchPat"]) && $action !== 'full') {
    $ignore_all = 1;
-   $query_limit = 0; 
+   $query_limit = 0;
 }
 
 if($current_user['Type_id'] === 1) {
-  $idUser = $current_user['User_ID'];  
+  $idUser = (int)$current_user['User_ID'];
   $query_where .= " a.User_ID != $idUser ";
 }
 
 if($_GET["id_candidate"]) {
-  $id_candidate1 = $_GET["id_candidate"]; 
+  $id_candidate1 = (int)$_GET["id_candidate"];
   if($query_where) {
       $query_where .= " AND Message_ID = $id_candidate1";
   } else {
@@ -22,18 +36,19 @@ if($_GET["id_candidate"]) {
   }
 }
 
-if($_GET["name"]) {
-  $name = $_GET["name"]; 
+// Фильтр по ФИО — только шадхану (B-1): кандидату имя на витрине скрыто, и
+// поиск по нему работал бы оракулом, посимвольно раскрывающим скрытое Name.
+if($_GET["name"] && (int)$current_user['Type_id'] === 2) {
+  $name = $db->prepare($_GET["name"]);
   if($query_where) {
       $query_where .= " AND Name LIKE '%$name%'";
   } else {
       $query_where = "  Name LIKE '%$name%'";
   }
-
 }
 
 if($_GET["country"]) {
-  $ids = implode(',', $_GET["country"]); 
+  $ids = $nc_int_list($_GET["country"]);
   if($query_where) {
       $query_where .= " AND Country IN (".$ids.") ";
   } else {
@@ -42,7 +57,7 @@ if($_GET["country"]) {
 }
 
 if($_GET["Jewishness"]) {
-  $ids = implode(',', $_GET["Jewishness"]); 
+  $ids = $nc_int_list($_GET["Jewishness"]);
   if($query_where) {
       $query_where .= " AND Jewishness IN (".$ids.") ";
   } else {
@@ -51,7 +66,7 @@ if($_GET["Jewishness"]) {
 }
 
 if($_GET["Origin"]) {
-  $ids = implode(',', $_GET["Origin"]); 
+  $ids = $nc_int_list($_GET["Origin"]);
   if($query_where) {
       $query_where .= " AND Origin IN (".$ids.") ";
   } else {
@@ -60,7 +75,7 @@ if($_GET["Origin"]) {
 }
 
 if($_GET["Mother_Origin"]) {
-  $ids = implode(',', $_GET["Mother_Origin"]); 
+  $ids = $nc_int_list($_GET["Mother_Origin"]);
   if($query_where) {
       $query_where .= " AND Mother_Origin IN (".$ids.") ";
   } else {
@@ -69,7 +84,7 @@ if($_GET["Mother_Origin"]) {
 }
 
 if($_GET["Father_Origin"]) {
-  $ids = implode(',', $_GET["Father_Origin"]); 
+  $ids = $nc_int_list($_GET["Father_Origin"]);
   if($query_where) {
       $query_where .= " AND Father_Origin IN (".$ids.") ";
   } else {
@@ -77,10 +92,8 @@ if($_GET["Father_Origin"]) {
   }
 }
 
-
-
 if($_GET["Course_of_compliance"]) {
-  $ids = implode(',', $_GET["Course_of_compliance"]); 
+  $ids = $nc_int_list($_GET["Course_of_compliance"]);
   if($query_where) {
       $query_where .= " AND Course_of_compliance IN (".$ids.") ";
   } else {
@@ -89,7 +102,7 @@ if($_GET["Course_of_compliance"]) {
 }
 
 if($_GET["Education"]) {
-  $ids = implode(',', $_GET["Education"]); 
+  $ids = $nc_int_list($_GET["Education"]);
   if($query_where) {
       $query_where .= " AND Education IN (".$ids.") ";
   } else {
@@ -98,7 +111,7 @@ if($_GET["Education"]) {
 }
 
 if($_GET["Marital_status"]) {
-  $ids = implode(',', $_GET["Marital_status"]); 
+  $ids = $nc_int_list($_GET["Marital_status"]);
   if($query_where) {
       $query_where .= " AND Marital_status IN (".$ids.") ";
   } else {
@@ -107,7 +120,7 @@ if($_GET["Marital_status"]) {
 }
 
 if($_GET["Number_of_children"]) {
-  $ids = implode(',', $_GET["Number_of_children"]); 
+  $ids = $nc_int_list($_GET["Number_of_children"]);
   if($query_where) {
       $query_where .= " AND Number_of_children IN (".$ids.") ";
   } else {

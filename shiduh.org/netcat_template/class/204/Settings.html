@@ -36,7 +36,10 @@ if($_GET["id_candidate"]) {
   }
 }
 
-if($_GET["name"]) {
+// Фильтр по ФИО — только шадхану (B-1): кандидату имя на витрине скрыто, и
+// поиск по нему работал бы оракулом, посимвольно раскрывающим скрытое Name
+// (в т.ч. у закрытых анкет).
+if($_GET["name"] && (int)$current_user['Type_id'] === 2) {
   $name = $db->prepare($_GET["name"]);
   if($query_where) {
       $query_where .= " AND Name LIKE '%$name%'";
