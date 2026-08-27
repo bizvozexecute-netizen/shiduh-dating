@@ -106,7 +106,7 @@ def test_candidate_ai_consultant_renders_chat():
 
 def test_candidate_cannot_open_admin_screens():
     sid = SESSIONS["candidate"]
-    for path in ("/admin-mailing.php", "/admin-cases.php", "/admin-ai-prompt.php", "/admin-subscriptions.php"):
+    for path in ("/admin-mailing.php", "/admin-cases.php", "/admin-ai-prompt.php"):
         code, _ = fetch(path, sid)
         assert code == 403, "%s открылся кандидату (код %d)" % (path, code)
 
@@ -136,7 +136,7 @@ def test_shadhan_card_has_ai_blocks():
 
 def test_admin_screens_alive():
     sid = SESSIONS["admin"]
-    for path in ("/admin-mailing.php", "/admin-cases.php", "/admin-ai-prompt.php", "/admin-subscriptions.php"):
+    for path in ("/admin-mailing.php", "/admin-cases.php", "/admin-ai-prompt.php"):
         code, html = fetch(path, sid)
         assert code == 200, "%s не открылся админу (код %d)" % (path, code)
         assert_no_php_errors(path, html)
@@ -144,7 +144,7 @@ def test_admin_screens_alive():
 
 
 def test_admin_screens_deny_guest():
-    for path in ("/admin-mailing.php", "/admin-cases.php", "/admin-ai-prompt.php", "/admin-subscriptions.php"):
+    for path in ("/admin-mailing.php", "/admin-cases.php", "/admin-ai-prompt.php"):
         code, _ = fetch(path, GUEST)
         assert code == 403, "%s открылся гостю (код %d)" % (path, code)
 
@@ -165,7 +165,6 @@ API_ENDPOINTS = [
     "/api/match_list.php",
     "/api/match_feedback.php",
     "/api/match_explain.php",
-    "/api/subscription_set.php",
 ]
 
 

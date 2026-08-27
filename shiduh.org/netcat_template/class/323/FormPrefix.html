@@ -304,24 +304,6 @@ if ($nc_mine_anketa) {
     log.appendChild(el);
     log.scrollTop = log.scrollHeight;
   }
-  /* Окно пейволла (Э4-2): сервер ответил 402 с paywall=true — бесплатный
-     лимит исчерпан. Оплата подключается в Э4-3+: пока направляем к шадхану/
-     администратору, поле ввода блокируем, чтобы не терять написанное. */
-  function paywall(text){
-    var el = document.createElement('div');
-    el.className = 'ai-msg ai-msg--ai ai-paywall';
-    el.style.borderColor = '#c8ae88';
-    el.style.background = '#faf6ee';
-    el.innerHTML = '<b style="display:block;margin-bottom:4px">Бесплатные сообщения закончились</b>'
-      + esc(text)
-      + '<span style="display:block;margin-top:6px;font-size:12.5px;color:#756d65">'
-      + 'Чтобы оформить подписку, обратитесь к вашему шадхану или администратору сайта.</span>';
-    log.appendChild(el);
-    log.scrollTop = log.scrollHeight;
-    input.disabled = true;
-    send.disabled = true;
-    input.placeholder = 'Доступно по подписке';
-  }
   log.scrollTop = log.scrollHeight;
 
   form.addEventListener('submit', function(e){
@@ -335,7 +317,6 @@ if ($nc_mine_anketa) {
     fetch('/api/ai_chat.php', { method:'POST', body: body, credentials:'same-origin' })
       .then(function(r){ return r.json().catch(function(){ return {}; }); })
       .then(function(js){
-        if (js && js.paywall) { paywall(js.error || ''); return; }
         if (js && js.reply) bubble('assistant', js.reply);
         // сервер объяснил причину (например, ИИ временно недоступен) — показываем её,
         // а не общее «не удалось»
