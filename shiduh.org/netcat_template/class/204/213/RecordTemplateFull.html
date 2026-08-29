@@ -554,6 +554,10 @@ if($f_User_ID === $current_user['User_ID'] || $f_Shadhan_1 === $current_user['Us
     <div class="lk-questionnaire__section">
       <div class="lk-questionnaire__section-title title title--lk">Резюме от ИИ</div>
       <div class="lk-questionnaire__body">
+        <?php /* .lk-questionnaire__body — flex-строка (как у нативных блоков,
+           где внутри ровно один элемент). Оборачиваем содержимое в один
+           контейнер, иначе элементы блока выстраиваются в ряд и сжимаются. */ ?>
+        <div style="width:100%">
         <? if(trim((string)$f_AI_summary) !== ''): ?>
           <?php /* $f_AI_summary уже экранирован NetCat при выводе (тип 3, пустой
              Format) — как и остальные поля анкеты здесь. htmlspecialchars дал бы
@@ -565,6 +569,7 @@ if($f_User_ID === $current_user['User_ID'] || $f_Shadhan_1 === $current_user['Us
         <button type="button" class="button button--secondary js-ai-summary-refresh"
                 data-anketa="<?= (int)$f_Message_ID; ?>">Обновить резюме</button>
         <div class="js-ai-summary-msg" role="status" style="margin-top:8px;font-size:13.5px"></div>
+        </div>
       </div>
     </div>
     <script>
@@ -641,7 +646,8 @@ if($f_User_ID === $current_user['User_ID'] || $f_Shadhan_1 === $current_user['Us
         <span style="font-weight:400;font-size:13px;color:#8a6d1a">— только для шадхана</span></div>
       <div class="lk-questionnaire__body">
       <? if(!$nc_psy): ?>
-        <div class="lk-psy__empty">Тест не пройден</div>
+        <div class="lk-psy__empty">Тест не пройден.
+          <span style="display:block;margin-top:4px;font-size:13px">Кандидат может пройти ценностный опрос сам — в разделе «ИИ-консультант» своего кабинета. После этого здесь появятся диаграмма языков любви, ценностные измерения и психотип.</span></div>
       <? else: ?>
         <div class="lk-psy">
           <div>
@@ -706,15 +712,25 @@ if($f_User_ID === $current_user['User_ID'] || $f_Shadhan_1 === $current_user['Us
     .lk-match__sel{border:1px solid #e3ddd2;background:#f5f2ec;border-radius:9px;padding:7px 9px;font-size:13px;color:#3a2b2b}
     .lk-match__done{font-size:13px;color:#7e6440}
     .lk-match__msg{font-size:13px;margin-top:10px}
+    .lk-match__zero{font-size:13px;line-height:1.6;color:#7e6440;background:#faf6ee;border:1px solid #e8ddc7;border-radius:10px;padding:10px 12px;margin:12px 0 0}
+    /* «Отклонить» и «Почему» — второстепенные: не должны выглядеть
+       так же весомо, как основное действие «Предложить шидух» */
+    .lk-match__acts .js-match-reject,.lk-match__acts .js-match-explain{background:transparent;border:1px solid #e3ddd2;color:#3a2b2b}
+    .lk-match__acts .js-match-reject:hover,.lk-match__acts .js-match-explain:hover{background:#f5f2ec}
     </style>
     <div class="lk-questionnaire__section">
       <div class="lk-questionnaire__section-title title title--lk">Рекомендации ИИ
         <span style="font-weight:400;font-size:13px;color:#8a6d1a">— подбор пар для этой анкеты</span></div>
       <div class="lk-questionnaire__body">
+        <?php /* .lk-questionnaire__body — flex-строка (как у нативных блоков,
+           где внутри ровно один элемент). Оборачиваем содержимое в один
+           контейнер, иначе элементы блока выстраиваются в ряд и сжимаются. */ ?>
+        <div style="width:100%">
         <p style="color:#756d65;margin:0 0 10px">В списке только пары, прошедшие жёсткие фильтры: пол, возраст с обеих сторон, религиозная совместимость и география. У каждой пары видно, из чего сложился балл.</p>
         <button type="button" class="button button--secondary js-match-load" data-anketa="<?= (int)$f_Message_ID ?>">Показать подбор</button>
         <div class="js-match-msg lk-match__msg" role="status"></div>
         <div class="js-match-list"></div>
+        </div>
       </div>
     </div>
     <script>
@@ -751,7 +767,12 @@ if($f_User_ID === $current_user['User_ID'] || $f_Shadhan_1 === $current_user['Us
           list.innerHTML = '<p class="lk-match__done" style="margin-top:10px">Подходящих пар по жёстким фильтрам не нашлось.</p>';
           return;
         }
-        list.innerHTML = rows.map(function(r){
+        /* Пока ни у кого нет ценностного профиля, все компоненты честно
+           равны нулю. Без пояснения список из двадцати «0%» читается как
+           поломка — объясняем, откуда берутся баллы. */
+        var allZero = rows.every(function(r){ return !r.score; });
+        var note = allZero ? '<p class="lk-match__zero">Пары прошли жёсткие фильтры, но совпадение пока не посчитано: ни у кого из них не заполнен ценностный профиль. Он появляется, когда кандидат проходит ценностный опрос у ИИ-консультанта. Сейчас список отсортирован по номеру анкеты, а не по совпадению.</p>' : '';
+        list.innerHTML = note + rows.map(function(r){
           var reasons = REASONS.map(function(o){ return '<option value="' + o[0] + '">' + o[1] + '</option>'; }).join('');
           return '<article class="lk-match__rec" data-target="' + parseInt(r.anketa_id, 10) + '">' +
             '<div class="lk-match__top"><div class="lk-match__who"><b>' + esc(r.name) + '</b>' +
@@ -836,6 +857,10 @@ if($f_User_ID === $current_user['User_ID'] || $f_Shadhan_1 === $current_user['Us
     <div class="lk-questionnaire__section">
       <div class="lk-questionnaire__section-title title title--lk">Пригласить по ссылке</div>
       <div class="lk-questionnaire__body">
+        <?php /* .lk-questionnaire__body — flex-строка (как у нативных блоков,
+           где внутри ровно один элемент). Оборачиваем содержимое в один
+           контейнер, иначе элементы блока выстраиваются в ряд и сжимаются. */ ?>
+        <div style="width:100%">
         <p style="color:#756d65;margin:0 0 10px">Кандидат заполнит анкету сам через ИИ-консультанта — без регистрации. Отправьте ему ссылку.</p>
         <button type="button" class="button button--secondary js-invite-create" data-anketa="<?= (int)$f_Message_ID ?>">Создать ссылку-приглашение</button>
         <div class="js-invite-result" hidden style="margin-top:12px">
@@ -851,6 +876,7 @@ if($f_User_ID === $current_user['User_ID'] || $f_Shadhan_1 === $current_user['Us
           <div class="js-invite-send-msg" style="font-size:12.5px;margin-top:6px"></div>
         </div>
         <div class="js-invite-error" hidden style="color:#c0392b;font-size:13px;margin-top:10px"></div>
+        </div>
       </div>
     </div>
     <script>

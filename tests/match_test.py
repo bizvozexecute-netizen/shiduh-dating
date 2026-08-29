@@ -226,6 +226,46 @@ def test_unchecked_anketa_never():
         set_fields(TARGETS[0], Checked=1)
 
 
+def test_minors_and_junk_birthdates_never():
+    """Несовершеннолетние — НИКОГДА в выдаче (сервис знакомств для брака),
+    как и записи с мусорной датой рождения («возраст» 0–6 лет: в базе таких
+    224 — очевидно, вместо даты рождения попала дата регистрации)."""
+    sid = login(SHADHAN)
+    # Диапазоны поиска с обеих сторон снимаем: иначе несовершеннолетнюю
+    # отсечёт обычный возрастной фильтр, и тест проверял бы не то. У 674 из
+    # 1133 анкет диапазон и правда не задан — это рабочий случай.
+    set_fields(A, Search_age_start=None, Search_age_end=None)
+    set_fields(TARGETS[0], Search_age_start=None, Search_age_end=None)
+    try:
+        for years, label in ((17, "17 лет"), (2, "мусорная дата, возраст 2"),
+                             (0, "мусорная дата, возраст 0")):
+            set_fields(TARGETS[0], Date_of_birth="%d-01-01" % (2026 - years))
+            _, data = match(sid)
+            assert TARGETS[0] not in ids(data), "в выдаче анкета: " + label
+        # контроль: совершеннолетняя цель на месте — фильтр не режет лишнего
+        set_fields(TARGETS[0], Date_of_birth="1996-01-01")
+        _, data = match(sid)
+        assert TARGETS[0] in ids(data), "фильтр возраста выкинул совершеннолетнюю анкету"
+    finally:
+        set_fields(TARGETS[0], Date_of_birth="1996-01-01")
+        set_fields(A, Search_age_start=25, Search_age_end=35)
+        set_fields(TARGETS[0], Search_age_start=28, Search_age_end=38)
+
+
+def test_minor_requester_gets_no_matches():
+    """Защита симметрична: несовершеннолетней анкете подбор не выдаётся вовсе.
+    В базе такие есть — у тестового кандидата собственная анкета с мусорной
+    датой рождения («возраст» 3) и поиском 13–18 лет."""
+    sid = login(SHADHAN)
+    set_fields(A, Date_of_birth="2010-01-01")   # 16 лет
+    try:
+        _, data = match(sid)
+        assert data.get("matches") == [], \
+            "несовершеннолетней анкете выдан подбор: %d пар" % len(data.get("matches", []))
+    finally:
+        set_fields(A, Date_of_birth="1994-01-01")
+
+
 # --- ранжирование (Э3.2-a) ----------------------------------------------------
 
 PROFILE_A = {"love_languages": {"time": 40, "words": 30, "service": 15, "touch": 10, "gifts": 5},
