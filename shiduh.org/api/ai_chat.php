@@ -239,6 +239,11 @@ if (!empty($res['tool_calls'])) {
             $case_recorded = !empty($report['recorded']);
         } elseif ($name === 'record_case_answer') {
             $report = array('recorded' => false, 'reason' => 'не больше одного сценария за сообщение');
+        } elseif ($name === 'report_safety_concern') {
+            // X-3: сигнал живому шадхану. Дедупликация и чистка формулировки —
+            // внутри risk_note_add(); модели отвечаем скупо, чтобы она не
+            // начала обсуждать сигнал с собеседником.
+            $report = ai_tool_report_concern($db, $uid, $args);
         } else {
             $report = array('applied' => array(), 'skipped' => array('_' => 'неизвестный инструмент'));
         }

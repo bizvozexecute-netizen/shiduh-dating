@@ -9,6 +9,7 @@
 Режимы (set_fake_mode):
   ok              — обычный ответ, эхом последнего сообщения пользователя
   emoji           — ответ с эмодзи (4-байтовый UTF-8): проверка санитайза
+  risk_tool       — сигнал внимания (X-3): tool_call report_safety_concern
   case_flow       — вплетение кейса (Э2.2-c): tool_call ответа на кейс ->
                     классификация -> финальная реплика
   echo_system     — эхом системного промпта (проверка, что он доехал)
@@ -74,7 +75,7 @@ if ($mode === 'emoji') {
     echo json_encode(array(
         'choices' => array(array('message' => array(
             'role' => 'assistant',
-            'content' => "ð Отличная пара ð по ценностям",
+            'content' => "\u{1F48D} Отличная пара \u{1F48D} по ценностям",
         ))),
         'usage' => array('prompt_tokens' => 3, 'completion_tokens' => 3, 'total_tokens' => 6),
     ), JSON_UNESCAPED_UNICODE);
@@ -200,6 +201,39 @@ if ($mode === 'case_flow') {
             'content' => 'ВПЛЕТЕНО. Результат инструмента: ' . $tool_seen,
         ))),
         'usage' => array('prompt_tokens' => 7, 'completion_tokens' => 7, 'total_tokens' => 14),
+    ), JSON_UNESCAPED_UNICODE);
+    exit;
+}
+
+if ($mode === 'risk_tool') {
+    /* X-3: модель поднимает сигнал внимания инструментом, затем обычная реплика. */
+    if ($s['calls'] === 1) {
+        echo json_encode(array(
+            'choices' => array(array('message' => array(
+                'role' => 'assistant',
+                'content' => null,
+                'tool_calls' => array(array(
+                    'id' => 'risk_1',
+                    'type' => 'function',
+                    'function' => array(
+                        'name' => 'report_safety_concern',
+                        'arguments' => json_encode(
+                            isset($s['tool_args']) ? $s['tool_args'] : array(),
+                            JSON_UNESCAPED_UNICODE
+                        ),
+                    ),
+                )),
+            ))),
+            'usage' => array('prompt_tokens' => 8, 'completion_tokens' => 4, 'total_tokens' => 12),
+        ), JSON_UNESCAPED_UNICODE);
+        exit;
+    }
+    echo json_encode(array(
+        'choices' => array(array('message' => array(
+            'role' => 'assistant',
+            'content' => 'Понимаю вас. Расскажите, что для вас важно в семье?',
+        ))),
+        'usage' => array('prompt_tokens' => 6, 'completion_tokens' => 6, 'total_tokens' => 12),
     ), JSON_UNESCAPED_UNICODE);
     exit;
 }
