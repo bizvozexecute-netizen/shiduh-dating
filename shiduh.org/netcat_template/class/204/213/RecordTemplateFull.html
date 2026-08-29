@@ -645,6 +645,10 @@ if($f_User_ID === $current_user['User_ID'] || $f_Shadhan_1 === $current_user['Us
       <div class="lk-questionnaire__section-title title title--lk">Психологический портрет
         <span style="font-weight:400;font-size:13px;color:#8a6d1a">— только для шадхана</span></div>
       <div class="lk-questionnaire__body">
+      <?php /* X-4: оговорка показывается ВСЕГДА, а не только при готовом
+         портрете — чтобы проценты нельзя было прочитать как диагноз. */ ?>
+      <div style="grid-column:1/-1;width:100%">
+      <p style="font-size:12.5px;line-height:1.6;color:#8a6d1a;background:#faf6ee;border:1px solid #e8ddc7;border-radius:9px;padding:9px 11px;margin:0 0 12px"><?= htmlspecialchars(profile_disclaimer(), ENT_QUOTES, 'UTF-8') ?></p>
       <? if(!$nc_psy): ?>
         <div class="lk-psy__empty">Тест не пройден.
           <span style="display:block;margin-top:4px;font-size:13px">Кандидат может пройти ценностный опрос сам — в разделе «ИИ-консультант» своего кабинета. После этого здесь появятся диаграмма языков любви, ценностные измерения и психотип.</span></div>
@@ -680,6 +684,7 @@ if($f_User_ID === $current_user['User_ID'] || $f_Shadhan_1 === $current_user['Us
           </div>
         </div>
       <? endif; ?>
+      </div>
       </div>
     </div>
     <? endif; ?>
