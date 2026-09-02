@@ -13,6 +13,13 @@
   - файл больше лимита отклоняется
 Во всех случаях само текстовое сообщение сохраняется — режется только файл.
 
+Хэш настроек виджета (settings_image_hash) тест берёт СО СТРАНИЦЫ, как браузер,
+а не вычисляет сам. Раньше тест подставлял вычисленный хэш и тем самым
+маскировал регрессию: в шаблонах 265/259/320 хэш был захардкожен под
+прод-SecretKey=md5(''), а после ротации ключа (миграция 019) ядро отвечало
+«Settings integrity error» на ЛЮБОЕ сообщение — не только с фото
+(nc_multifield_saver::has_post_data() истинно при любом POST формы).
+
     python -m pytest tests/photo_message_test.py -q
 """
 import hashlib
@@ -32,6 +39,7 @@ DOCKER = r"C:\Program Files\Docker\Docker\resources\bin\docker.exe"
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 PHOTO_FIELD_ID = 648
 SHADHAN = "u3f9bb8c20b01@example.local"   # User_ID 57
+ADMIN = "u5760fc1c6357@example.local"     # User_ID 1, директор
 DIALOGUE = "/my/message/soobscheniya_39508.html"
 
 STATE = {}
@@ -93,16 +101,27 @@ def png_bytes(pad=0):
     return data
 
 
-def form_fields(sid):
-    html = get(DIALOGUE, sid)
+PAGE_HASH_RE = r'name="settings_image_hash" value="([0-9a-f]{32})"'
+
+
+def form_fields(sid, path=DIALOGUE):
+    html = get(path, sid)
     m = re.search(r"<form id='write_message-new'.*?</form>", html, re.S)
     if not m:
         raise RuntimeError("форма отправки не найдена")
     form = m.group(0)
     fields = dict(re.findall(r"name='([^']+)'[^>]*value='([^']*)'", form))
     fields.update(dict(re.findall(r'name="([^"]+)"[^>]*value="([^"]*)"', form)))
-    fields["settings_image_hash"] = settings_hash()  # под SecretKey стенда
+    # хэш — только со страницы: подмена вычисленным скрывала бы поломку формы
+    assert "settings_image_hash" in fields, "в форме нет settings_image_hash"
     return fields
+
+
+def page_hash(sid, path, field="image"):
+    html = get(path, sid)
+    m = re.search(r'name="settings_%s_hash" value="([0-9a-f]{32})"' % field, html)
+    assert m, "на странице %s нет settings_%s_hash" % (path, field)
+    return m.group(1)
 
 
 def send_message(sid, text, filename, filedata, ctype):
@@ -199,3 +218,63 @@ def test_oversize_image_rejected():
     assert not find_message(text), "слишком большой файл сохранился как сообщение"
     assert "превышающим допустимый" in html, "нет предупреждения о размере"
     assert "js-upload-error" in html, "ошибка не в маркере для показа пользователю"
+
+
+# --- регрессия хэша после ротации SecretKey (ROADMAP Ф-note → этап «До идеала», C0) ---
+
+# страницы, где рендерятся три копии формы отправки: 265 (RU), 259 (EN), 320
+HASH_PAGES = [
+    "/my/message/soobscheniya_39508.html",      # class 6 / ctpl 265 (RU)
+    "/en/my/message/soobscheniya_39508.html",   # class 6 / ctpl 259 (EN)
+    # ctpl 320 живёт на /my/delete-account/ — на стенде раздел уводит редиректом
+    # на захардкоженный https:// (AUDIT №16а), поэтому по HTTP не проверяется;
+    # правка там та же, синтаксис проверяет smoke (php -l).
+]
+
+
+def test_server_hash_is_not_the_old_prod_constant():
+    # Инвариант стенда: SecretKey ротирован (миграция 019), значит настоящий хэш
+    # не равен константе fc000f…, зашитой в шаблонах под прод-ключ md5('').
+    # Без этого инварианта тесты ниже были бы бессмысленны.
+    assert settings_hash() != "fc000f9426e4da0c13c4ea7e34cc08dc"
+
+
+def test_form_hash_equals_server_hash():
+    sid = login(SHADHAN)
+    expected = settings_hash()
+    for path in HASH_PAGES:
+        assert page_hash(sid, path) == expected, \
+            "на %s хэш виджета не совпадает с серверным (захардкожен под старый ключ?)" % path
+
+
+def test_add_article_form_hash_equals_server_hash():
+    # Та же константа была и в форме добавления статьи (класс 183, шаблон 275,
+    # поле newsFiles) — нашло adversarial-ревью C0. Виджет тот же, хэш тот же.
+    # Раздел «Добавить статью» открыт только администратору (шадхана уводит
+    # редирект на захардкоженный https://, AUDIT №16а).
+    sid = login(ADMIN)
+    expected = settings_hash()
+    for path in ("/my/add-article/", "/en/my/add-article/"):
+        assert page_hash(sid, path, "newsFiles") == expected,             "на %s хэш виджета фотогалереи не совпадает с серверным" % path
+
+
+def test_text_message_with_page_hash_is_saved():
+    # Сообщение БЕЗ файла с хэшем со страницы должно сохраниться — это обычная
+    # отправка, которую делает браузер. Раньше ядро отвечало plain-text
+    # «Settings integrity error» и ничего не писало.
+    cleanup(MARK + "%")
+    sid = login(SHADHAN)
+    text = MARK + "-text-only-60221"
+    fields = form_fields(sid)
+    fields["f_Message"] = text
+    body = urllib.parse.urlencode(fields).encode()
+    req = urllib.request.Request(BASE + "/netcat/add.php", data=body, method="POST")
+    req.add_header("Cookie", "PHP_AUTH_SID=%s; PHP_AUTH_LANG=Russian" % sid)
+    try:
+        r = urllib.request.urlopen(req, timeout=180)
+        code, html = r.status, r.read().decode("utf-8", "replace")
+    except urllib.error.HTTPError as e:
+        code, html = e.code, e.read().decode("utf-8", "replace")
+    assert code == 200, "отправка упала: %d" % code
+    assert "Settings integrity error" not in html, "ядро отвергло форму по хэшу виджета"
+    assert find_message(text), "текстовое сообщение не сохранилось"
