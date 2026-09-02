@@ -10,6 +10,8 @@
  */
 $NETCAT_FOLDER = realpath(dirname(__FILE__) . '/..') . '/';
 include_once $NETCAT_FOLDER . 'vars.inc.php';
+require_once dirname(__FILE__) . '/admin_lib.php';
+shiduh_bootstrap_api();   // JSON-заголовки и обработчик фаталов — до загрузки ядра
 require_once $ROOT_FOLDER . 'connect_io.php';
 require_once dirname(__FILE__) . '/admin_lib.php';
 require_once dirname(__FILE__) . '/match_lib.php';
@@ -70,7 +72,7 @@ $limit = min(500, $limit);
 
 // Аудит: подбор раскрывает шадхану анкеты по всей базе — фиксируем, кто и
 // по какой анкете запрашивал (рекомендация security-ревью).
-error_log('[match] шадхан ' . $uid . ' запросил подбор по анкете ' . $anketa_id);
+shiduh_log('match', 'шадхан ' . $uid . ' запросил подбор по анкете ' . $anketa_id);
 
 shiduh_json(200, array(
     'ok' => true,

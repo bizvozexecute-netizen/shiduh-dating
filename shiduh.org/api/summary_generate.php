@@ -12,6 +12,8 @@
  */
 $NETCAT_FOLDER = realpath(dirname(__FILE__) . '/..') . '/';
 include_once $NETCAT_FOLDER . 'vars.inc.php';
+require_once dirname(__FILE__) . '/admin_lib.php';
+shiduh_bootstrap_api();   // JSON-заголовки и обработчик фаталов — до загрузки ядра
 require_once $ROOT_FOLDER . 'connect_io.php';
 require_once dirname(__FILE__) . '/admin_lib.php';
 require_once dirname(__FILE__) . '/ai_client.php';
@@ -175,7 +177,7 @@ $db->query(
     . "`source`='ai', `created_at`=NOW()"
 );
 if ($db->is_error) {
-    error_log('[ai] не записан журнал пересчёта резюме: анкета ' . $anketa_id);
+    shiduh_log('ai', 'не записан журнал пересчёта резюме: анкета ' . $anketa_id);
 }
 
 shiduh_json(200, array('ok' => true, 'summary' => $text, 'meta' => $meta));

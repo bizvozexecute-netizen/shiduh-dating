@@ -19,6 +19,8 @@
  */
 $NETCAT_FOLDER = realpath(dirname(__FILE__) . '/..') . '/';
 include_once $NETCAT_FOLDER . 'vars.inc.php';
+require_once dirname(__FILE__) . '/admin_lib.php';
+shiduh_bootstrap_api();   // JSON-заголовки и обработчик фаталов — до загрузки ядра
 require_once $ROOT_FOLDER . 'connect_io.php';
 
 $nc_core = nc_core::get_object();

@@ -12,6 +12,8 @@
  * (AI_DEFAULT_SYSTEM_PROMPT) — сайт исправен «из коробки».
  */
 
+require_once dirname(__FILE__) . '/admin_lib.php';   // shiduh_log()
+
 define('PROMPT_KEY_CONSULTANT', 'consultant_system');
 // С запасом выше любого реального промпта: он приписывается к КАЖДОМУ
 // запросу, то есть оплачивается на каждом ходу диалога.
@@ -32,7 +34,7 @@ function prompt_active($db, $key = PROMPT_KEY_CONSULTANT) {
     if ($db->is_error) {
         // молча уйти на промпт по умолчанию нельзя: подмена роли консультанта
         // должна быть видна в логе
-        error_log('[ai] prompt_active: ошибка чтения ai_prompts');
+        shiduh_log('ai', 'prompt_active: ошибка чтения ai_prompts');
     }
     return $row ? $row : null;
 }

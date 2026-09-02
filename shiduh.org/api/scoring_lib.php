@@ -17,6 +17,8 @@
  * только по текущей версии, история остаётся.
  */
 
+require_once dirname(__FILE__) . '/admin_lib.php';   // shiduh_log()
+
 require_once dirname(__FILE__) . '/ai_client.php';
 require_once dirname(__FILE__) . '/cases_lib.php';
 
@@ -409,7 +411,7 @@ function scoring_record_answer($db, $user_id, $case_row, $answer) {
 
         if (!scoring_save_profile($db, $user_id, $profile)) {
             // молчать нельзя: профиль посчитан, но в анкете его нет
-            error_log('[scoring] профиль не сохранён для пользователя ' . $user_id);
+            shiduh_log('scoring', 'профиль не сохранён для пользователя ' . $user_id);
         }
     }
     $db->get_var("SELECT RELEASE_LOCK('" . $db->prepare($lock) . "')");

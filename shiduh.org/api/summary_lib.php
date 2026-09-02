@@ -16,6 +16,8 @@
  * подбора он и нужен, а точная дата приближает к идентификации человека.
  */
 
+require_once dirname(__FILE__) . '/admin_lib.php';   // shiduh_log()
+
 require_once dirname(__FILE__) . '/ai_client.php';
 
 /*
@@ -142,7 +144,7 @@ function summary_profile_digest($db, $anketa_id) {
     // инвариант: запрещённое не могло попасть в белый список
     foreach ($forbidden as $f) {
         if (isset($white[$f])) {
-            error_log('[ai] в белый список резюме попало запрещённое поле: ' . $f);
+            shiduh_log('ai', 'в белый список резюме попало запрещённое поле: ' . $f);
             unset($white[$f]);
         }
     }

@@ -11,6 +11,8 @@
  */
 $NETCAT_FOLDER = realpath(dirname(__FILE__) . '/..') . '/';
 include_once $NETCAT_FOLDER . 'vars.inc.php';
+require_once dirname(__FILE__) . '/admin_lib.php';
+shiduh_bootstrap_api();   // JSON-заголовки и обработчик фаталов — до загрузки ядра
 require_once $ROOT_FOLDER . 'connect_io.php';
 require_once $NETCAT_FOLDER . 'netcat/admin/mail.inc.php';
 require_once dirname(__FILE__) . '/mailing_lib.php';

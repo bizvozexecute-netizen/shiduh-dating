@@ -22,6 +22,8 @@
  * timeout, max_retries, temperature. Ключ в коде не хранится (Э1.1-c).
  */
 
+require_once dirname(__FILE__) . '/admin_lib.php';   // shiduh_log()
+
 define('AI_STUB_REPLY', 'Спасибо! Я сохранил ваше сообщение. Живой ИИ-консультант '
     . 'подключится на следующем этапе и поможет дозаполнить анкету в диалоге.');
 
@@ -103,7 +105,7 @@ function ai_config() {
  * curl — хост и порт. Пишем детали в лог, наружу отдаём общее сообщение.
  */
 function ai_log_error($detail) {
-    error_log('[ai] ' . $detail);
+    shiduh_log('ai', $detail);
 }
 
 function ai_result($ok, $content, $usage = null, $provider = 'stub', $error = null, $tool_calls = array()) {

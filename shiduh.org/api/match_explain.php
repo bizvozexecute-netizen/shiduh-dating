@@ -16,6 +16,8 @@
  */
 $NETCAT_FOLDER = realpath(dirname(__FILE__) . '/..') . '/';
 include_once $NETCAT_FOLDER . 'vars.inc.php';
+require_once dirname(__FILE__) . '/admin_lib.php';
+shiduh_bootstrap_api();   // JSON-заголовки и обработчик фаталов — до загрузки ядра
 require_once $ROOT_FOLDER . 'connect_io.php';
 require_once dirname(__FILE__) . '/admin_lib.php';
 require_once dirname(__FILE__) . '/match_lib.php';
@@ -134,11 +136,11 @@ $row = $db->get_row(
 if ($db->is_error) {
     // fail-closed: сломанное хранилище означало бы «без кэша и без лимита» —
     // молча жечь деньги на каждый клик нельзя
-    error_log('[match] ОШИБКА чтения кэша обоснований: ' . $db->last_error);
+    shiduh_log('match', 'ОШИБКА чтения кэша обоснований: ' . $db->last_error);
     shiduh_json(500, array('error' => 'Хранилище обоснований недоступно'));
 }
 if ($row && (string)$row['explanation'] !== '') {
-    error_log('[match] шадхан ' . $uid . ' получил обоснование пары ' . $a . '-' . $b . ' из кэша');
+    shiduh_log('match', 'шадхан ' . $uid . ' получил обоснование пары ' . $a . '-' . $b . ' из кэша');
     shiduh_json(200, array(
         'ok' => true, 'explanation' => (string)$row['explanation'], 'cached' => true,
         'provider' => 'cache', 'score' => $scored['score'],
@@ -179,7 +181,7 @@ $db->query(
     . "`source_hash`='$hash_esc', `explanation`='', `created_at`=NOW()"
 );
 if ($db->is_error) {
-    error_log('[match] ОШИБКА резервации кэша обоснований: ' . $db->last_error);
+    shiduh_log('match', 'ОШИБКА резервации кэша обоснований: ' . $db->last_error);
     shiduh_json(500, array('error' => 'Хранилище обоснований недоступно'));
 }
 if (!$db->rows_affected) {
@@ -235,10 +237,10 @@ $db->query(
 );
 if ($db->is_error) {
     // деньги уже потрачены — текст отдаём, но о сломанном кэше кричим в лог
-    error_log('[match] ОШИБКА записи кэша обоснований: ' . $db->last_error);
+    shiduh_log('match', 'ОШИБКА записи кэша обоснований: ' . $db->last_error);
 }
 
-error_log('[match] шадхан ' . $uid . ' сгенерировал обоснование пары ' . $a . '-' . $b);
+shiduh_log('match', 'шадхан ' . $uid . ' сгенерировал обоснование пары ' . $a . '-' . $b);
 
 shiduh_json(200, array(
     'ok' => true, 'explanation' => $text, 'cached' => false,

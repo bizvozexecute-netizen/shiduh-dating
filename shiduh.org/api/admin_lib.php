@@ -54,3 +54,46 @@ function shiduh_check_origin($on_reject = null) {
         shiduh_json(403, array('error' => 'Недопустимый источник запроса'));
     }
 }
+
+/*
+ * Единая точка логирования. Канал — короткое слово в квадратных скобках
+ * (ai|match|rag|scoring|admin|csrf|captcha|auth|fatal|cron|upload), по нему
+ * удобно grep-ать лог веб-сервера. Пишет в error_log — на проде это ErrorLog
+ * Apache (см. DEPLOY.prod.md §12), на стенде — docker compose logs web.
+ */
+function shiduh_log($channel, $msg) {
+    error_log('[' . $channel . '] ' . $msg);
+}
+
+/*
+ * Фатал внутри JSON-эндпоинта раньше отдавал пустой ответ 200: ядро NetCat
+ * включает ob_start(), буфер сбрасывался как есть, а фронт получал «ничего».
+ * Обработчик регистрируется shiduh_bootstrap_api() ДО загрузки ядра, поэтому
+ * ловит и фаталы внутри include. Наружу — только общее сообщение: текст
+ * ошибки может содержать пути, SQL и фрагменты ключей; подробности — в лог.
+ */
+function shiduh_fatal_handler() {
+    $e = error_get_last();
+    $fatal = array(E_ERROR, E_PARSE, E_CORE_ERROR, E_COMPILE_ERROR, E_RECOVERABLE_ERROR);
+    if (!$e || !in_array($e['type'], $fatal, true)) {
+        return;
+    }
+    shiduh_log('fatal', $e['message'] . ' в ' . $e['file'] . ':' . $e['line']);
+    if (headers_sent()) {
+        return;   // ответ уже пошёл (например, поток SSE) — дописывать нечего
+    }
+    while (ob_get_level() > 0) {
+        ob_end_clean();   // выбросить частичный вывод и текст ошибки, если display_errors включён
+    }
+    http_response_code(500);
+    header('Content-Type: application/json; charset=utf-8');
+    echo json_encode(array('error' => 'Внутренняя ошибка сервера'), JSON_UNESCAPED_UNICODE);
+}
+
+/* Общий пролог JSON-эндпоинта: заголовки + обработчик фаталов. Вызывать до connect_io.php. */
+function shiduh_bootstrap_api() {
+    header('Content-Type: application/json; charset=utf-8');
+    header('X-Content-Type-Options: nosniff');
+    header('Cache-Control: no-store');
+    register_shutdown_function('shiduh_fatal_handler');
+}

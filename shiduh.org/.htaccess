@@ -14,7 +14,10 @@ Options +FollowSymLinks
 <IfModule mod_php5.c>
 php_flag magic_quotes_gpc off
 php_flag display_errors off
-php_value error_reporting 0
+# Ошибки — в лог веб-сервера, а не в никуда: раньше стояло error_reporting 0,
+# и фаталы на проде не оставляли следа. 22519 = E_ALL & ~E_NOTICE & ~E_STRICT & ~E_DEPRECATED.
+php_flag log_errors on
+php_value error_reporting 22519
 php_value arg_separator.output "&amp;"
 php_value mbstring.internal_encoding UTF-8
 php_value short_open_tag on
@@ -23,7 +26,10 @@ php_value short_open_tag on
 <IfModule mod_php7.c>
 php_flag magic_quotes_gpc off
 php_flag display_errors off
-php_value error_reporting 0
+# Ошибки — в лог веб-сервера, а не в никуда: раньше стояло error_reporting 0,
+# и фаталы на проде не оставляли следа. 22519 = E_ALL & ~E_NOTICE & ~E_STRICT & ~E_DEPRECATED.
+php_flag log_errors on
+php_value error_reporting 22519
 php_value arg_separator.output "&amp;"
 php_value mbstring.internal_encoding UTF-8
 php_value short_open_tag on
@@ -32,7 +38,10 @@ php_value short_open_tag on
 <IfModule mod_php.c>
 php_flag magic_quotes_gpc off
 php_flag display_errors off
-php_value error_reporting 0
+# Ошибки — в лог веб-сервера, а не в никуда: раньше стояло error_reporting 0,
+# и фаталы на проде не оставляли следа. 22519 = E_ALL & ~E_NOTICE & ~E_STRICT & ~E_DEPRECATED.
+php_flag log_errors on
+php_value error_reporting 22519
 php_value arg_separator.output "&amp;"
 php_value mbstring.internal_encoding UTF-8
 php_value short_open_tag on

@@ -19,6 +19,8 @@
  * сообщения-запроса, и только на НАШ сервис.
  */
 
+require_once dirname(__FILE__) . '/admin_lib.php';   // shiduh_log()
+
 function rag_config() {
     $nc = nc_core::get_object();
     $get = function ($key, $default) use ($nc) {
@@ -69,13 +71,13 @@ function rag_retrieve($query) {
 
     if ($err !== '' || $code !== 200) {
         // адрес сервиса — только в лог: пользователю сбой ретривера не виден
-        error_log('[rag] ретривер недоступен: http ' . $code
+        shiduh_log('rag', 'ретривер недоступен: http ' . $code
             . ($err !== '' ? ', curl: ' . $err : ''));
         return null;
     }
     $js = json_decode((string)$body, true);
     if (!is_array($js) || !isset($js['results']) || !is_array($js['results'])) {
-        error_log('[rag] неожиданный ответ ретривера: ' . substr((string)$body, 0, 300));
+        shiduh_log('rag', 'неожиданный ответ ретривера: ' . substr((string)$body, 0, 300));
         return null;
     }
     return $js['results'];
