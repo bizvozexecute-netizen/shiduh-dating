@@ -15,6 +15,7 @@
   echo_system     — эхом системного промпта (проверка, что он доехал)
   echo_tools      — эхом списка полученных инструментов и их полей
   echo_prompt     — эхом всего полученного запроса (проверка приватности)
+  echo_payload    — эхо параметров: max_tokens, stream, temperature
   classify        — строгий JSON разбора ответа (скоринг Э2.3)
   tool_call_always— просит инструмент на каждом вызове (проверка отсутствия цикла)
   fail_then_ok    — первые N вызовов отдают 500, потом успех (ретраи)
@@ -292,6 +293,21 @@ if ($mode === 'echo_prompt') {
         'choices' => array(array('message' => array(
             'role' => 'assistant',
             'content' => implode(" | ", $all),
+        ))),
+        'usage' => array('prompt_tokens' => 9, 'completion_tokens' => 9, 'total_tokens' => 18),
+    ), JSON_UNESCAPED_UNICODE);
+    exit;
+}
+
+if ($mode === 'echo_payload') {
+    /* Эхо параметров запроса (не сообщений): так тест видит, что реально
+       уходит потолок ответа и признак потоковой выдачи. */
+    echo json_encode(array(
+        'choices' => array(array('message' => array(
+            'role' => 'assistant',
+            'content' => 'MAXTOK:' . (isset($raw['max_tokens']) ? (int)$raw['max_tokens'] : 0)
+                       . ' STREAM:' . (empty($raw['stream']) ? '0' : '1')
+                       . ' TEMP:' . (isset($raw['temperature']) ? $raw['temperature'] : '?'),
         ))),
         'usage' => array('prompt_tokens' => 9, 'completion_tokens' => 9, 'total_tokens' => 18),
     ), JSON_UNESCAPED_UNICODE);

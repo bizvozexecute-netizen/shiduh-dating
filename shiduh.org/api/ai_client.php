@@ -96,7 +96,62 @@ function ai_config() {
         // Сколько сообщений в час разрешено одному пользователю (Э4 добавит
         // тарифы; здесь — защита баланса от перебора и от угнанной сессии).
         'rate_limit_per_hour' => (int)$get('rate_limit_per_hour', 30),
+        // Потолок ответа. Без него длинная генерация упирается в таймаут, и
+        // теряется весь вызов вместе с уже оплаченными токенами. 700 хватает
+        // на живой ответ в 2–5 предложений с запасом.
+        'max_tokens'  => (int)$get('max_tokens', 700),
     );
+}
+
+/*
+ * Журнал обращений к модели.
+ *
+ * Расход считался только как tokens_used в строке ответа чата: сколько ушло
+ * на резюме, обоснования пар и разбор ответов опроса — узнать было нельзя.
+ * Теперь строка пишется на КАЖДЫЙ вызов, включая заглушку и неудачные
+ * попытки: иначе по журналу не отличить «не обращались» от «обращались и
+ * получили отказ».
+ *
+ * Пишем из одного места (ai_chat), чтобы ни один вызывающий не мог «забыть»
+ * учёт. Текст ошибки обрезается и очищается от фрагментов ключа: журнал
+ * показывается администратору в веб-интерфейсе.
+ */
+function ai_usage_scrub($text) {
+    $text = preg_replace('/sk-[A-Za-z0-9_\-*]{4,}/', 'sk-***', (string)$text);
+    return mb_substr(trim((string)$text), 0, 200);
+}
+
+function ai_usage_log_write(array $row) {
+    $db = nc_core::get_object()->db;
+    if (!$db) {
+        return;
+    }
+    $kinds = array('chat', 'greet', 'summary', 'explain', 'classify', 'psychotype', 'other');
+    $kind = (isset($row['kind']) && in_array($row['kind'], $kinds, true)) ? $row['kind'] : 'other';
+    $num = function ($k) use ($row) {
+        return (int)(isset($row[$k]) ? $row[$k] : 0);
+    };
+
+    $db->query(
+        "INSERT INTO `ai_usage_log` SET "
+        . "`user_id`=" . $num('user_id') . ", "
+        . "`kind`='" . $db->prepare($kind) . "', "
+        . "`provider`='" . $db->prepare(mb_substr((string)$row['provider'], 0, 16)) . "', "
+        . "`model`='" . $db->prepare(mb_substr((string)$row['model'], 0, 64)) . "', "
+        . "`prompt_tokens`=" . $num('prompt_tokens') . ", "
+        . "`completion_tokens`=" . $num('completion_tokens') . ", "
+        . "`total_tokens`=" . $num('total_tokens') . ", "
+        . "`latency_ms`=" . $num('latency_ms') . ", "
+        . "`attempts`=" . max(1, $num('attempts')) . ", "
+        . "`streamed`=" . (int)(!empty($row['streamed'])) . ", "
+        . "`ok`=" . (int)(!empty($row['ok'])) . ", "
+        . "`error`='" . $db->prepare(ai_usage_scrub(isset($row['error']) ? $row['error'] : '')) . "', "
+        . "`created_at`=NOW()"
+    );
+    if ($db->is_error) {
+        // Учёт не должен ронять ответ пользователю
+        shiduh_log('ai', 'журнал расхода не записан: ' . $db->last_error);
+    }
 }
 
 /*
@@ -154,20 +209,48 @@ function ai_http_post($url, $payload, $api_key, $timeout) {
 function ai_chat(array $messages, array $options = array()) {
     $cfg = ai_config();
     $provider = isset($options['provider']) ? $options['provider'] : $cfg['provider'];
+    $model = isset($options['model']) ? $options['model'] : $cfg['model'];
+
+    // Учёт расхода: замыкание вокруг ЛЮБОГО выхода из функции, чтобы ни одна
+    // ветка (заглушка, отсутствие ключа, отказ после ретраев) не осталась
+    // неучтённой. $attempts_done обновляется в цикле ниже.
+    $t0 = microtime(true);
+    $attempts_done = 0;
+    $finish = function ($result) use (&$attempts_done, $t0, $options, $provider, $model) {
+        $usage = isset($result['usage']) && is_array($result['usage']) ? $result['usage'] : array();
+        ai_usage_log_write(array(
+            'user_id' => isset($options['user_id']) ? $options['user_id'] : 0,
+            'kind' => isset($options['kind']) ? $options['kind'] : 'other',
+            'provider' => isset($result['provider']) ? $result['provider'] : $provider,
+            'model' => $provider === 'openrouter' ? $model : '',
+            'prompt_tokens' => isset($usage['prompt_tokens']) ? $usage['prompt_tokens'] : 0,
+            'completion_tokens' => isset($usage['completion_tokens']) ? $usage['completion_tokens'] : 0,
+            'total_tokens' => isset($usage['total_tokens']) ? $usage['total_tokens'] : 0,
+            'latency_ms' => (int)round((microtime(true) - $t0) * 1000),
+            'attempts' => max(1, $attempts_done),
+            'streamed' => !empty($options['stream']),
+            'ok' => !empty($result['ok']),
+            'error' => isset($result['error']) ? $result['error'] : '',
+        ));
+        return $result;
+    };
 
     if ($provider !== 'openrouter') {
         // Заглушка: сайт работает и без ключа (Э0.2 → Э1 переходный режим).
-        return ai_result(true, AI_STUB_REPLY, null, 'stub');
+        return $finish(ai_result(true, AI_STUB_REPLY, null, 'stub'));
     }
     if ($cfg['api_key'] === '') {
         // Провайдер выбран, но ключ не задан — честно говорим, а не молчим.
-        return ai_result(false, '', null, 'openrouter', 'Не задан ключ доступа к ИИ');
+        return $finish(ai_result(false, '', null, 'openrouter', 'Не задан ключ доступа к ИИ'));
     }
 
     $payload = array(
-        'model' => isset($options['model']) ? $options['model'] : $cfg['model'],
+        'model' => $model,
         'messages' => array_values($messages),
         'temperature' => isset($options['temperature']) ? $options['temperature'] : $cfg['temperature'],
+        // Потолок ответа: без него длинная генерация упирается в таймаут и
+        // теряется целиком вместе с уже потраченными токенами.
+        'max_tokens' => isset($options['max_tokens']) ? (int)$options['max_tokens'] : $cfg['max_tokens'],
     );
     if (!empty($options['tools'])) {
         $payload['tools'] = $options['tools'];
@@ -179,6 +262,7 @@ function ai_chat(array $messages, array $options = array()) {
     $last_error = 'Сервис ИИ недоступен';
 
     for ($i = 0; $i < $attempts; $i++) {
+        $attempts_done = $i + 1;
         if ($i > 0) {
             // Бэкофф: 0.5s, 1s — не долбим провайдер и не держим пользователя долго
             usleep((int)(500000 * pow(2, $i - 1)));
@@ -200,8 +284,8 @@ function ai_chat(array $messages, array $options = array()) {
             // 4xx — наша ошибка (ключ, модель, формат): повтор не поможет.
             // Текст провайдера может содержать фрагмент ключа — не показываем.
             ai_log_error('http ' . $code . ': ' . substr($body, 0, 500));
-            return ai_result(false, '', null, 'openrouter',
-                'Запрос к ИИ отклонён. Обратитесь к администратору сайта');
+            return $finish(ai_result(false, '', null, 'openrouter',
+                'Запрос к ИИ отклонён. Обратитесь к администратору сайта'));
         }
 
         $js = json_decode($body, true);
@@ -219,7 +303,7 @@ function ai_chat(array $messages, array $options = array()) {
             // часть шлюзов отдаёт только слагаемые — иначе учёт был бы нулевым
             $total_tokens = $prompt_tokens + $completion_tokens;
         }
-        return ai_result(
+        return $finish(ai_result(
             true,
             isset($msg['content']) ? $msg['content'] : '',
             array(
@@ -230,8 +314,8 @@ function ai_chat(array $messages, array $options = array()) {
             'openrouter',
             null,
             isset($msg['tool_calls']) ? $msg['tool_calls'] : array()
-        );
+        ));
     }
 
-    return ai_result(false, '', null, 'openrouter', $last_error);
+    return $finish(ai_result(false, '', null, 'openrouter', $last_error));
 }

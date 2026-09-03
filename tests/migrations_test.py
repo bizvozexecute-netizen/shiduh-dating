@@ -71,7 +71,7 @@ PROFILE_FIELDS = [
 NEW_TABLES = ["ai_chat_messages", "ai_prompts", "ai_field_writes", "invite_tokens",
               "mailings", "mailing_log", "mailing_optout", "assessment_cases",
               "assessment_answers", "match_feedback", "match_explanations",
-              "moderation_notes"]
+              "moderation_notes", "ai_usage_log"]
 NEW_DICTS = ["Classificator_Kashrut_level", "Classificator_Shabbat_level",
              "Classificator_Value_dimension"]
 DICT_NAMES = ["Kashrut_level", "Shabbat_level", "Value_dimension"]
@@ -254,6 +254,14 @@ class TestUp:
         # новое поле не должно быть заполнено — иначе портит метрику заполненности
         assert dbq("SELECT COUNT(*) FROM Message204 WHERE About_self IS NOT NULL AND About_self<>''") == "0"
 
+    def test_chat_v2_columns_added(self):
+        # 021: тред, оценка ответа и признак прерванной генерации
+        for col in ("thread", "rating", "stopped"):
+            assert col_exists("ai_chat_messages", col), "нет колонки " + col
+        # существующая переписка обязана попасть в первый тред, а не остаться
+        # вне тредов — иначе она выпадет из истории текущего диалога
+        assert dbq("SELECT COUNT(*) FROM ai_chat_messages WHERE thread<1") == "0"
+
     def test_dead_chat_components_archived(self):
         # 020: мёртвые компоненты чата 292/293/251 (+295-298) убраны из Class/Field,
         # строки сохранены в архивных таблицах, пустые Message* переименованы
@@ -304,6 +312,10 @@ class TestDown:
         for f in MEETING006_FIELDS:
             assert not col_exists("Message204", f), "колонка 006 не удалена: " + f
             assert dbq("SELECT COUNT(*) FROM Field WHERE Class_ID=204 AND Field_Name='%s'" % f) == "0"
+
+    def test_chat_v2_columns_removed(self):
+        for col in ("thread", "rating", "stopped"):
+            assert not col_exists("ai_chat_messages", col), "колонка не снята: " + col
 
     def test_dead_chat_components_restored(self):
         # 020 down: семь строк Class вернулись, архив снят, Message* на месте

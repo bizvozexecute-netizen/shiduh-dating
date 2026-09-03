@@ -140,7 +140,8 @@ if (!$profile_lines && !$chat_lines) {
     shiduh_json(409, array('error' => 'Анкета пока пустая — резюме составить не из чего'));
 }
 
-$res = ai_chat(summary_build_messages($profile_lines, $chat_lines));
+$res = ai_chat(summary_build_messages($profile_lines, $chat_lines),
+               array('kind' => 'summary', 'user_id' => $uid, 'max_tokens' => 600));
 if (!$res['ok']) {
     shiduh_json(503, array('error' => $res['error'] ?: 'Сервис ИИ временно недоступен'));
 }

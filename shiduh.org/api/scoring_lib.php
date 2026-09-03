@@ -39,7 +39,7 @@ function scoring_dimensions($group) {
  * Возвращает array('scores'=>[измерение=>балл], 'confidence'=>float)
  * либо null, если модель ответила негодным.
  */
-function scoring_classify($case_row, $answer) {
+function scoring_classify($case_row, $answer, $user_id = 0) {
     $group = (string)$case_row['dimension_group'];
     $allowed = scoring_dimensions($group);
     if (!$allowed) {
@@ -60,7 +60,8 @@ function scoring_classify($case_row, $answer) {
             . "Ответ человека: " . $answer),
     );
 
-    $res = ai_chat($messages, array('temperature' => 0));
+    $res = ai_chat($messages, array('temperature' => 0,
+        'kind' => 'classify', 'user_id' => $user_id, 'max_tokens' => 200));
     if (!$res['ok']) {
         return null;
     }
@@ -249,7 +250,7 @@ function scoring_percentages($totals) {
  */
 define('SCORING_TEXT_MIN_ANSWERS', 3);
 
-function scoring_psychotype_text($profile) {
+function scoring_psychotype_text($profile, $user_id = 0) {
     if ((int)$profile['cases_answered'] < SCORING_TEXT_MIN_ANSWERS) {
         return null;
     }
@@ -295,7 +296,7 @@ function scoring_psychotype_text($profile) {
             . 'личности: «важно время вместе», а не «он такой-то человек». '
             . 'Нейтральный тон, без оценок.'),
         array('role' => 'user', 'content' => implode("\n", $lines)),
-    ), array('temperature' => 0));
+    ), array('temperature' => 0, 'kind' => 'psychotype', 'user_id' => $user_id, 'max_tokens' => 400));
 
     if (!$res['ok']) {
         return null;
@@ -365,7 +366,7 @@ function scoring_record_answer($db, $user_id, $case_row, $answer) {
 
     // классификация — долгий вызов модели: ДО замка, чтобы не держать
     // сериализацию на время сети
-    $classification = scoring_classify($case_row, $answer);
+    $classification = scoring_classify($case_row, $answer, $user_id);
 
     $lock = 'shiduh_scoring_' . $user_id;
     $got = (int)$db->get_var("SELECT GET_LOCK('" . $db->prepare($lock) . "', 5)");
@@ -407,7 +408,7 @@ function scoring_record_answer($db, $user_id, $case_row, $answer) {
 
         $profile['psychotype_text'] = $cached !== null
             ? $cached
-            : scoring_psychotype_text($profile);
+            : scoring_psychotype_text($profile, $user_id);
 
         if (!scoring_save_profile($db, $user_id, $profile)) {
             // молчать нельзя: профиль посчитан, но в анкете его нет

@@ -218,7 +218,7 @@ $res = ai_chat(
         array('role' => 'system', 'content' => $system),
         array('role' => 'user', 'content' => match_explain_prompt_text($facts)),
     ),
-    array('temperature' => 0.3)
+    array('temperature' => 0.3, 'kind' => 'explain', 'user_id' => $uid, 'max_tokens' => 400)
 );
 $text = $res['ok'] ? match_explain_sanitize($res['content']) : '';
 if ($text === '') {

@@ -201,7 +201,10 @@ foreach ($rows as $r) {
 }
 
 // Инструменты: автозаполнение анкеты (Э1.3) + запись ответа на кейс (Э2.2-c)
-$res = ai_chat($messages, array('tools' => ai_tool_definitions($has_case)));
+$res = ai_chat($messages, array(
+    'tools' => ai_tool_definitions($has_case),
+    'kind' => 'chat', 'user_id' => $uid,   // для журнала расхода
+));
 
 if (!$res['ok']) {
     // Ответа нет — честно говорим об этом, сообщение пользователя уже сохранено.
@@ -258,7 +261,10 @@ if (!empty($res['tool_calls'])) {
 
     // Второй вызов — последний: инструменты передаём, но повторный tool_call
     // уже не исполняем, иначе диалог мог бы уйти в цикл вызовов за деньги.
-    $res = ai_chat($messages, array('tools' => ai_tool_definitions($has_case)));
+    $res = ai_chat($messages, array(
+    'tools' => ai_tool_definitions($has_case),
+    'kind' => 'chat', 'user_id' => $uid,   // для журнала расхода
+));
     if (!$res['ok']) {
         // Поля уже записаны — сообщаем о сбое, но сделанное не откатываем.
         shiduh_json(503, array('error' => $res['error'] ?: 'Сервис ИИ временно недоступен'));
