@@ -15,6 +15,9 @@ import subprocess
 import urllib.error
 import urllib.parse
 import urllib.request
+import sys
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+from fake_llm import browser_headers  # Origin и X-CSRF-Token, как их шлёт браузер
 
 BASE = "http://localhost:8080"
 DOCKER = r"C:\Program Files\Docker\Docker\resources\bin\docker.exe"
@@ -69,8 +72,7 @@ def post_invite(sid, anketa_id, origin=None):
     req = urllib.request.Request(CREATE_URL, data=body, method="POST")
     if sid:
         req.add_header("Cookie", "PHP_AUTH_SID=%s; PHP_AUTH_LANG=Russian" % sid)
-    if origin:
-        req.add_header("Origin", origin)
+    browser_headers(req, sid, origin)
     opener = urllib.request.build_opener(NoRedirect)
     try:
         r = opener.open(req, timeout=60)
@@ -358,8 +360,7 @@ def post_claim(sid, email, password, origin=None):
     req = urllib.request.Request(CLAIM_URL, data=body, method="POST")
     if sid:
         req.add_header("Cookie", "PHP_AUTH_SID=%s; PHP_AUTH_LANG=Russian" % sid)
-    if origin:
-        req.add_header("Origin", origin)
+    browser_headers(req, sid, origin)
     opener = urllib.request.build_opener(NoRedirect)
     try:
         r = opener.open(req, timeout=60)
@@ -445,8 +446,7 @@ def post_send(sid, anketa_id, email, origin=None):
     req = urllib.request.Request(SEND_URL, data=body, method="POST")
     if sid:
         req.add_header("Cookie", "PHP_AUTH_SID=%s; PHP_AUTH_LANG=Russian" % sid)
-    if origin:
-        req.add_header("Origin", origin)
+    browser_headers(req, sid, origin)
     opener = urllib.request.build_opener(NoRedirect)
     try:
         r = opener.open(req, timeout=60)

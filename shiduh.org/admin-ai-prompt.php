@@ -55,6 +55,8 @@ function author_name($db, $id) {
 <html lang="ru">
 <head>
 <meta charset="utf-8">
+<meta name="csrf-token" content="<?= htmlspecialchars(shiduh_csrf_token($uid), ENT_QUOTES) ?>">
+<script src="/js/csrf.js"></script>
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Настройка ИИ-консультанта</title>
 <style>

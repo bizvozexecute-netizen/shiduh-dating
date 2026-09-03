@@ -7,6 +7,14 @@
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
     
     <meta name="format-detection" content="telephone=no">
+    <?php if (!empty($AUTH_USER_ID)):
+      // Токен считает та же функция, что его и проверяет (api/admin_lib.php),
+      // иначе формулы разъезжаются и все изменяющие запросы получают 403.
+      require_once nc_core::get_object()->DOCUMENT_ROOT . '/api/admin_lib.php'; ?>
+    <!-- CSRF: токен для изменяющих запросов (shiduh_csrf_check) -->
+    <meta name="csrf-token" content="<?= htmlspecialchars(shiduh_csrf_token((int)$AUTH_USER_ID), ENT_QUOTES) ?>">
+    <script src="/js/csrf.js"></script>
+    <?php endif; ?>
     <!-- fonts preload -->
     <!-- <link rel="preload" href="" as="font" type="font/woff2" crossorigin> -->
     <!-- favicon -->

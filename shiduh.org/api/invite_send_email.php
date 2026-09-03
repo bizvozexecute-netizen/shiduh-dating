@@ -22,39 +22,29 @@ $nc_core->user->attempt_to_authorize();
 header('Content-Type: application/json; charset=utf-8');
 header('X-Content-Type-Options: nosniff');
 
-function send_json($status, $payload) {
-    http_response_code($status);
-    echo json_encode($payload, JSON_UNESCAPED_UNICODE);
-    exit;
-}
 
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-    send_json(405, array('error' => 'Метод не поддерживается'));
+    shiduh_json(405, array('error' => 'Метод не поддерживается'));
 }
 
-$req_host = preg_replace('/:\d+$/', '', (string)($_SERVER['HTTP_HOST'] ?? ''));
-$src = $_SERVER['HTTP_ORIGIN'] ?? ($_SERVER['HTTP_REFERER'] ?? '');
-if ($src !== '' && strcasecmp((string)parse_url($src, PHP_URL_HOST), $req_host) !== 0) {
-    send_json(403, array('error' => 'Недопустимый источник запроса'));
-}
 
 global $current_user;
 $db  = $nc_core->db;
 $uid = (int)(isset($current_user['User_ID']) ? $current_user['User_ID'] : 0);
 if (!$uid) {
-    send_json(403, array('error' => 'Требуется авторизация'));
+    shiduh_json(403, array('error' => 'Требуется авторизация'));
 }
-if ((int)$db->get_var("SELECT `Type` FROM `User` WHERE `User_ID`=$uid") !== 2) {
-    send_json(403, array('error' => 'Доступно только шадхану'));
-}
+
+shiduh_csrf_check($uid);   // заслон CSRF: источник + токен (C3)
+shiduh_require_shadhan($db, $uid);
 
 $anketa_id = (int)$nc_core->input->fetch_post('anketa_id');
 $email     = trim((string)$nc_core->input->fetch_post('email'));
 if ($anketa_id <= 0) {
-    send_json(400, array('error' => 'Не указана анкета'));
+    shiduh_json(400, array('error' => 'Не указана анкета'));
 }
 if ($email === '' || !nc_check_email($email)) {
-    send_json(400, array('error' => 'Некорректный email'));
+    shiduh_json(400, array('error' => 'Некорректный email'));
 }
 
 $anketa = $db->get_row(
@@ -63,14 +53,14 @@ $anketa = $db->get_row(
     ARRAY_A
 );
 if (!$anketa) {
-    send_json(404, array('error' => 'Анкета не найдена'));
+    shiduh_json(404, array('error' => 'Анкета не найдена'));
 }
 $leads = in_array($uid, array(
     (int)$anketa['User_ID'], (int)$anketa['Shadhan_1'],
     (int)$anketa['Shadhan_2'], (int)$anketa['Shadhan_3'],
 ), true);
 if (!$leads) {
-    send_json(403, array('error' => 'Эта анкета не в вашем ведении'));
+    shiduh_json(403, array('error' => 'Эта анкета не в вашем ведении'));
 }
 
 // Активный токен приглашения для владельца анкеты (ссылка уже создана).
@@ -81,7 +71,7 @@ $token = $db->get_var(
     . "AND `expires_at` > NOW() ORDER BY `id` DESC LIMIT 1"
 );
 if (!$token) {
-    send_json(409, array('error' => 'Сначала создайте ссылку-приглашение'));
+    shiduh_json(409, array('error' => 'Сначала создайте ссылку-приглашение'));
 }
 
 $base = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off' ? 'https' : 'http')
@@ -100,4 +90,4 @@ $message = "Здравствуйте!\n\n"
 
 nc_mail2queue($email, $from, $subject, $message);
 
-send_json(200, array('ok' => true));
+shiduh_json(200, array('ok' => true));

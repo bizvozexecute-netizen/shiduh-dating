@@ -47,6 +47,8 @@ function esc($s) {
 <html lang="ru">
 <head>
 <meta charset="utf-8">
+<meta name="csrf-token" content="<?= htmlspecialchars(shiduh_csrf_token($uid), ENT_QUOTES) ?>">
+<script src="/js/csrf.js"></script>
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Кейсы ценностного опроса</title>
 <style>

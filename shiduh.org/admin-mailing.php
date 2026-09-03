@@ -20,7 +20,7 @@ $nc_core->user->attempt_to_authorize();
 global $current_user;
 $db  = $nc_core->db;
 $uid = (int)(isset($current_user['User_ID']) ? $current_user['User_ID'] : 0);
-if (!mailing_is_admin($db, $uid)) {
+if (!shiduh_is_admin($db, $uid)) {
     http_response_code(403);
     header('Content-Type: text/html; charset=utf-8');
     echo '<!DOCTYPE html><html lang="ru"><head><meta charset="utf-8"><title>Доступ запрещён</title></head>'
@@ -36,6 +36,8 @@ header('Content-Type: text/html; charset=utf-8');
 <html lang="ru">
 <head>
 <meta charset="utf-8">
+<meta name="csrf-token" content="<?= htmlspecialchars(shiduh_csrf_token($uid), ENT_QUOTES) ?>">
+<script src="/js/csrf.js"></script>
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Рассылка по сегменту</title>
 <style>

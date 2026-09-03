@@ -29,30 +29,28 @@ $nc_core->user->attempt_to_authorize();
 header('Content-Type: application/json; charset=utf-8');
 header('X-Content-Type-Options: nosniff');
 
-function ai_chat_json($status, $payload) {
-    shiduh_json($status, $payload);
-}
 
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-    ai_chat_json(405, array('error' => 'Метод не поддерживается'));
+    shiduh_json(405, array('error' => 'Метод не поддерживается'));
 }
 
-shiduh_check_origin();
 
 global $current_user;
 $uid = (int)(isset($current_user['User_ID']) ? $current_user['User_ID'] : 0);
 if (!$uid) {
-    ai_chat_json(403, array('error' => 'Требуется авторизация'));
+    shiduh_json(403, array('error' => 'Требуется авторизация'));
 }
+
+shiduh_csrf_check($uid);   // заслон CSRF: источник + токен (C3)
 
 $db = $nc_core->db;
 $message = $nc_core->input->fetch_post('message');
 if (!is_string($message)) {
-    ai_chat_json(400, array('error' => 'Некорректное сообщение'));
+    shiduh_json(400, array('error' => 'Некорректное сообщение'));
 }
 $message = trim($message);
 if ($message === '') {
-    ai_chat_json(400, array('error' => 'Пустое сообщение'));
+    shiduh_json(400, array('error' => 'Пустое сообщение'));
 }
 // Разумный предел — чтобы пользователь не раздувал свою историю и не слал
 // огромные промпты в LLM (Э1). Мягко обрезаем, а не отклоняем.
@@ -72,7 +70,7 @@ if ($limit > 0) {
         . "AND `role`='user' AND `created_at` > DATE_SUB(NOW(), INTERVAL 1 HOUR)"
     );
     if ($sent >= $limit) {
-        ai_chat_json(429, array(
+        shiduh_json(429, array(
             'error' => 'Вы отправили слишком много сообщений за час. '
                      . 'Пожалуйста, продолжите беседу немного позже.',
         ));
@@ -207,7 +205,7 @@ $res = ai_chat($messages, array('tools' => ai_tool_definitions($has_case)));
 
 if (!$res['ok']) {
     // Ответа нет — честно говорим об этом, сообщение пользователя уже сохранено.
-    ai_chat_json(503, array('error' => $res['error'] ?: 'Сервис ИИ временно недоступен'));
+    shiduh_json(503, array('error' => $res['error'] ?: 'Сервис ИИ временно недоступен'));
 }
 
 $tokens = (int)$res['usage']['total_tokens'];
@@ -263,7 +261,7 @@ if (!empty($res['tool_calls'])) {
     $res = ai_chat($messages, array('tools' => ai_tool_definitions($has_case)));
     if (!$res['ok']) {
         // Поля уже записаны — сообщаем о сбое, но сделанное не откатываем.
-        ai_chat_json(503, array('error' => $res['error'] ?: 'Сервис ИИ временно недоступен'));
+        shiduh_json(503, array('error' => $res['error'] ?: 'Сервис ИИ временно недоступен'));
     }
     $tokens += (int)$res['usage']['total_tokens'];
 }
@@ -281,4 +279,4 @@ $db->query(
     . "`tokens_used`=$tokens, `created_at`=NOW()"
 );
 
-ai_chat_json(200, array('reply' => $res['content'], 'tokens' => $tokens));
+shiduh_json(200, array('reply' => $res['content'], 'tokens' => $tokens));

@@ -26,7 +26,6 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     shiduh_json(405, array('error' => 'Метод не поддерживается'));
 }
 
-shiduh_check_origin();
 
 global $current_user;
 $db  = $nc_core->db;
@@ -34,9 +33,9 @@ $uid = (int)(isset($current_user['User_ID']) ? $current_user['User_ID'] : 0);
 if (!$uid) {
     shiduh_json(403, array('error' => 'Требуется авторизация'));
 }
-if ((int)$db->get_var("SELECT `Type` FROM `User` WHERE `User_ID`=$uid") !== 2) {
-    shiduh_json(403, array('error' => 'Доступно только шадхану'));
-}
+
+shiduh_csrf_check($uid);   // заслон CSRF: источник + токен (C3)
+shiduh_require_shadhan($db, $uid);
 
 $anketa_id = (int)$nc_core->input->fetch_post('anketa_id');
 if ($anketa_id <= 0) {

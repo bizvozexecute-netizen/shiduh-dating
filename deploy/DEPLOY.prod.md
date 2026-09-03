@@ -36,6 +36,7 @@ tar czf webroot_$(date +%F_%H%M).tar.gz /path/to/webroot   # без netcat_files
 
 **PHP-логика (новые файлы, копировать целиком):**
 - `shiduh.org/api/` — все `*.php` (клиент LLM, инструменты, скоринг, подбор пар, RAG-клиент, рассылка, приглашения, резюме, кейсы, `template_lib.php` — помощники шаблонов: безопасная ссылка «Назад»…)
+- `shiduh.org/js/csrf.js` — обёртка fetch/XHR, подставляет `X-CSRF-Token` (C3)
 - `shiduh.org/admin-cases.php`, `admin-mailing.php`, `admin-ai-prompt.php`
 - **`shiduh.org/vars.inc.php`** — НЕ в git (секреты). На сервере правится руками:
   сверьте с `vars.inc.php.example` значение `$ADMIN_AUTHTIME` (30 суток вместо года, B-4)
@@ -47,6 +48,7 @@ tar czf webroot_$(date +%F_%H%M).tar.gz /path/to/webroot   # без netcat_files
 - **Закрытие инъекций (этап «До идеала», C2) — копировать целиком папки** `class/183/` (все подшаблоны: `Settings.html`, `Class.html`+`FormPrefix.html`), `class/194/` (+`229/`), `class/204/{206,213,217,239,241,247,256,257,258,272,274,279,303,312}/Settings.html`, все `class/204/**/RecordTemplateFull.html`, `class/netcat_module_auth_user/*/RecordTemplateFull.html`, `class/204/CheckActionTemplate.html`
 - **Удалить на проде каталоги** `class/292/`, `class/293/`, `class/251/` (мёртвые компоненты чата с open redirect; rsync без `--delete` их не уберёт) — вместе с миграцией `020`
 - `class/netcat_module_auth_message/{265,259,320}/AddTemplate.html` и `class/183/275/AddTemplate.html` — формы сообщения и статьи с виджетом фото. **Хэш настроек виджета считается от `SecretKey`**, поэтому эти три файла выкатываются в том же окне, что и миграция `019` (§8.5): старый прод-шаблон с константой после ротации ключа ответит «Settings integrity error» на любое сообщение
+- `template/{3,28}/{Template,Header,Footer}.html` — метатег `csrf-token`, подключение `/js/csrf.js`, безопасное поле `REQUESTED_FROM` формы входа (C2/C3). **Править комплектом: `Template.html` — это склейка `Header.html`+`Footer.html`**
 - `template/3/{Template,Footer}.html`, `template/3/partials/{aside_profile,lk-menu-mobile}.html` (пункт меню «ИИ-консультант»)
 
 **Настройки БД** (§ниже) и, опционально, **RAG-сервис** (§8).

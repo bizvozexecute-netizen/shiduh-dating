@@ -11,15 +11,7 @@
 
 require_once dirname(__FILE__) . '/admin_lib.php';
 
-function mailing_json($status, $payload) {
-    shiduh_json($status, $payload);
-}
 
-/* Проверка прав администратора живёт в admin_lib.php (общая с экраном
-   кейсов опроса); здесь — тонкая обёртка ради читаемости вызовов. */
-function mailing_is_admin($db, $uid) {
-    return shiduh_is_admin($db, $uid);
-}
 
 /*
  * WHERE сегмента (для таблицы `User` u) из POST-фильтров.

@@ -29,7 +29,6 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     shiduh_json(405, array('error' => 'Метод не поддерживается'));
 }
 
-shiduh_check_origin();
 
 global $current_user;
 $db  = $nc_core->db;
@@ -37,6 +36,8 @@ $uid = (int)(isset($current_user['User_ID']) ? $current_user['User_ID'] : 0);
 if (!$uid) {
     shiduh_json(403, array('error' => 'Требуется авторизация'));
 }
+
+shiduh_csrf_check($uid);   // заслон CSRF: источник + токен (C3)
 
 // Каждый ответ — обращение к модели (а на смене версии ещё одно, за текстом
 // психотипа). Потолок за сутки — общий с путём диалога (Э2.2-c).

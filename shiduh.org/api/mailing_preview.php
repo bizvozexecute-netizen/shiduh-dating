@@ -20,21 +20,18 @@ header('Content-Type: application/json; charset=utf-8');
 header('X-Content-Type-Options: nosniff');
 
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-    mailing_json(405, array('error' => 'Метод не поддерживается'));
+    shiduh_json(405, array('error' => 'Метод не поддерживается'));
 }
 
-$req_host = preg_replace('/:\d+$/', '', (string)($_SERVER['HTTP_HOST'] ?? ''));
-$src = $_SERVER['HTTP_ORIGIN'] ?? ($_SERVER['HTTP_REFERER'] ?? '');
-if ($src !== '' && strcasecmp((string)parse_url($src, PHP_URL_HOST), $req_host) !== 0) {
-    mailing_json(403, array('error' => 'Недопустимый источник запроса'));
-}
 
 global $current_user;
 $db  = $nc_core->db;
 $uid = (int)(isset($current_user['User_ID']) ? $current_user['User_ID'] : 0);
-if (!mailing_is_admin($db, $uid)) {
-    mailing_json(403, array('error' => 'Доступно только администратору'));
+if (!shiduh_is_admin($db, $uid)) {
+    shiduh_json(403, array('error' => 'Доступно только администратору'));
 }
+
+shiduh_csrf_check($uid);   // заслон CSRF: источник + токен (C3)
 
 list($where, $filters) = mailing_segment_where($db, $nc_core->input);
 
@@ -46,7 +43,7 @@ $row = $db->get_row(
 $total = (int)$row['total'];
 $confirmed = (int)$row['confirmed'];
 
-mailing_json(200, array(
+shiduh_json(200, array(
     'ok' => true,
     'total' => $total,
     'confirmed' => $confirmed,

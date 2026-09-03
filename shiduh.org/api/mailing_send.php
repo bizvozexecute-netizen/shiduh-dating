@@ -24,29 +24,26 @@ header('Content-Type: application/json; charset=utf-8');
 header('X-Content-Type-Options: nosniff');
 
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-    mailing_json(405, array('error' => 'Метод не поддерживается'));
+    shiduh_json(405, array('error' => 'Метод не поддерживается'));
 }
 
-$req_host = preg_replace('/:\d+$/', '', (string)($_SERVER['HTTP_HOST'] ?? ''));
-$src = $_SERVER['HTTP_ORIGIN'] ?? ($_SERVER['HTTP_REFERER'] ?? '');
-if ($src !== '' && strcasecmp((string)parse_url($src, PHP_URL_HOST), $req_host) !== 0) {
-    mailing_json(403, array('error' => 'Недопустимый источник запроса'));
-}
 
 global $current_user;
 $db  = $nc_core->db;
 $uid = (int)(isset($current_user['User_ID']) ? $current_user['User_ID'] : 0);
-if (!mailing_is_admin($db, $uid)) {
-    mailing_json(403, array('error' => 'Доступно только администратору'));
+if (!shiduh_is_admin($db, $uid)) {
+    shiduh_json(403, array('error' => 'Доступно только администратору'));
 }
+
+shiduh_csrf_check($uid);   // заслон CSRF: источник + токен (C3)
 
 $subject = trim((string)$nc_core->input->fetch_post('subject'));
 $body    = trim((string)$nc_core->input->fetch_post('body'));
 if ($subject === '' || mb_strlen($subject) > 200) {
-    mailing_json(400, array('error' => 'Тема обязательна (до 200 символов)'));
+    shiduh_json(400, array('error' => 'Тема обязательна (до 200 символов)'));
 }
 if ($body === '' || mb_strlen($body) > 20000) {
-    mailing_json(400, array('error' => 'Текст обязателен (до 20000 символов)'));
+    shiduh_json(400, array('error' => 'Текст обязателен (до 20000 символов)'));
 }
 
 // Защита от даблклика и ретрая после обрыва: идентичная рассылка,
@@ -58,7 +55,7 @@ $dup = $db->get_var(
     . "AND `created_at` > DATE_SUB(NOW(), INTERVAL 10 MINUTE) LIMIT 1"
 );
 if ($dup) {
-    mailing_json(409, array(
+    shiduh_json(409, array(
         'error' => 'Такая рассылка уже запускалась только что (№' . (int)$dup . '). '
                  . 'Если это не даблклик — измените тему или текст.',
     ));
@@ -83,7 +80,7 @@ $db->query(
     . "`created_at`=NOW()"
 );
 if ($db->is_error || !$db->insert_id) {
-    mailing_json(500, array('error' => 'Не удалось создать рассылку'));
+    shiduh_json(500, array('error' => 'Не удалось создать рассылку'));
 }
 $mailing_id = (int)$db->insert_id;
 
@@ -144,4 +141,4 @@ foreach ($recipients as $r) {
     $queued++;
 }
 
-mailing_json(200, array('ok' => true, 'mailing_id' => $mailing_id, 'queued' => $queued));
+shiduh_json(200, array('ok' => true, 'mailing_id' => $mailing_id, 'queued' => $queued));

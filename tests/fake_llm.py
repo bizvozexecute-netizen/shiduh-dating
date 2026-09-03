@@ -447,14 +447,49 @@ def login(email, password=PASSWORD):
     raise RuntimeError("не удалось авторизоваться: " + email)
 
 
-def post_json(path, sid, fields, origin=None, timeout=180):
-    """POST формы → (код, разобранный JSON). Список пар допустим (массивы в PHP)."""
+_CSRF = {}
+
+
+def csrf_token(sid):
+    """Токен CSRF из разметки страницы — так же, как его берёт браузер.
+
+    Метатег стоит в <head> макета, поэтому годится любая страница; берём
+    публичную главную с кукой сессии, чтобы работало для всех ролей.
+    """
+    if sid not in _CSRF:
+        req = urllib.request.Request(BASE + "/")
+        req.add_header("Cookie", "PHP_AUTH_SID=%s; PHP_AUTH_LANG=Russian" % sid)
+        html = urllib.request.urlopen(req, timeout=60).read().decode("utf-8", "replace")
+        m = re.search(r'name="csrf-token"[^>]*content="([^"]*)"', html)
+        _CSRF[sid] = m.group(1) if m else ""
+    return _CSRF[sid]
+
+
+def browser_headers(req, sid, origin=None, csrf=True):
+    """Заголовки, которые настоящий браузер ставит сам: Origin своего сайта и
+    X-CSRF-Token из метатега. csrf=False — намеренно без токена (проверка
+    заслона), csrf='<строка>' — подсунуть чужой токен."""
+    if origin is None:
+        origin = BASE
+    if origin:
+        req.add_header("Origin", origin)
+    if csrf and sid:
+        token = csrf_token(sid) if csrf is True else csrf
+        if token:
+            req.add_header("X-CSRF-Token", token)
+
+
+def post_json(path, sid, fields, origin=None, timeout=180, csrf=True):
+    """POST формы → (код, разобранный JSON). Список пар допустим (массивы в PHP).
+
+    По умолчанию шлёт Origin своего сайта и CSRF-токен — как браузер.
+    origin=False (не None!) — совсем без заголовка Origin.
+    """
     body = urllib.parse.urlencode(fields).encode()
     req = urllib.request.Request(BASE + path, data=body, method="POST")
     if sid:
         req.add_header("Cookie", "PHP_AUTH_SID=%s; PHP_AUTH_LANG=Russian" % sid)
-    if origin:
-        req.add_header("Origin", origin)
+    browser_headers(req, sid, origin, csrf)
     opener = urllib.request.build_opener(NoRedirect)
     try:
         r = opener.open(req, timeout=timeout)

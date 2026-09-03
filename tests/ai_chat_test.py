@@ -15,6 +15,9 @@ import subprocess
 import urllib.error
 import urllib.parse
 import urllib.request
+import sys
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+from fake_llm import browser_headers, clear_ai_settings  # Origin и X-CSRF-Token, как их шлёт браузер
 
 BASE = "http://localhost:8080"
 ENDPOINT = BASE + "/api/ai_chat.php"
@@ -63,12 +66,22 @@ def login(email):
     raise RuntimeError("не удалось авторизоваться: " + email)
 
 
+def setup_module(module):
+    """Набор рассчитан на провайдера-заглушку. Настройки ИИ глобальные, и
+    прерванный прогон соседнего набора оставляет provider=openrouter с адресом
+    фейкового сервера, который уже не отвечает, — тогда эндпоинт отдаёт 503,
+    и падения выглядят как поломка чата. Приводим состояние к своему.
+    """
+    clear_ai_settings()
+
+
 def post_message(sid, message):
     """POST сообщения в эндпоинт. Возвращает (код, распарсенный JSON или None)."""
     data = urllib.parse.urlencode({"message": message}).encode()
     req = urllib.request.Request(ENDPOINT, data=data, method="POST")
     if sid:
         req.add_header("Cookie", "PHP_AUTH_SID=%s; PHP_AUTH_LANG=Russian" % sid)
+        browser_headers(req, sid)
     opener = urllib.request.build_opener(NoRedirect)
     try:
         r = opener.open(req, timeout=60)
@@ -153,6 +166,7 @@ def get_section(sid):
     req = urllib.request.Request(BASE + "/my/ai-consultant/")
     if sid:
         req.add_header("Cookie", "PHP_AUTH_SID=%s; PHP_AUTH_LANG=Russian" % sid)
+        browser_headers(req, sid)
     opener = urllib.request.build_opener(NoRedirect)
     try:
         r = opener.open(req, timeout=120)

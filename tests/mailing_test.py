@@ -24,6 +24,9 @@ import subprocess
 import urllib.error
 import urllib.parse
 import urllib.request
+import sys
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+from fake_llm import browser_headers  # Origin и X-CSRF-Token, как их шлёт браузер
 
 BASE = "http://localhost:8080"
 DOCKER = r"C:\Program Files\Docker\Docker\resources\bin\docker.exe"
@@ -76,8 +79,7 @@ def api_post(path, sid, fields, origin=None):
     req = urllib.request.Request(BASE + path, data=body, method="POST")
     if sid:
         req.add_header("Cookie", "PHP_AUTH_SID=%s; PHP_AUTH_LANG=Russian" % sid)
-    if origin:
-        req.add_header("Origin", origin)
+    browser_headers(req, sid, origin)
     opener = urllib.request.build_opener(NoRedirect)
     try:
         r = opener.open(req, timeout=120)

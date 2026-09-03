@@ -28,7 +28,6 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     shiduh_json(405, array('error' => 'Метод не поддерживается'));
 }
 
-shiduh_check_origin();
 
 global $current_user;
 $db  = $nc_core->db;
@@ -36,6 +35,8 @@ $uid = (int)(isset($current_user['User_ID']) ? $current_user['User_ID'] : 0);
 if (!shiduh_is_admin($db, $uid)) {
     shiduh_json(403, array('error' => 'Доступно только администратору'));
 }
+
+shiduh_csrf_check($uid);   // заслон CSRF: источник + токен (C3)
 
 $action = (string)$nc_core->input->fetch_post('action');
 

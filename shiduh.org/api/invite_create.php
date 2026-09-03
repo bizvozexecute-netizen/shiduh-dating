@@ -29,43 +29,32 @@ $nc_core->user->attempt_to_authorize();
 header('Content-Type: application/json; charset=utf-8');
 header('X-Content-Type-Options: nosniff');
 
-function invite_json($status, $payload) {
-    http_response_code($status);
-    echo json_encode($payload, JSON_UNESCAPED_UNICODE);
-    exit;
-}
 
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-    invite_json(405, array('error' => 'Метод не поддерживается'));
+    shiduh_json(405, array('error' => 'Метод не поддерживается'));
 }
 
 // Защита от CSRF: действие меняет состояние (создаёт аккаунт, передаёт
 // владение анкетой). Если браузер прислал Origin/Referer — их хост обязан
 // совпасть с хостом сайта. Полноценный nc_token добавится с формой шадхана
 // (XI-5); здесь — заслон межсайтовому запросу.
-$req_host = preg_replace('/:\d+$/', '', (string)($_SERVER['HTTP_HOST'] ?? ''));
-$src = $_SERVER['HTTP_ORIGIN'] ?? ($_SERVER['HTTP_REFERER'] ?? '');
-if ($src !== '' && strcasecmp((string)parse_url($src, PHP_URL_HOST), $req_host) !== 0) {
-    invite_json(403, array('error' => 'Недопустимый источник запроса'));
-}
 
 global $current_user;
 $db  = $nc_core->db;
 $uid = (int)(isset($current_user['User_ID']) ? $current_user['User_ID'] : 0);
 if (!$uid) {
-    invite_json(403, array('error' => 'Требуется авторизация'));
+    shiduh_json(403, array('error' => 'Требуется авторизация'));
 }
+
+shiduh_csrf_check($uid);   // заслон CSRF: источник + токен (C3)
 
 // Приглашать может только шадхан (Type=2). Читаем сырое числовое значение
 // колонки User.Type — get_by_id() резолвит select-поле в текстовую метку.
-$type = (int)$db->get_var("SELECT `Type` FROM `User` WHERE `User_ID`=$uid");
-if ($type !== 2) {
-    invite_json(403, array('error' => 'Доступно только шадхану'));
-}
+shiduh_require_shadhan($db, $uid);
 
 $anketa_id = (int)$nc_core->input->fetch_post('anketa_id');
 if ($anketa_id <= 0) {
-    invite_json(400, array('error' => 'Не указана анкета'));
+    shiduh_json(400, array('error' => 'Не указана анкета'));
 }
 
 $anketa = $db->get_row(
@@ -75,7 +64,7 @@ $anketa = $db->get_row(
     ARRAY_A
 );
 if (!$anketa) {
-    invite_json(404, array('error' => 'Анкета не найдена'));
+    shiduh_json(404, array('error' => 'Анкета не найдена'));
 }
 
 // Шадхан должен вести эту анкету: быть её владельцем или одним из Shadhan_N.
@@ -84,7 +73,7 @@ $leads = in_array($uid, array(
     (int)$anketa['Shadhan_2'], (int)$anketa['Shadhan_3'],
 ), true);
 if (!$leads) {
-    invite_json(403, array('error' => 'Эта анкета не в вашем ведении'));
+    shiduh_json(403, array('error' => 'Эта анкета не в вашем ведении'));
 }
 
 $owner_id = (int)$anketa['User_ID'];
@@ -98,7 +87,7 @@ $owner_is_placeholder = (bool)$db->get_var(
     . "AND `Email` LIKE 'invite-%@invite.shiduh.org' LIMIT 1"
 );
 if ($owner_id !== $uid && !$owner_is_placeholder) {
-    invite_json(409, array('error' => 'Анкета принадлежит зарегистрированному кандидату'));
+    shiduh_json(409, array('error' => 'Анкета принадлежит зарегистрированному кандидату'));
 }
 
 $base = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off' ? 'https' : 'http')
@@ -111,7 +100,7 @@ $existing = $db->get_var(
     . "AND `expires_at` > NOW() ORDER BY `id` DESC LIMIT 1"
 );
 if ($existing) {
-    invite_json(200, array(
+    shiduh_json(200, array(
         'ok' => true, 'reused' => true, 'token' => $existing,
         'link' => $base . '/api/invite.php?t=' . $existing,
     ));
@@ -138,10 +127,10 @@ try {
         array('Checked' => 1)
     );
 } catch (Exception $e) {
-    invite_json(500, array('error' => 'Не удалось создать аккаунт-заготовку'));
+    shiduh_json(500, array('error' => 'Не удалось создать аккаунт-заготовку'));
 }
 if ($candidate_uid <= 0) {
-    invite_json(500, array('error' => 'Не удалось создать аккаунт-заготовку'));
+    shiduh_json(500, array('error' => 'Не удалось создать аккаунт-заготовку'));
 }
 
 // Токен пишем ДО передачи владения: если INSERT не удастся, анкета останется
@@ -156,7 +145,7 @@ $db->query(
     . "`expires_at`=DATE_ADD(NOW(), INTERVAL 30 DAY)"
 );
 if ($db->is_error || !$db->insert_id) {
-    invite_json(500, array('error' => 'Не удалось выпустить приглашение'));
+    shiduh_json(500, array('error' => 'Не удалось выпустить приглашение'));
 }
 
 // Передаём заготовке владение анкетой; сохраняем ведущего шадхана.
@@ -165,7 +154,7 @@ if (!(int)$anketa['Shadhan_1']) {
     $db->query("UPDATE `Message204` SET `Shadhan_1`=$uid WHERE `Message_ID`=$anketa_id");
 }
 
-invite_json(200, array(
+shiduh_json(200, array(
     'ok' => true, 'reused' => false, 'token' => $token,
     'candidate_user_id' => $candidate_uid,
     'link' => $base . '/api/invite.php?t=' . $token,
