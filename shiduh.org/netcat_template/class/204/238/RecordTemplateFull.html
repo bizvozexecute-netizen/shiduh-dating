@@ -1,3 +1,4 @@
+<?php require_once $nc_core->DOCUMENT_ROOT . '/api/template_lib.php'; ?>
 <?php
 /* B-1: same anonymization as the RU template — an outside candidate sees
    a foreign profile only when it is Open, and without identity: no name,
@@ -30,7 +31,7 @@ $nc_anon = !$nc_b1_related && (int)$current_user['Type_id'] !== 2;
           </a>
           <? endif; ?>
         </div>
-        <a class="lk-questionnaire__head-exit" href="<?= $_SERVER['HTTP_REFERER'] ? $_SERVER['HTTP_REFERER'] : '/en/my/candidate/'; ?>" title="">Back</a>
+        <a class="lk-questionnaire__head-exit" href="<?= shiduh_back_url('/en/my/candidate/') ?>" title="">Back</a>
       </div>
       
       <div class="lk-questionnaire__head-redistration-date">Дата регистрации: <?= $f_Created_day; ?>.<?= $f_Created_month; ?>.<?= $f_Created_year; ?></div>
@@ -479,7 +480,7 @@ $nc_anon = !$nc_b1_related && (int)$current_user['Type_id'] !== 2;
     <?= nc_objects_list( 29, 30, "&candidate=$f_Message_ID&nc_ctpl=244" ); ?>
     <div class="lk-questionnaire__goback">
 
-       <a class="lk-questionnaire__goback-link" href="<?= $_SERVER['HTTP_REFERER'] ? $_SERVER['HTTP_REFERER'] : '/en/my/candidate/'; ?>" title="">Back</a>
+       <a class="lk-questionnaire__goback-link" href="<?= shiduh_back_url('/en/my/candidate/') ?>" title="">Back</a>
     </div>
   </div>
 </section><? endif; ?>

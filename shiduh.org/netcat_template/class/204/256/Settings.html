@@ -3,7 +3,7 @@ $arfloor['element'] = '%ELEMENT';
 $arfloor['divider'] = ', ';
 $arfloor['suffix']  = '';
 
-$idUser = $current_user['User_ID'];
+$idUser = (int)$current_user['User_ID'];
 
 
 if($_GET["search"]) {
@@ -21,7 +21,7 @@ if($action !== 'full') {
          $arrIdCandidates[] = $row['Candidate'];
       }
       $arrIdCandidatesResult = array_unique($arrIdCandidates);  
-      $condition = implode(',', $arrIdCandidatesResult);
+      $condition = implode(',', array_map('intval', $arrIdCandidatesResult));
 
       $query_where .= " or Message_ID IN ($condition)";
     }  else {
@@ -31,7 +31,7 @@ if($action !== 'full') {
 }
 
 if($_GET["country"]) {
-  $ids = implode(',', $_GET["country"]); 
+  $ids = implode(',', array_map('intval', (array)$_GET["country"])) ?: '0'; 
   $query_where .= " AND Country IN (".$ids.") ";
 }
 //$ignore_user = 1;

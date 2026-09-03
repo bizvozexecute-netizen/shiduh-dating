@@ -1,3 +1,4 @@
+<?php require_once $nc_core->DOCUMENT_ROOT . '/api/template_lib.php'; ?>
 <?php
 /*
  * Проверка доступа. Раньше её здесь не было вовсе: полная карточка
@@ -51,7 +52,7 @@ if(!$nc_allowed){
           </a>
           <? endif; ?>
         </div>
-        <a class="lk-questionnaire__head-exit" href="<?= $_SERVER['HTTP_REFERER'] ? $_SERVER['HTTP_REFERER'] : '/my/favourites/'; ?>" title="">Назад</a>
+        <a class="lk-questionnaire__head-exit" href="<?= shiduh_back_url('/my/favourites/') ?>" title="">Назад</a>
       </div>
       
       
@@ -703,7 +704,7 @@ if (!empty($arr)) {?>
 <? endif;?>  
     <div class="lk-questionnaire__goback">
   
-       <a class="lk-questionnaire__goback-link" href="<?= $_SERVER['HTTP_REFERER'] ? $_SERVER['HTTP_REFERER'] : '/my/favourites/'; ?>" title="">Вернуться назад</a>
+       <a class="lk-questionnaire__goback-link" href="<?= shiduh_back_url('/my/favourites/') ?>" title="">Вернуться назад</a>
     </div>
   </div>
 </section>

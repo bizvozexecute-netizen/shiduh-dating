@@ -3,7 +3,7 @@ $arfloor['element'] = '%ELEMENT';
 $arfloor['divider'] = ', ';
 $arfloor['suffix']  = '';
 
-$idUser = $current_user['User_ID'];
+$idUser = (int)$current_user['User_ID'];
 
 if($_GET["search"]) {
    $ignore_all = 1;
@@ -14,17 +14,17 @@ if($action !== 'full') {
 }
 
 if($_GET["id_candidate"]) {
-  $id_candidate = $_GET["id_candidate"]; 
+  $id_candidate = (int)$_GET["id_candidate"]; 
   $query_where .= " AND Message_ID = $id_candidate";
 }
 
 if($_GET["name"]) {
-  $name = $_GET["name"]; 
+  $name = $nc_core->db->prepare($_GET["name"]); 
   $query_where .= " AND Name LIKE '%$name%'";
 }
 
 if($_GET["country"]) {
-  $ids = implode(',', $_GET["country"]); 
+  $ids = implode(',', array_map('intval', (array)$_GET["country"])) ?: '0'; 
   $query_where .= " AND Country IN (".$ids.") ";
 }
 //$ignore_user = 1;

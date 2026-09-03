@@ -1,3 +1,4 @@
+<?php require_once $nc_core->DOCUMENT_ROOT . '/api/template_lib.php'; ?>
 <? 
 // проверка на доступы
 $userID  = $current_user['User_ID'];
@@ -26,7 +27,7 @@ if($f_User_ID === $current_user['User_ID'] || $f_Shadhan_1 === $current_user['Us
           </a>
           <? endif; ?>
         </div>
-        <a class="lk-questionnaire__head-exit" href="<?= $_SERVER['HTTP_REFERER'] ? $_SERVER['HTTP_REFERER'] : '/my/my-candidates/'; ?>" title="">Назад</a>
+        <a class="lk-questionnaire__head-exit" href="<?= shiduh_back_url('/my/my-candidates/') ?>" title="">Назад</a>
       </div>
       
       
@@ -465,7 +466,7 @@ if($f_User_ID === $current_user['User_ID'] || $f_Shadhan_1 === $current_user['Us
 <? endif;?>    
     <div class="lk-questionnaire__goback">
 
-      <a class="lk-questionnaire__goback-link" href="<?= $_SERVER['HTTP_REFERER'] ? $_SERVER['HTTP_REFERER'] : '/my/my-candidates/'; ?>" title="">Вернуться назад</a>
+      <a class="lk-questionnaire__goback-link" href="<?= shiduh_back_url('/my/my-candidates/') ?>" title="">Вернуться назад</a>
     </div>
   </div>
 </section>

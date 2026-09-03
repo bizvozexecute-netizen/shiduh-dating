@@ -1,3 +1,4 @@
+<?php require_once $nc_core->DOCUMENT_ROOT . '/api/template_lib.php'; ?>
 <section class="lk-questionnaire lk-questionnaire--shadhan">
   <div class="lk-questionnaire__wrapper">
   
@@ -6,7 +7,7 @@
     <div class="lk-head lk-questionnaire__head">
       <div class="lk-questionnaire__head-row">
         <h1 class="lk-head__title lk-questionnaire__head-title"><?= $f_Name; ?></h1>
-        <a class="lk-questionnaire__head-exit" href="<?= $_SERVER['HTTP_REFERER'] ? $_SERVER['HTTP_REFERER'] : '/my/ravviny/'; ?>" title="">Назад</a>
+        <a class="lk-questionnaire__head-exit" href="<?= shiduh_back_url('/my/ravviny/') ?>" title="">Назад</a>
       </div>
       
       <div class="lk-questionnaire__head-redistration-date">Дата регистрации: <?= $f_Created_day; ?>.<?= $f_Created_month; ?>.<?= $f_Created_year; ?></div>
@@ -118,7 +119,7 @@
     </div>
     <? endif; ?> 
     <div class="lk-questionnaire__goback">
-      <a class="lk-questionnaire__goback-link" href="<?= $_SERVER['HTTP_REFERER'] ? $_SERVER['HTTP_REFERER'] : '/my/ravviny/'; ?>" title="">Вернуться назад</a>
+      <a class="lk-questionnaire__goback-link" href="<?= shiduh_back_url('/my/ravviny/') ?>" title="">Вернуться назад</a>
     </div>
   </div>
 </section>

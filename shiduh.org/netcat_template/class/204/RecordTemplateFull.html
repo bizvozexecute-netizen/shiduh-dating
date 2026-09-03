@@ -1,3 +1,4 @@
+<?php require_once $nc_core->DOCUMENT_ROOT . '/api/template_lib.php'; ?>
 <?php
 /* B-1 (модель заказчика): посторонний кандидат видит чужую карточку только
    если анкета открытая (Open=1), и ОБЕЗЛИЧЕННО — без ФИО, еврейского имени,
@@ -36,7 +37,7 @@ $nc_anon = !$nc_b1_related && (int)$current_user['Type_id'] !== 2;
           </a>
           <? endif; ?>
         </div>
-        <a class="lk-questionnaire__head-exit" href="<?= $_SERVER['HTTP_REFERER'] ? $_SERVER['HTTP_REFERER'] : '/my/candidate/'; ?>" title="">Назад</a>
+        <a class="lk-questionnaire__head-exit" href="<?= shiduh_back_url('/my/candidate/') ?>" title="">Назад</a>
       </div>
       
       
@@ -715,7 +716,7 @@ if (!empty($arr)) {?>
     </div>
 <? endif;?>  
     <div class="lk-questionnaire__goback">
-      <a class="lk-questionnaire__goback-link" href="<?= $_SERVER['HTTP_REFERER'] ? $_SERVER['HTTP_REFERER'] : '/my/candidate/'; ?>" title="">Вернуться назад</a>
+      <a class="lk-questionnaire__goback-link" href="<?= shiduh_back_url('/my/candidate/') ?>" title="">Вернуться назад</a>
     </div>
   </div>
 </section><? endif; ?>

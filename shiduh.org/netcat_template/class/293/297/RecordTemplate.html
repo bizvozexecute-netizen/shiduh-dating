@@ -1,51 +1,0 @@
-<?/* Служебная часть */for ($f_RowNum = 0; $f_RowNum < $rowCount; $f_RowNum++) {    if($fetch_row[$f_RowNum] instanceof Iterator) {        extract($fetch_row[$f_RowNum]->to_array(), EXTR_PREFIX_ALL, "f");    } else {        extract($fetch_row[$f_RowNum], EXTR_PREFIX_ALL, "f");    }    foreach($iteration_RecordTemplate[$f_RowNum] as $value) {        extract($value);    }    eval($cc_env["convert2txt"]);    ob_start();/* Конец служебной части */?>
-<div class="comment ">
-  <div class="comment__head">
-<? $idUserProfile = $f_User_ID; ?>
-<?
-$urlProfile = '';
-if($f_User_ID == 119 || $f_User_ID == 1) { 
-} elseif($nc_core->user->get_by_id($idUserProfile, "Type_id" ) == '2') {
-    $urlProfile = '/my/shadhany/shadhan_'.$idUserProfile.'.html';
-} elseif($nc_core->user->get_by_id($idUserProfile, "Type_id" ) == '3') {
-    $urlProfile = '/my/ravviny/ravvin_'.$idUserProfile.'.html';
-} elseif($nc_core->user->get_by_id($idUserProfile, "Type_id" ) == '4') {
-    $urlProfile = '/my/psihologi/psiholog_'.$idUserProfile.'.html';
-} else {
-  $nc_core->db->query("SELECT * FROM Message204 WHERE User_ID =  $idUserProfile", ARRAY_A );
-  $arr = $nc_core->db->last_result;
-
-  if (!empty($arr)) {
-      foreach ($arr as $row) {
-          // выводятся значения из 11 столбца
-
-          $urlProfile = $row["Keyword"] ? '/my/candidate/'.$row["Keyword"].'.html' : '/my/candidate/candidate_'.$row["Message_ID"].'.html';
-      }
-  }
-}
-?>  
-    <a class="comment__name" href="<?= $urlProfile; ?>" title=""><?= $nc_core->user->get_by_id($f_User_ID, 'Name'); ?></a>
-    <b>ответил(а)</b>
-    <div class="comment__date" data-time="<?=$f_Created_year;?>-<?=$f_Created_month;?>-<?=$f_Created_day;?> <?=$f_Created_hours;?>:<?=$f_Created_minutes;?>:00 GMT+0000"> <?=$f_Created_day.".".$f_Created_month.".".$f_Created_year." - ".$f_Created_hours.":".$f_Created_minutes?></div>
-  </div>
-  <div class="comment__body">
-    <div class="comment__text"><?= htmlspecialchars_decode($f_Message);?> </div>
-    <div class="comment__activity">
-      <button class="comment__activity-btn comment__activity-btn--reply">
-        <svg class="comment__activity-btn-icon">
-          <use xlink:href="/images/sprite.svg#lk-send"></use>
-        </svg>
-        <span>Ответить</span>
-      </button>
-      <button class="comment__activity-btn comment__activity-btn--show"></button>
-    </div>
-  </div>
-  <div class="comment__reply-form">
-    <?= nc_objects_list( 79, 85, "&ThemeID=$ThemeID&nc_ctpl=295&AnswerID=$f_Message_ID" ); ?>
-  </div>
-  <div class="comment__replies">
-    <?= nc_objects_list( 79, 85, "&ThemeID=$ThemeID&nc_ctpl=297&AnswerID=$f_Message_ID" ); ?>  
-    
-  </div>
-</div>
-<?/* Служебная часть */    echo nc_finishing_RecordTemplate(ob_get_clean(), $inside_admin, $classID, $f_RowID, $parent_message, $cc, $cc_env["Class_Name"], $no_cache_marks);}/* Конец служебной части */?>

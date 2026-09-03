@@ -254,6 +254,17 @@ class TestUp:
         # новое поле не должно быть заполнено — иначе портит метрику заполненности
         assert dbq("SELECT COUNT(*) FROM Message204 WHERE About_self IS NOT NULL AND About_self<>''") == "0"
 
+    def test_dead_chat_components_archived(self):
+        # 020: мёртвые компоненты чата 292/293/251 (+295-298) убраны из Class/Field,
+        # строки сохранены в архивных таблицах, пустые Message* переименованы
+        assert dbq("SELECT COUNT(*) FROM Class WHERE Class_ID IN (292,293,251,295,296,297,298)") == "0"
+        assert dbq("SELECT COUNT(*) FROM Field WHERE Class_ID IN (292,293,251,295,296,297,298)") == "0"
+        assert table_exists("_dead_chat_Class") and table_exists("_dead_chat_Field")
+        assert dbq("SELECT COUNT(*) FROM _dead_chat_Class") == "7"
+        for t in ("Message292", "Message293", "Message251"):
+            assert not table_exists(t), "таблица не переименована: " + t
+            assert table_exists("_dead_chat_" + t)
+
     def test_up_is_idempotent(self):
         code, out = migrate("up")
         assert code == 0, "повторный up упал:\n" + out
@@ -293,6 +304,14 @@ class TestDown:
         for f in MEETING006_FIELDS:
             assert not col_exists("Message204", f), "колонка 006 не удалена: " + f
             assert dbq("SELECT COUNT(*) FROM Field WHERE Class_ID=204 AND Field_Name='%s'" % f) == "0"
+
+    def test_dead_chat_components_restored(self):
+        # 020 down: семь строк Class вернулись, архив снят, Message* на месте
+        assert dbq("SELECT COUNT(*) FROM Class WHERE Class_ID IN (292,293,251,295,296,297,298)") == "7"
+        assert dbq("SELECT COUNT(*) FROM Field WHERE Class_ID IN (292,293,251)") == "7"
+        assert not table_exists("_dead_chat_Class") and not table_exists("_dead_chat_Field")
+        for t in ("Message292", "Message293", "Message251"):
+            assert table_exists(t), "таблица не возвращена: " + t
 
     def test_photo_field_format_restored(self):
         # 009 down: префикс лимита снят, формат вернулся к «без ограничений»

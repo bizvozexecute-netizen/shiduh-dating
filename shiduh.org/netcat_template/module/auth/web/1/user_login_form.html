@@ -4,7 +4,7 @@
 <? endif; ?>
     <form method="post" action="/netcat/modules/auth/">
         <input type='hidden' name='AuthPhase' value='1' />
-        <input type='hidden' name='REQUESTED_FROM' value='<?= $REQUESTED_FROM ? htmlspecialchars($REQUESTED_FROM, ENT_QUOTES) : (strpos($_SERVER['REQUEST_URI'], 'netcat/modules/auth') !== false ? str_replace('http://', '', str_replace($_SERVER['HTTP_HOST'], '', $_SERVER['HTTP_REFERER'])) : $_SERVER['REQUEST_URI']) ?>' />
+        <input type='hidden' name='REQUESTED_FROM' value='<?php require_once nc_core::get_object()->DOCUMENT_ROOT . '/api/template_lib.php'; ?><?= $REQUESTED_FROM ? htmlspecialchars($REQUESTED_FROM, ENT_QUOTES) : (strpos($_SERVER['REQUEST_URI'], 'netcat/modules/auth') !== false ? shiduh_back_url($_SERVER['REQUEST_URI']) : shiduh_e($_SERVER['REQUEST_URI'])) ?>' />
         <input type='hidden' name='REQUESTED_BY' value='GET' />
         <input type='hidden' name='catalogue' value='<?= $catalogue ?>' />
         <input type='hidden' name='sub' value='<?= $sub ?>' />

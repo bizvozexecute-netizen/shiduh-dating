@@ -1,3 +1,4 @@
+<?php require_once $nc_core->DOCUMENT_ROOT . '/api/template_lib.php'; ?>
 <?php
 /*
  * Английское зеркало /en/my/favourites/. Проверка доступа идентична
@@ -38,7 +39,7 @@ if(!$nc_allowed){
           </a>
           <? endif; ?>
         </div>
-        <a class="lk-questionnaire__head-exit" href="<?= $_SERVER['HTTP_REFERER'] ? $_SERVER['HTTP_REFERER'] : '/en/my/favourites/'; ?>" title="">Back</a>
+        <a class="lk-questionnaire__head-exit" href="<?= shiduh_back_url('/en/my/favourites/') ?>" title="">Back</a>
       </div>
       
       <div class="lk-questionnaire__head-redistration-date">Дата регистрации: <?= $f_Created_day; ?>.<?= $f_Created_month; ?>.<?= $f_Created_year; ?></div>
@@ -488,7 +489,7 @@ if(!$nc_allowed){
     <?= nc_objects_list( 29, 30, "&candidate=$f_Message_ID&nc_ctpl=244" ); ?>
     <div class="lk-questionnaire__goback">
 
-      <a class="lk-questionnaire__goback-link" href="<?= $_SERVER['HTTP_REFERER'] ? $_SERVER['HTTP_REFERER'] : '/en/my/favourites/'; ?>" title="">Вернуться назад</a>
+      <a class="lk-questionnaire__goback-link" href="<?= shiduh_back_url('/en/my/favourites/') ?>" title="">Вернуться назад</a>
     </div>
   </div>
 </section>

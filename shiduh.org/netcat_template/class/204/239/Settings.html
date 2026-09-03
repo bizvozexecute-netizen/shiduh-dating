@@ -4,7 +4,7 @@ $arfloor['divider'] = ',';
 $arfloor['suffix']  = '';
 
 $idUser = $current_user['User_ID'];
-$objectID = $_GET["object"];
+$objectID = (int)$_GET["object"];
 
 if($objectID) {
     $query_where .= "a.User_ID = $idUser AND a.Message_ID = $objectID";

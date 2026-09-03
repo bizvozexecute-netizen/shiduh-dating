@@ -1,10 +1,10 @@
 <?php
 if($_GET['autor']) {
-    $autor = $_GET['autor'];
+    $autor = (int)$_GET['autor'];
     $query_where = "a.autor_ID = $autor";
 }
 if($_GET['user']) {
-    $autor = $_GET['user'];
+    $user = (int)$_GET['user'];
     $query_where = "a.User_ID = $user";
 }
 // $query_where = "a.mainNews = 1";

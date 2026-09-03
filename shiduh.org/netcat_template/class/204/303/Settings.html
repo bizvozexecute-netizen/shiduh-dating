@@ -3,7 +3,7 @@ $arfloor['element'] = '%ELEMENT';
 $arfloor['divider'] = ', ';
 $arfloor['suffix']  = '';
 
-$idUser = $current_user['User_ID'];
+$idUser = (int)$current_user['User_ID'];
 
 if($_GET["search"]) {
    $ignore_all = 1;
@@ -11,8 +11,8 @@ if($_GET["search"]) {
 } 
 if($action !== 'full') {
 
-   if($_GET['ID'] && $_GET['gender']) {
-       $getID = $_GET['ID'];
+   if((int)$_GET['ID'] && (int)$_GET['gender']) {
+       $getID = (int)$_GET['ID'];
        //$query_where .= " Message_ID != $getID";
    } else {
        //$query_where .= " (a.User_ID = $idUser or a.Shadhan_1 = $idUser or a.Shadhan_2 = $idUser or a.Shadhan_3 = $idUser)";
@@ -20,7 +20,7 @@ if($action !== 'full') {
    
    
   if($_GET["gender"]) {
-    $gender = $_GET["gender"]; 
+    $gender = (int)$_GET["gender"]; 
     if($query_where) {
         $query_where .= " AND Gender = $gender";
     } else {
@@ -30,7 +30,7 @@ if($action !== 'full') {
   }
   
   if($_GET["id_candidate"]) {
-    $id_candidate = $_GET["id_candidate"]; 
+    $id_candidate = (int)$_GET["id_candidate"]; 
     if($query_where) {
        $query_where .= " AND Message_ID = $id_candidate";
     } else {
@@ -40,7 +40,7 @@ if($action !== 'full') {
   }
   
   if($_GET["name"]) {
-    $name = $_GET["name"]; 
+    $name = $nc_core->db->prepare($_GET["name"]); 
     if($query_where) {
         $query_where .= " AND Name LIKE '%$name%'";
     } else {
@@ -51,7 +51,7 @@ if($action !== 'full') {
 
 }
 if($_GET["country"]) {
-  $ids = implode(',', $_GET["country"]); 
+  $ids = implode(',', array_map('intval', (array)$_GET["country"])) ?: '0'; 
   if($query_where) {
       $query_where .= " AND Country IN (".$ids.") ";
   } else {
@@ -60,7 +60,7 @@ if($_GET["country"]) {
 }
 
 if($_GET["Education"]) {
-  $ids = implode(',', $_GET["Education"]); 
+  $ids = implode(',', array_map('intval', (array)$_GET["Education"])) ?: '0'; 
   if($query_where) {
       $query_where .= " AND (Education IN (".$ids.") OR Education = '') ";
   } else {
@@ -69,7 +69,7 @@ if($_GET["Education"]) {
 }
 
 if($_GET["Marital_status"]) {
-  $ids = implode(',', $_GET["Marital_status"]); 
+  $ids = implode(',', array_map('intval', (array)$_GET["Marital_status"])) ?: '0'; 
   if($query_where) {
       $query_where .= " AND (Marital_status IN (".$ids.") OR Marital_status = '') ";
   } else {
@@ -78,7 +78,7 @@ if($_GET["Marital_status"]) {
 }
 
 if($_GET["Number_of_children"]) {
-  $ids = implode(',', $_GET["Number_of_children"]); 
+  $ids = implode(',', array_map('intval', (array)$_GET["Number_of_children"])) ?: '0'; 
   if($query_where) {
       $query_where .= " AND (Number_of_children IN (".$ids.") OR Number_of_children = '') ";
   } else {
@@ -87,7 +87,7 @@ if($_GET["Number_of_children"]) {
 }
 
 if($_GET["Belonging_denomination"]) {
-  $ids = implode(',', $_GET["Belonging_denomination"]); 
+  $ids = implode(',', array_map('intval', (array)$_GET["Belonging_denomination"])) ?: '0'; 
   if($query_where) {
       $query_where .= " AND (Belonging_denomination IN (".$ids.") OR Belonging_denomination = '') ";
   } else {

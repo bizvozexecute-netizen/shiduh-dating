@@ -2,7 +2,7 @@
 if($f_Checked) {
   //отправка сообщения шадханам об удалении кандидата
   $reasons = '';
-  $nc_core->db->query("SELECT * FROM Message201 WHERE id_candidate = '$message' ORDER BY Message_ID DESC LIMIT 1");
+  $nc_core->db->query("SELECT * FROM Message201 WHERE id_candidate = '" . (int)$message . "' ORDER BY Message_ID DESC LIMIT 1");
   $arr = $nc_core->db->last_result;
   if ($arr[0]->Profile_delete_reasons) {
      $reasons = $arr[0]->Profile_delete_reasons;
@@ -30,34 +30,34 @@ if($f_Checked) {
   }
   
 
-  $nc_core->db->query("SELECT * FROM Message204 WHERE Message_ID = $message");
+  $nc_core->db->query("SELECT * FROM Message204 WHERE Message_ID = " . (int)$message . "");
   $arr = $nc_core->db->last_result;
 
   $nc_core->db->query("INSERT INTO `Message6` 
                   (`Checked`, `ToUser`, `Subject`, `Message`, `User_ID`, `Subdivision_ID`, `Sub_Class_ID`, `Created`) 
                   VALUES 
-                  ('1', '$f_User_ID', '$candidateTheme', '$candidateMessage', '1', '28', '29', '$candidateDate') "); 
+                  ('1', '" . (int)$f_User_ID . "', '" . $nc_core->db->prepare($candidateTheme) . "', '" . $nc_core->db->prepare($candidateMessage) . "', '1', '28', '29', NOW()) "); 
 
   if ($arr[0]->Shadhan_1) {
      $shadhanID = $arr[0]->Shadhan_1;
      $nc_core->db->query("INSERT INTO `Message6` 
                   (`Checked`, `ToUser`, `Subject`, `Message`, `User_ID`, `Subdivision_ID`, `Sub_Class_ID`, `Created`) 
                   VALUES 
-                  ('1', '$shadhanID', '$candidateTheme', '$candidateMessage', '1', '28', '29', '$candidateDate') "); 
+                  ('1', '" . (int)$shadhanID . "', '" . $nc_core->db->prepare($candidateTheme) . "', '" . $nc_core->db->prepare($candidateMessage) . "', '1', '28', '29', NOW()) "); 
   }
   if ($arr[0]->Shadhan_2) {
      $shadhanID = $arr[0]->Shadhan_2;
      $nc_core->db->query("INSERT INTO `Message6` 
                   (`Checked`, `ToUser`, `Subject`, `Message`, `User_ID`, `Subdivision_ID`, `Sub_Class_ID`, `Created`) 
                   VALUES 
-                  ('1', '$shadhanID', '$candidateTheme', '$candidateMessage', '1', '28', '29', '$userDate') "); 
+                  ('1', '" . (int)$shadhanID . "', '" . $nc_core->db->prepare($candidateTheme) . "', '" . $nc_core->db->prepare($candidateMessage) . "', '1', '28', '29', NOW()) "); 
   }
   if ($arr[0]->Shadhan_3) {
      $shadhanID = $arr[0]->Shadhan_3;
      $nc_core->db->query("INSERT INTO `Message6` 
                   (`Checked`, `ToUser`, `Subject`, `Message`, `User_ID`, `Subdivision_ID`, `Sub_Class_ID`, `Created`) 
                   VALUES 
-                  ('1', '$shadhanID', '$candidateTheme', '$candidateMessage', '1', '28', '29', '$userDate') "); 
+                  ('1', '" . (int)$shadhanID . "', '" . $nc_core->db->prepare($candidateTheme) . "', '" . $nc_core->db->prepare($candidateMessage) . "', '1', '28', '29', NOW()) "); 
   }
 }
 
