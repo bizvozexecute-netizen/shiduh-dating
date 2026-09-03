@@ -1,0 +1,278 @@
+/* =========================================================================
+   one.css — дизайн-слой shiduh.org (этап «До идеала», A0)
+
+   Исходников бандла нет: styles-90.css — 316 КБ минифицированного кода без
+   sourcemap, с медиазапросами, склеенными в шесть блоков. Пересобрать его
+   нельзя, править руками — нельзя поддерживать. Поэтому слой аддитивный:
+   грузится ПОСЛЕ бандла и переопределяет его ТЕМ ЖЕ селектором, выигрывая
+   порядком каскада. Специфичность бандла низкая (одноклассовые BEM-селекторы,
+   пять селекторов по id), поэтому !important не нужен — в слое он ровно один
+   и только для чужого виджета (§legacy).
+
+   Правило: базовые стили новых компонентов пишем через :where(), чтобы
+   страничные модификаторы перекрывали их без гонки специфичностей.
+
+   Разделы: §tokens · §base · §motion · §legacy
+   ========================================================================= */
+
+
+/* ============================== §tokens ================================= */
+
+:root {
+  /* --- Цвет. Палитра бренда, значения взяты из бандла как есть ---------- */
+  --sh-gold: #c8ae88;        /* фирменное золото: заливки, рамки, акценты   */
+  --sh-gold-hover: #bda079;  /* наведение на золото                        */
+  --sh-gold-deep: #a68556;   /* дисплейный текст от 24px и полужирный 19px+ */
+  --sh-gold-ink: #7e6440;    /* «золотой» текст мелкого кегля (4.97:1)      */
+  --sh-navy: #262839;        /* тёмно-синий: подвал, тёмные плоскости       */
+  --sh-ink: #3a2b2b;         /* основной текст                             */
+  --sh-ink-2: #756d65;       /* вторичный текст (4.55:1 на креме)          */
+  --sh-ink-3: #8a8079;       /* ТОЛЬКО декор и иконки: 3.9:1, не для текста */
+  --sh-cream: #f5f2ec;       /* фон страницы                               */
+  --sh-cream-2: #faf6ee;     /* мягкие плашки                              */
+  --sh-sand: #e8e1d5;        /* дорожки прогресса, разделители потемнее     */
+  --sh-paper: #fff;
+  --sh-line: #e3ddd2;        /* рамки                                      */
+  --sh-line-2: #c1c1c1;      /* рамки контролов                            */
+
+  /* Семантика. Зелёный бандла (#5ac665) на светлом даёт 2.1:1 — как текст
+     не годится, поэтому у состояний разделены «цвет текста» и «цвет плашки». */
+  --sh-ok-ink: #3d6a51;
+  --sh-ok-bg: #e8f2e4;
+  --sh-warn-ink: #8a6d1a;
+  --sh-warn-bg: #faf3dc;
+  --sh-err-ink: #8a2a2a;
+  --sh-err-bg: #f8e3e3;
+  --sh-accent: #df2e7a;      /* акцент бренда, точечно                     */
+
+  /* --- Типографика ------------------------------------------------------
+     Шрифты самохостятся (fonts/ceraPro, fonts/kudryashevDisplay) и уже
+     объявлены в бандле. Kudryashev — только 400, синтетические начертания
+     запрещены ниже.                                                       */
+  --sh-font-body: cerapro, system-ui, -apple-system, "Segoe UI", sans-serif;
+  --sh-font-display: kudryashev, "Times New Roman", Georgia, serif;
+
+  /* Шкала на clamp(): бандл держит дисплейные заголовки в 130px, что на
+     мобильном разносит вёрстку. */
+  --sh-fs-display: clamp(2.25rem, 1.1rem + 4.6vw, 6.5rem);
+  --sh-fs-h1: clamp(1.9rem, 1.25rem + 2.3vw, 3.5rem);
+  --sh-fs-h2: clamp(1.45rem, 1.1rem + 1.35vw, 2.25rem);
+  --sh-fs-h3: clamp(1.1rem, 1rem + 0.45vw, 1.375rem);
+  --sh-fs-body: 1rem;
+  --sh-fs-sm: 0.875rem;
+  --sh-fs-xs: 0.78rem;
+  --sh-lh-tight: 1.06;
+  --sh-lh-body: 1.55;
+  --sh-measure: 68ch;        /* длина строки: больше — читать тяжело        */
+
+  /* --- Ритм ------------------------------------------------------------- */
+  --sh-s-1: 4px;
+  --sh-s-2: 8px;
+  --sh-s-3: 12px;
+  --sh-s-4: 16px;
+  --sh-s-5: 24px;
+  --sh-s-6: 32px;
+  --sh-s-7: 48px;
+  --sh-s-8: 64px;
+  --sh-section: clamp(56px, 7vw, 128px);
+
+  /* --- Форма ------------------------------------------------------------ */
+  --sh-r-s: 8px;
+  --sh-r-m: 12px;
+  --sh-r-l: 16px;
+  --sh-r-xl: 24px;
+  --sh-r-pill: 999px;
+  --sh-shadow-1: 0 1px 2px rgba(38, 40, 57, .06), 0 4px 12px rgba(38, 40, 57, .06);
+  --sh-shadow-2: 0 12px 32px rgba(38, 40, 57, .12);
+  --sh-ring: 0 0 0 4px rgba(200, 174, 136, .35);
+
+  /* --- Моторика --------------------------------------------------------- */
+  --sh-t-fast: 150ms;
+  --sh-t-base: 260ms;
+  --sh-t-slow: 600ms;
+  --sh-t-reveal: 800ms;
+  --sh-ease-out: cubic-bezier(.2, .7, .2, 1);
+  --sh-ease-spring: cubic-bezier(.34, 1.4, .64, 1);
+
+  /* --- Слои. У бандла шапка на z-index 10, прелоадер на 1000 ------------- */
+  --sh-z-header: 50;
+  --sh-z-sticky: 40;
+  --sh-z-toast: 1100;
+
+  /* Тёмную тему не изображаем: бренд светлый, а иллюстрации героя нарисованы
+     под кремовый фон. Но и на откуп браузеру не отдаём — иначе нативные
+     контролы почернеют на светлой странице. */
+  color-scheme: light;
+}
+
+
+/* =============================== §base ================================== */
+
+/* Kudryashev существует только в 400: не давать браузеру «дорисовывать»
+   полужирное и курсив — синтетика ломает рисунок шрифта. */
+.title,
+[class*="__title"],
+.sh-display {
+  font-synthesis: none;
+}
+
+/* Клавиатурный фокус. Бандл даёт только :focus{background:#f3f3f3} — на
+   золотых кнопках это не видно вовсе. */
+:focus-visible {
+  outline: 2px solid var(--sh-gold-deep);
+  outline-offset: 3px;
+  border-radius: 2px;
+}
+
+/* Ссылка «к содержимому»: первое, что получает фокус на странице. */
+.sh-skip {
+  position: fixed;
+  top: var(--sh-s-2);
+  left: var(--sh-s-2);
+  z-index: calc(var(--sh-z-toast) + 1);
+  padding: var(--sh-s-3) var(--sh-s-5);
+  background: var(--sh-navy);
+  color: var(--sh-paper);
+  font: 500 var(--sh-fs-sm) / 1 var(--sh-font-body);
+  border-radius: var(--sh-r-s);
+  text-decoration: none;
+  transform: translateY(-200%);
+  transition: transform var(--sh-t-fast) var(--sh-ease-out);
+}
+
+.sh-skip:focus {
+  transform: translateY(0);
+}
+
+/* Скрыто визуально, но читается экранным диктором. */
+.sh-visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* Длинные абзацы. Бандл задаёт ширину контейнером, а не мерой строки. */
+:where(.sh-prose) p {
+  max-width: var(--sh-measure);
+  line-height: var(--sh-lh-body);
+}
+
+
+/* ============================== §motion =================================
+   Сдержанность важнее эффектности: сервис про сватовство, а не про showreel.
+   Правило — один поставленный момент на экран (обычно вход героя), а не
+   всплытие каждого блока. Механизм ниже даёт такую возможность, но
+   применяется точечно на конкретных экранах, а не «на всё подряд».
+
+   Анимируем только transform и opacity: остальное вызывает пересчёт вёрстки
+   на каждом кадре.                                                        */
+
+/* Появление при прокрутке. Начальное состояние — только при работающем JS,
+   иначе без него содержимое осталось бы невидимым. */
+.js [data-sh-reveal] {
+  opacity: 0;
+  will-change: opacity, transform;
+  transition: opacity var(--sh-t-reveal) var(--sh-ease-out),
+              transform var(--sh-t-reveal) var(--sh-ease-out);
+  transition-delay: var(--sh-reveal-delay, 0ms);
+}
+
+.js [data-sh-reveal="up"] { transform: translateY(18px); }
+.js [data-sh-reveal="fade"] { transform: none; }
+.js [data-sh-reveal="scale"] { transform: scale(.985); }
+
+.js [data-sh-reveal].is-shown {
+  opacity: 1;
+  transform: none;
+  will-change: auto;
+}
+
+/* Ступенчатость для списка карточек: задержку раздаёт one.js через --sh-i. */
+.js [data-sh-stagger] > * {
+  --sh-reveal-delay: calc(var(--sh-i, 0) * 70ms);
+}
+
+/* Маска строк заголовка: строки «выезжают» из-под собственной линии.
+   Разметку (span.sh-line > span.sh-line__in) строит one.js. */
+.sh-line {
+  display: block;
+  overflow: hidden;
+}
+
+.sh-line__in {
+  display: block;
+  transform: translateY(110%);
+  transition: transform var(--sh-t-slow) var(--sh-ease-out);
+  transition-delay: var(--sh-reveal-delay, 0ms);
+}
+
+.is-shown > .sh-line > .sh-line__in,
+.sh-line.is-shown > .sh-line__in {
+  transform: none;
+}
+
+/* Прелоадер бандла — занавес на весь экран (z-index 1000), который скрывает
+   скрипт. На повторных заходах он лишний: одна и та же заставка на каждом
+   переходе раздражает. Флаг ставит one.js в sessionStorage. */
+.sh-nopreload .preloader {
+  display: none;
+}
+
+/* Переход между страницами там, где браузер умеет. Прелоадер к этому моменту
+   уже скрыт (см. выше), поэтому двойного занавеса не будет. */
+@view-transition {
+  navigation: auto;
+}
+
+@keyframes sh-fade-in { from { opacity: 0 } to { opacity: 1 } }
+@keyframes sh-fade-out { from { opacity: 1 } to { opacity: 0 } }
+
+::view-transition-old(root) {
+  animation: sh-fade-out 180ms var(--sh-ease-out) both;
+}
+
+::view-transition-new(root) {
+  animation: sh-fade-in 240ms var(--sh-ease-out) both;
+}
+
+/* Кому анимация мешает — тот получает статичную страницу, а не «поменьше
+   анимации»: вестибулярные нарушения провоцирует именно движение. */
+@media (prefers-reduced-motion: reduce) {
+  .js [data-sh-reveal],
+  .js [data-sh-reveal].is-shown {
+    opacity: 1;
+    transform: none;
+    transition: none;
+  }
+
+  .sh-line__in {
+    transform: none;
+    transition: none;
+  }
+
+  .sh-skip {
+    transition: none;
+  }
+
+  ::view-transition-old(root),
+  ::view-transition-new(root) {
+    animation: none;
+  }
+}
+
+
+/* ============================== §legacy =================================
+   Перенесено из <head> макета: панель уведомлений CKEditor всплывала поверх
+   интерфейса. Единственный !important в слое — правило приходится ставить
+   поверх стилей самого редактора, которые он пишет в разметку.            */
+
+.cke_notifications_area {
+  display: none !important;
+}

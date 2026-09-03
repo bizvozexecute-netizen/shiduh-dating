@@ -15,8 +15,19 @@
     <meta name="csrf-token" content="<?= htmlspecialchars(shiduh_csrf_token((int)$AUTH_USER_ID), ENT_QUOTES) ?>">
     <script src="/js/csrf.js"></script>
     <?php endif; ?>
+    <?php
+      // Версия слоя — по времени изменения файлов: свежий CSS доезжает до
+      // браузера без ручной правки номера (в отличие от styles-90/scripts-63,
+      // где номер бампали руками и накопили 22 МБ мёртвых версий).
+      $nc_sh_v = max((int)@filemtime($_SERVER['DOCUMENT_ROOT'] . '/css/one.css'),
+                     (int)@filemtime($_SERVER['DOCUMENT_ROOT'] . '/js/one.js')) ?: 1;
+    ?>
     <!-- fonts preload -->
-    <!-- <link rel="preload" href="" as="font" type="font/woff2" crossorigin> -->
+    <!-- Шрифты самохостятся и объявлены в бандле: без preload текст ждёт
+         загрузки 316 КБ CSS, а потом ещё и подмену начертания. -->
+    <link rel="preload" href="/fonts/ceraPro/CeraPro-Regular.woff2" as="font" type="font/woff2" crossorigin>
+    <link rel="preload" href="/fonts/ceraPro/CeraPro-Medium.woff2" as="font" type="font/woff2" crossorigin>
+    <link rel="preload" href="/fonts/kudryashevDisplay/KudryashevDisplay.woff2" as="font" type="font/woff2" crossorigin>
     <!-- favicon -->
     <link rel="shortcut icon" href="/fav.svg">	
     <meta name="msapplication-TileColor" content="#da532c">
@@ -31,25 +42,25 @@
     <!-- styles -->
     <link rel="stylesheet" href="/css/libs-3.css">
     <link rel="stylesheet" href="/css/styles-90.css">
+    <!-- Дизайн-слой: только ПОСЛЕ бандла — переопределяет его порядком
+         каскада, а не !important (см. шапку one.css). -->
+    <link rel="stylesheet" href="/css/one.css?v=<?= $nc_sh_v ?>">
     <!-- scripts -->
     <script id="json-data">
       [
           <?= nc_objects_list(8, 16, "&show_random=1"); ?>
       ]
     </script>
-    <style>
-    .cke_notifications_area {
-        display:none!important;
-    }
-    </style>
     <script src="https://captcha-api.yandex.ru/captcha.js?render=onload&onload=onloadFunction" defer></script>
     <script src="/js/scripts-63.js" defer></script>
+    <script src="/js/one.js?v=<?= $nc_sh_v ?>" defer></script>
     <!--[if lte IE 10]><script src="http://phpbbex.com/oldies/oldies.js" charset="utf-8"></script><![endif]-->
     
     <!-- Yandex.Metrika counter --> <script type="text/javascript" > (function(m,e,t,r,i,k,a){m[i]=m[i]||function(){(m[i].a=m[i].a||[]).push(arguments)}; m[i].l=1*new Date(); for (var j = 0; j < document.scripts.length; j++) {if (document.scripts[j].src === r) { return; }} k=e.createElement(t),a=e.getElementsByTagName(t)[0],k.async=1,k.src=r,a.parentNode.insertBefore(k,a)}) (window, document, "script", "https://cdn.jsdelivr.net/npm/yandex-metrica-watch/tag.js", "ym"); ym(97434179, "init", { clickmap:true, trackLinks:true, accurateTrackBounce:true, webvisor:true, trackHash:true, ecommerce:"dataLayer" }); </script> <!-- /Yandex.Metrika counter -->
   </head>
 
   <body class="page">
+    <a class="sh-skip" href="#main">К содержимому</a>
 
     <? if($current_user['User_ID']): ?>
     <div id="user-check"></div>
@@ -127,7 +138,7 @@
       </div>
     </header>
     <? endif; ?>
-    <div class="page__content">
+    <div class="page__content" id="main">
     
 <? if($sub == 4): ?>
 <div class="breadcrumbs ">

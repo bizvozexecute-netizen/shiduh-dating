@@ -37,6 +37,7 @@ tar czf webroot_$(date +%F_%H%M).tar.gz /path/to/webroot   # без netcat_files
 **PHP-логика (новые файлы, копировать целиком):**
 - `shiduh.org/api/` — все `*.php` (клиент LLM, инструменты, скоринг, подбор пар, RAG-клиент, рассылка, приглашения, резюме, кейсы, `template_lib.php` — помощники шаблонов: безопасная ссылка «Назад»…)
 - `shiduh.org/js/csrf.js` — обёртка fetch/XHR, подставляет `X-CSRF-Token` (C3)
+- `shiduh.org/css/one.css`, `shiduh.org/js/one.js` — дизайн-слой (A0). Грузятся ПОСЛЕ бандла; версия в URL считается по `filemtime`, руками бампать не нужно
 - `shiduh.org/admin-cases.php`, `admin-mailing.php`, `admin-ai-prompt.php`
 - **`shiduh.org/vars.inc.php`** — НЕ в git (секреты). На сервере правится руками:
   сверьте с `vars.inc.php.example` значение `$ADMIN_AUTHTIME` (30 суток вместо года, B-4)
