@@ -201,3 +201,70 @@ def test_layer_files_have_no_syntax_errors():
                 "netcat_template/template/3/Footer.html"):
         r = web("php", "-l", "/var/www/html/" + rel)
         assert "No syntax errors" in (r.stdout or ""), rel + ": " + (r.stdout or r.stderr)[:200]
+
+
+# ============================ A1: каталог компонентов =======================
+#
+# Компоненты нужны раньше экранов: на них опирается чат (B2), админ-консоль
+# (C8) и переезд инлайновых стилей из шаблонов (A5–A7). Тест держит состав
+# каталога и бюджеты — чтобы слой не превратился во второй бандл.
+
+# (класс, зачем он) — по одному представителю на группу
+CATALOG = [
+    (".sh-card", "карточка"),
+    (".sh-sec-head", "заголовок раздела"),
+    (".sh-eyebrow", "надзаголовок"),
+    (".sh-pill", "пилюля-метка"),
+    (".sh-bar", "полоса-индикатор"),
+    (".sh-toast", "всплывающее сообщение"),
+    (".sh-skel", "скелетон загрузки"),
+    (".sh-empty", "пустое состояние"),
+    (".sh-field", "поле формы"),
+    (".sh-field__error", "ошибка у поля"),
+    (".sh-stepper", "шаги мастера"),
+    (".sh-chat", "панель чата"),
+    (".sh-msg", "реплика в чате"),
+    (".sh-typing", "индикатор ожидания ответа"),
+    (".sh-composer", "поле ввода сообщения"),
+    (".sh-chip", "быстрый ответ"),
+    (".sh-row", "строка списка"),
+    (".sh-pager", "постраничная навигация"),
+    (".sh-avatar", "аватар"),
+]
+
+
+@pytest.mark.parametrize("cls,what", CATALOG, ids=[c[0] for c in CATALOG])
+def test_component_is_in_catalog(cls, what):
+    assert cls in css(), "нет компонента %s (%s)" % (cls, what)
+
+
+def test_primary_button_is_readable():
+    """У бандла .button — белый текст на золоте (2.1:1). Слой обязан это
+    переопределить, иначе основная кнопка сайта остаётся нечитаемой."""
+    # без комментариев: в шапке правила процитирован исходный стиль бандла
+    src = re.sub(r"/\*.*?\*/", "", css(), flags=re.S)
+    m = re.search(r"\.button[^{]*\{([^}]*)\}", src)
+    assert m, "слой не переопределяет .button"
+    body = m.group(1)
+    assert "--sh-navy" in body, "текст кнопки должен быть тёмно-синим: " + body[:120]
+
+
+def test_admin_stylesheet_exists_and_maps_tokens():
+    """Автономные админ-экраны рисуют свой <head> в обход макета: им нужен
+    отдельный лист, который приводит их локальные переменные к токенам слоя."""
+    path = os.path.join(WEBROOT, "css", "one-admin.css")
+    assert os.path.exists(path), "нет css/one-admin.css"
+    src = read(path)
+    kb = len(src.encode("utf-8")) / 1024.0
+    assert kb <= 8, "one-admin.css разросся: %.1f КБ" % kb
+    assert "var(--sh-" in src, "лист админки не опирается на токены слоя"
+
+
+def test_chat_bubbles_wrap_long_words():
+    """Ссылка или длинное слово в ответе модели не должны растягивать
+    страницу по горизонтали — на телефоне это ломает всю раскладку."""
+    src = css()
+    m = re.search(r"\.sh-msg\b[^{]*\{([^}]*)\}", src)
+    assert m, "нет базового правила .sh-msg"
+    assert "word-break" in m.group(1) or "overflow-wrap" in m.group(1), \
+        "реплика не переносит длинные слова: " + m.group(1)[:150]

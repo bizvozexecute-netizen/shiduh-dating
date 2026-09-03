@@ -276,3 +276,632 @@
 .cke_notifications_area {
   display: none !important;
 }
+
+
+/* ============================ §components ===============================
+   Каталог собран под конкретные экраны, а не «на всякий случай»: чат (B2),
+   админ-консоль (C8), карточка кандидата и мастер анкеты (A5–A7). Базовые
+   правила пишем через :where() — нулевая специфичность, поэтому страничные
+   модификаторы перекрывают их без гонки.                                  */
+
+/* ------------------------------- кнопки -------------------------------- */
+/* Бандл: .button{background:#c8ae88;color:#fff} — 2.1:1, читать невозможно.
+   Меняем цвет текста, а не фирменное золото. */
+.button {
+  color: var(--sh-navy);
+  border-radius: var(--sh-r-pill);
+  transition: background-color var(--sh-t-base) var(--sh-ease-out),
+              color var(--sh-t-base) var(--sh-ease-out),
+              transform var(--sh-t-fast) var(--sh-ease-out),
+              box-shadow var(--sh-t-base) var(--sh-ease-out);
+}
+
+.button:hover {
+  background-color: var(--sh-gold-hover);
+  color: var(--sh-navy);
+  transform: translateY(-1px);
+  box-shadow: var(--sh-shadow-1);
+}
+
+.button:active {
+  transform: scale(.985);
+}
+
+/* «Тихая» кнопка: в карточке шадхана такие уже используются, но в бандле
+   класса нет вовсе — раньше они выглядели как обычный текст. */
+:where(.button--secondary, .sh-btn-ghost) {
+  background: transparent;
+  color: var(--sh-gold-ink);
+  border: 1px solid var(--sh-line);
+}
+
+:where(.button--secondary, .sh-btn-ghost):hover {
+  background: var(--sh-cream-2);
+  border-color: var(--sh-gold);
+  color: var(--sh-gold-ink);
+}
+
+/* Ожидание ответа: кнопка занята, но ширину сохраняет — иначе строка
+   «прыгает». Селектор из двух классов бьёт .button без !important. */
+.button.is-loading,
+.sh-btn-icon.is-loading {
+  position: relative;
+  color: transparent;
+  pointer-events: none;
+}
+
+.is-loading::after {
+  content: "";
+  position: absolute;
+  inset: 50% auto auto 50%;
+  width: 16px;
+  height: 16px;
+  margin: -8px 0 0 -8px;
+  border: 2px solid var(--sh-navy);
+  border-top-color: transparent;
+  border-radius: 50%;
+  animation: sh-spin .7s linear infinite;
+}
+
+@keyframes sh-spin { to { transform: rotate(360deg) } }
+
+.sh-btn-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border: 0;
+  background: transparent;
+  border-radius: var(--sh-r-s);
+  color: var(--sh-ink-2);
+  cursor: pointer;
+  transition: background-color var(--sh-t-fast) var(--sh-ease-out),
+              color var(--sh-t-fast) var(--sh-ease-out);
+}
+
+.sh-btn-icon:hover {
+  background: var(--sh-cream-2);
+  color: var(--sh-ink);
+}
+
+/* ------------------------------ карточки ------------------------------- */
+:where(.sh-card) {
+  background: var(--sh-paper);
+  border: 1px solid var(--sh-line);
+  border-radius: var(--sh-r-l);
+  padding: var(--sh-s-5);
+}
+
+:where(.sh-card--soft) { background: var(--sh-cream-2); }
+
+/* Подъём — только там, где карточка кликабельна: иначе движение обещает
+   действие, которого нет. */
+:where(.sh-card--hover) {
+  transition: transform var(--sh-t-base) var(--sh-ease-out),
+              box-shadow var(--sh-t-base) var(--sh-ease-out),
+              border-color var(--sh-t-base) var(--sh-ease-out);
+}
+
+:where(.sh-card--hover):hover {
+  transform: translateY(-2px);
+  box-shadow: var(--sh-shadow-1);
+  border-color: var(--sh-gold);
+}
+
+/* --------------------------- заголовок раздела -------------------------- */
+:where(.sh-sec-head) {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sh-s-2);
+  margin-bottom: var(--sh-s-5);
+}
+
+/* Надзаголовок в обычном регистре: заглавные были бы третьим уровнем капса
+   подряд — у бренда уже капсовые заголовки и кнопки. */
+:where(.sh-eyebrow) {
+  font: 500 var(--sh-fs-sm) / 1.2 var(--sh-font-body);
+  color: var(--sh-gold-ink);
+  letter-spacing: .01em;
+}
+
+:where(.sh-sec-title) {
+  font: 400 var(--sh-fs-h2) / var(--sh-lh-tight) var(--sh-font-display);
+  color: var(--sh-ink);
+  margin: 0;
+}
+
+:where(.sh-sec-lead) {
+  max-width: var(--sh-measure);
+  color: var(--sh-ink-2);
+  line-height: var(--sh-lh-body);
+  margin: 0;
+}
+
+/* -------------------------------- метки -------------------------------- */
+:where(.sh-pill) {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--sh-s-1);
+  padding: 3px 10px;
+  border-radius: var(--sh-r-pill);
+  font: 500 var(--sh-fs-xs) / 1.5 var(--sh-font-body);
+  background: var(--sh-sand);
+  color: var(--sh-ink);
+  white-space: nowrap;
+}
+
+:where(.sh-pill--gold) { background: var(--sh-gold); color: var(--sh-navy); }
+:where(.sh-pill--ok) { background: var(--sh-ok-bg); color: var(--sh-ok-ink); }
+:where(.sh-pill--warn) { background: var(--sh-warn-bg); color: var(--sh-warn-ink); }
+:where(.sh-pill--err) { background: var(--sh-err-bg); color: var(--sh-err-ink); }
+:where(.sh-pill--muted) { background: var(--sh-cream-2); color: var(--sh-ink-2); }
+
+:where(.sh-dot) {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--sh-accent);
+  flex: none;
+}
+
+/* ------------------------------- полосы -------------------------------- */
+/* Один компонент на все шкалы: проценты подбора, языки любви, прогресс
+   опроса. Раньше в каждом шаблоне была своя вёрстка полосы. */
+:where(.sh-bar) {
+  display: block;
+  height: 8px;
+  border-radius: var(--sh-r-pill);
+  background: var(--sh-sand);
+  overflow: hidden;
+}
+
+:where(.sh-bar > i) {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: var(--sh-gold);
+  transition: width var(--sh-t-slow) var(--sh-ease-out);
+}
+
+:where(.sh-bar--deep > i) { background: var(--sh-gold-deep); }
+:where(.sh-bar--thin) { height: 4px; }
+
+/* Число рядом со шкалой: моноширинные цифры, чтобы столбик не «дышал». */
+:where(.sh-score) {
+  font-variant-numeric: tabular-nums;
+  font-weight: 600;
+  color: var(--sh-ink);
+}
+
+/* ------------------------------- тосты --------------------------------- */
+.sh-toast-root {
+  position: fixed;
+  right: var(--sh-s-5);
+  bottom: var(--sh-s-5);
+  z-index: var(--sh-z-toast);
+  display: flex;
+  flex-direction: column;
+  gap: var(--sh-s-2);
+  max-width: min(380px, calc(100vw - 2 * var(--sh-s-4)));
+  pointer-events: none;
+}
+
+.sh-toast {
+  padding: var(--sh-s-3) var(--sh-s-4);
+  border-radius: var(--sh-r-m);
+  background: var(--sh-navy);
+  color: var(--sh-paper);
+  font: 400 var(--sh-fs-sm) / 1.45 var(--sh-font-body);
+  box-shadow: var(--sh-shadow-2);
+  opacity: 0;
+  transform: translateY(10px);
+  transition: opacity var(--sh-t-base) var(--sh-ease-out),
+              transform var(--sh-t-base) var(--sh-ease-out);
+  pointer-events: auto;
+}
+
+.sh-toast.is-shown { opacity: 1; transform: none; }
+.sh-toast--ok { background: var(--sh-ok-ink); }
+.sh-toast--err { background: var(--sh-err-ink); }
+
+@media (max-width: 767.98px) {
+  .sh-toast-root {
+    right: var(--sh-s-4);
+    left: var(--sh-s-4);
+    bottom: var(--sh-s-4);
+    max-width: none;
+  }
+}
+
+/* ----------------------------- скелетоны ------------------------------- */
+/* Показывают форму будущего содержимого, пока идёт запрос к модели: пустой
+   экран читается как поломка. */
+:where(.sh-skel) {
+  background: linear-gradient(90deg, var(--sh-sand) 25%, var(--sh-cream-2) 37%, var(--sh-sand) 63%);
+  background-size: 400% 100%;
+  border-radius: var(--sh-r-s);
+  animation: sh-shimmer 1.4s ease-in-out infinite;
+}
+
+@keyframes sh-shimmer { from { background-position: 100% 0 } to { background-position: 0 0 } }
+
+:where(.sh-skel--text) { height: 12px; margin-bottom: var(--sh-s-2); }
+:where(.sh-skel--card) { height: 120px; }
+:where(.sh-skel--avatar) { width: 48px; height: 48px; border-radius: 50%; }
+
+/* --------------------------- пустое состояние --------------------------- */
+:where(.sh-empty) {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--sh-s-3);
+  padding: var(--sh-s-7) var(--sh-s-5);
+  text-align: center;
+  color: var(--sh-ink-2);
+  background: var(--sh-cream-2);
+  border: 1px dashed var(--sh-line);
+  border-radius: var(--sh-r-l);
+}
+
+:where(.sh-empty__title) {
+  font: 400 var(--sh-fs-h3) / 1.3 var(--sh-font-display);
+  color: var(--sh-ink);
+  margin: 0;
+}
+
+/* ------------------------------- поля ---------------------------------- */
+/* Подпись сверху, а не «плавающая»: в форме есть выпадающие списки и
+   календарь со своей разметкой, длинные русские подписи и заранее
+   заполненные значения — на всём этом плавающая подпись ведёт себя
+   непредсказуемо. */
+:where(.sh-field) {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+:where(.sh-field__label) {
+  font: 500 var(--sh-fs-sm) / 1.3 var(--sh-font-body);
+  color: var(--sh-ink);
+}
+
+:where(.sh-field__hint) {
+  font-size: var(--sh-fs-xs);
+  color: var(--sh-ink-2);
+}
+
+:where(.sh-field__input) {
+  width: 100%;
+  padding: 11px 14px;
+  border: 1px solid var(--sh-line-2);
+  border-radius: var(--sh-r-s);
+  background: var(--sh-paper);
+  color: var(--sh-ink);
+  font: 400 var(--sh-fs-body) / 1.4 var(--sh-font-body);
+  transition: border-color var(--sh-t-fast) var(--sh-ease-out),
+              box-shadow var(--sh-t-fast) var(--sh-ease-out);
+}
+
+:where(.sh-field__input):focus {
+  outline: none;
+  border-color: var(--sh-gold);
+  box-shadow: var(--sh-ring);
+}
+
+/* Ошибка у поля, а не одна строка вверху формы: в анкете около ста полей,
+   и «проверьте поля» вверху не говорит, где именно ошибка. */
+:where(.sh-field__error) {
+  font-size: var(--sh-fs-sm);
+  color: var(--sh-err-ink);
+}
+
+:where(.sh-field.is-invalid) .sh-field__input {
+  border-color: var(--sh-err-ink);
+}
+
+/* ------------------------------ шаги мастера ---------------------------- */
+:where(.sh-stepper) {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--sh-s-2);
+  list-style: none;
+  margin: 0 0 var(--sh-s-5);
+  padding: 0;
+}
+
+:where(.sh-stepper__item) {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--sh-s-2);
+  padding: 6px 12px;
+  border-radius: var(--sh-r-pill);
+  border: 1px solid var(--sh-line);
+  color: var(--sh-ink-2);
+  font-size: var(--sh-fs-sm);
+  background: var(--sh-paper);
+}
+
+:where(.sh-stepper__item--done) { color: var(--sh-gold-ink); border-color: var(--sh-gold); }
+
+:where(.sh-stepper__item--current) {
+  background: var(--sh-navy);
+  border-color: var(--sh-navy);
+  color: var(--sh-paper);
+}
+
+:where(.sh-progress) { height: 4px; border-radius: var(--sh-r-pill); background: var(--sh-sand); }
+:where(.sh-progress > i) { display: block; height: 100%; border-radius: inherit; background: var(--sh-gold-deep); }
+
+/* -------------------------------- чат ---------------------------------- */
+:where(.sh-chat) {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;                      /* иначе длинная реплика распирает сетку */
+  background: var(--sh-paper);
+  border: 1px solid var(--sh-line);
+  border-radius: var(--sh-r-l);
+  overflow: hidden;
+}
+
+:where(.sh-chat__head) {
+  display: flex;
+  align-items: center;
+  gap: var(--sh-s-3);
+  padding: var(--sh-s-4) var(--sh-s-5);
+  border-bottom: 1px solid var(--sh-line);
+  background: var(--sh-cream-2);
+}
+
+:where(.sh-chat__scroll) {
+  flex: 1 1 auto;
+  min-height: 320px;
+  max-height: 60vh;
+  overflow-y: auto;
+  overscroll-behavior: contain;      /* прокрутка не «протекает» на страницу */
+  padding: var(--sh-s-4) var(--sh-s-5);
+}
+
+:where(.sh-chat__log) {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sh-s-3);
+}
+
+/* Реплика. pre-wrap сохраняет переносы модели, а перенос слов не даёт
+   длинной ссылке растянуть страницу по горизонтали. */
+:where(.sh-msg) {
+  max-width: 82%;
+  padding: var(--sh-s-3) var(--sh-s-4);
+  border-radius: var(--sh-r-l);
+  font-size: var(--sh-fs-body);
+  line-height: var(--sh-lh-body);
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
+:where(.sh-msg--ai) {
+  align-self: flex-start;
+  background: var(--sh-cream-2);
+  color: var(--sh-ink);
+  border-bottom-left-radius: var(--sh-r-s);
+}
+
+:where(.sh-msg--me) {
+  align-self: flex-end;
+  background: var(--sh-gold);
+  color: var(--sh-navy);
+  border-bottom-right-radius: var(--sh-r-s);
+}
+
+/* Ошибка — это не реплика консультанта: раньше отказ сервиса приходил
+   обычным пузырём и читался как слова собеседника. */
+:where(.sh-msg--error) {
+  align-self: flex-start;
+  background: var(--sh-err-bg);
+  color: var(--sh-err-ink);
+  border: 1px solid rgba(138, 42, 42, .2);
+}
+
+:where(.sh-msg[data-state="failed"]) { opacity: .6; }
+
+:where(.sh-msg__meta) {
+  display: flex;
+  align-items: center;
+  gap: var(--sh-s-2);
+  margin-top: 6px;
+  font-size: var(--sh-fs-xs);
+  color: var(--sh-ink-2);
+  opacity: 0;
+  transition: opacity var(--sh-t-fast) var(--sh-ease-out);
+}
+
+:where(.sh-msg):hover .sh-msg__meta,
+:where(.sh-msg):focus-within .sh-msg__meta,
+:where(.sh-msg--meta-open) .sh-msg__meta { opacity: 1; }
+
+/* Курсор во время потоковой выдачи: показывает, что ответ ещё пишется. */
+:where(.sh-cursor) {
+  display: inline-block;
+  width: .5em;
+  height: 1em;
+  margin-left: 2px;
+  background: currentColor;
+  vertical-align: -.12em;
+  animation: sh-blink 1s steps(2) infinite;
+}
+
+@keyframes sh-blink { 50% { opacity: 0 } }
+
+/* Разделитель дня в длинной переписке. */
+:where(.sh-day) {
+  display: flex;
+  align-items: center;
+  gap: var(--sh-s-3);
+  color: var(--sh-ink-2);
+  font-size: var(--sh-fs-xs);
+}
+
+:where(.sh-day)::before,
+:where(.sh-day)::after {
+  content: "";
+  flex: 1;
+  height: 1px;
+  background: var(--sh-line);
+}
+
+/* Ожидание ответа. ТЗ требует «честный индикатор генерации» — раньше была
+   только заблокированная кнопка, и пауза выглядела как зависание. */
+:where(.sh-typing) {
+  display: flex;
+  align-items: center;
+  gap: var(--sh-s-2);
+  align-self: flex-start;
+  padding: var(--sh-s-3) var(--sh-s-4);
+  border-radius: var(--sh-r-l);
+  background: var(--sh-cream-2);
+  color: var(--sh-ink-2);
+  font-size: var(--sh-fs-sm);
+}
+
+:where(.sh-typing__dot) {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--sh-ink-3);
+  animation: sh-bounce 1.2s ease-in-out infinite;
+}
+
+:where(.sh-typing__dot):nth-child(2) { animation-delay: .15s }
+:where(.sh-typing__dot):nth-child(3) { animation-delay: .3s }
+
+@keyframes sh-bounce {
+  0%, 60%, 100% { transform: translateY(0); opacity: .5 }
+  30% { transform: translateY(-4px); opacity: 1 }
+}
+
+/* Поле ввода. Прилипает к низу панели, снизу — отступ под «домашнюю» полосу
+   телефона, иначе кнопка отправки оказывается под ней. */
+:where(.sh-composer) {
+  position: sticky;
+  bottom: 0;
+  display: flex;
+  align-items: flex-end;
+  gap: var(--sh-s-2);
+  padding: var(--sh-s-3) var(--sh-s-4) calc(var(--sh-s-3) + env(safe-area-inset-bottom, 0px));
+  border-top: 1px solid var(--sh-line);
+  background: var(--sh-paper);
+}
+
+:where(.sh-composer__input) {
+  flex: 1 1 auto;
+  min-height: 44px;
+  max-height: 40vh;
+  padding: 11px 14px;
+  border: 1px solid var(--sh-line-2);
+  border-radius: var(--sh-r-l);
+  background: var(--sh-paper);
+  color: var(--sh-ink);
+  font: 400 var(--sh-fs-body) / 1.4 var(--sh-font-body);
+  resize: none;
+}
+
+:where(.sh-composer__input):focus {
+  outline: none;
+  border-color: var(--sh-gold);
+  box-shadow: var(--sh-ring);
+}
+
+:where(.sh-composer__count) {
+  align-self: center;
+  font-size: var(--sh-fs-xs);
+  color: var(--sh-ink-2);
+  font-variant-numeric: tabular-nums;
+}
+
+/* Быстрые ответы: подсказывают, о чём можно рассказать, — пустой чат ставит
+   человека перед чистым листом. */
+:where(.sh-chips) {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--sh-s-2);
+  padding: 0 var(--sh-s-4) var(--sh-s-3);
+}
+
+:where(.sh-chip) {
+  padding: 7px 14px;
+  border: 1px solid var(--sh-line);
+  border-radius: var(--sh-r-pill);
+  background: var(--sh-paper);
+  color: var(--sh-ink);
+  font: 400 var(--sh-fs-sm) / 1.3 var(--sh-font-body);
+  cursor: pointer;
+  transition: border-color var(--sh-t-fast) var(--sh-ease-out),
+              background-color var(--sh-t-fast) var(--sh-ease-out);
+}
+
+:where(.sh-chip):hover { border-color: var(--sh-gold); background: var(--sh-cream-2); }
+:where(.sh-chip):disabled { opacity: .5; cursor: default; }
+
+@media (max-width: 767.98px) {
+  :where(.sh-chat__scroll) { max-height: none; }
+  :where(.sh-msg) { max-width: 92%; }
+}
+
+/* ------------------------- строки списков и аватары --------------------- */
+:where(.sh-row) {
+  display: flex;
+  align-items: center;
+  gap: var(--sh-s-4);
+  padding: var(--sh-s-4);
+  border: 1px solid var(--sh-line);
+  border-radius: var(--sh-r-m);
+  background: var(--sh-paper);
+}
+
+@media (max-width: 767.98px) {
+  :where(.sh-row) { flex-direction: column; align-items: stretch; }
+}
+
+/* Соотношение сторон задаётся заранее — иначе при подгрузке фото страница
+   «прыгает» (сдвиг макета). */
+:where(.sh-avatar) {
+  aspect-ratio: 1;
+  width: 56px;
+  flex: none;
+  object-fit: cover;
+  border-radius: 50%;
+  background: var(--sh-sand);
+}
+
+:where(.sh-avatar--anon) {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--sh-ink-3);
+}
+
+/* ---------------------------- постраничность ---------------------------- */
+:where(.sh-pager) {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--sh-s-4);
+  margin-top: var(--sh-s-6);
+  color: var(--sh-ink-2);
+  font-size: var(--sh-fs-sm);
+}
+
+/* Для тех, кому анимация мешает: мерцание скелетона, курсор и точки
+   ожидания — это тоже движение. */
+@media (prefers-reduced-motion: reduce) {
+  :where(.sh-skel),
+  :where(.sh-cursor),
+  :where(.sh-typing__dot),
+  .is-loading::after {
+    animation: none;
+  }
+
+  :where(.sh-msg__meta) { opacity: 1; transition: none; }
+}
