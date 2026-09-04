@@ -99,6 +99,11 @@ function ai_config() {
         // Часовой лимит не спасает от залпа: тридцать сообщений можно
         // отправить за секунду. Поминутный ограничивает именно темп.
         'burst_per_minute' => (int)$get('burst_per_minute', 6),
+        // Поток живёт дольше обычного вызова: модель пишет ответ постепенно.
+        'stream_timeout' => (int)$get('stream_timeout', 90),
+        // Молчание дольше этого — обрыв: покрывает и «нет первого байта»,
+        // и «поток завис на середине».
+        'first_byte_timeout' => (int)$get('first_byte_timeout', 20),
         // Потолок ответа. Без него длинная генерация упирается в таймаут, и
         // теряется весь вызов вместе с уже оплаченными токенами. 700 хватает
         // на живой ответ в 2–5 предложений с запасом.
@@ -262,17 +267,9 @@ function ai_chat(array $messages, array $options = array()) {
         return $finish(ai_result(false, '', null, 'openrouter', 'Не задан ключ доступа к ИИ'));
     }
 
-    $payload = array(
-        'model' => $model,
-        'messages' => array_values($messages),
-        'temperature' => isset($options['temperature']) ? $options['temperature'] : $cfg['temperature'],
-        // Потолок ответа: без него длинная генерация упирается в таймаут и
-        // теряется целиком вместе с уже потраченными токенами.
-        'max_tokens' => isset($options['max_tokens']) ? (int)$options['max_tokens'] : $cfg['max_tokens'],
-    );
-    if (!empty($options['tools'])) {
-        $payload['tools'] = $options['tools'];
-    }
+    // Тело собирает общая функция: иначе обычный и потоковый режимы со
+    // временем разъедутся по параметрам.
+    $payload = ai_payload_for($messages, $options, $cfg, $model, false);
 
     $url = $cfg['base_url'] . '/chat/completions';
     $timeout = isset($options['timeout']) ? (int)$options['timeout'] : $cfg['timeout'];
@@ -336,4 +333,314 @@ function ai_chat(array $messages, array $options = array()) {
     }
 
     return $finish(ai_result(false, '', null, 'openrouter', $last_error));
+}
+
+
+/* =========================== потоковая выдача ===========================
+   ТЗ (Э0.2) просит показывать ответ по мере генерации. Провайдер отдаёт его
+   потоком SSE: строки «data: {…}» с кусочками текста. Разбор вынесен в
+   отдельные функции без сети — так его можно проверить на записанных данных,
+   не поднимая ни модель, ни сервер.
+
+   Результат намеренно той же формы, что у ai_chat(): вызывающему всё равно,
+   пришёл ответ целиком или частями.                                       */
+
+function ai_stream_state_new() {
+    return array(
+        'buf' => '',          // хвост незавершённой строки
+        'content' => '',      // накопленный текст ответа
+        'tools' => array(),   // вызовы инструментов по индексу
+        'usage' => null,
+        'finish' => null,
+        'done' => false,      // пришло «[DONE]»
+        'error' => null,      // провайдер прислал ошибку прямо в потоке
+        'emitted' => false,   // хоть один кусок текста уже отдан наружу
+        'aborted' => false,   // получатель попросил прекратить
+    );
+}
+
+/*
+ * Скармливает очередную порцию байтов. Возвращает false, если получатель
+ * попросил остановиться. Границы кусков произвольны: строка может прийти
+ * разрезанной пополам, поэтому хвост копится в буфере.
+ */
+function ai_stream_feed(&$st, $bytes, $on_delta = null) {
+    $st['buf'] .= (string)$bytes;
+
+    while (($pos = strpos($st['buf'], "\n")) !== false) {
+        $line = rtrim(substr($st['buf'], 0, $pos), "\r");
+        $st['buf'] = substr($st['buf'], $pos + 1);
+
+        if ($line === '' || $line[0] === ':') {
+            continue;                       // пустая строка или комментарий
+        }
+        if (strncmp($line, 'data:', 5) !== 0) {
+            continue;                       // event:/id: нам не нужны
+        }
+        $data = trim(substr($line, 5));
+        if ($data === '[DONE]') {
+            $st['done'] = true;
+            continue;
+        }
+        $js = json_decode($data, true);
+        if (!is_array($js)) {
+            ai_log_error('stream: не разобран кусок ' . substr($data, 0, 120));
+            continue;
+        }
+        if (isset($js['error'])) {
+            $st['error'] = isset($js['error']['message'])
+                ? (string)$js['error']['message'] : 'ошибка в потоке';
+            continue;
+        }
+        if (isset($js['usage']) && is_array($js['usage'])) {
+            $st['usage'] = $js['usage'];
+        }
+
+        $choice = isset($js['choices'][0]) ? $js['choices'][0] : null;
+        if (!is_array($choice)) {
+            continue;
+        }
+        if (!empty($choice['finish_reason'])) {
+            $st['finish'] = (string)$choice['finish_reason'];
+        }
+        $delta = isset($choice['delta']) && is_array($choice['delta']) ? $choice['delta'] : array();
+
+        if (isset($delta['content']) && $delta['content'] !== '') {
+            // чистим эмодзи сразу: показанное и сохранённое должны совпадать
+            $piece = ai_strip_4byte($delta['content']);
+            if ($piece !== '') {
+                $st['content'] .= $piece;
+                $st['emitted'] = true;
+                if ($on_delta && call_user_func($on_delta, $piece) === false) {
+                    $st['aborted'] = true;
+                    return false;
+                }
+            }
+        }
+
+        // Вызовы инструментов приходят по частям: имя один раз, аргументы
+        // кусками. Склеиваем по индексу, иначе JSON аргументов не соберётся.
+        if (!empty($delta['tool_calls']) && is_array($delta['tool_calls'])) {
+            foreach ($delta['tool_calls'] as $tc) {
+                $i = isset($tc['index']) ? (int)$tc['index'] : 0;
+                if (!isset($st['tools'][$i])) {
+                    $st['tools'][$i] = array('id' => '', 'type' => 'function',
+                        'function' => array('name' => '', 'arguments' => ''));
+                }
+                if (!empty($tc['id'])) {
+                    $st['tools'][$i]['id'] = (string)$tc['id'];
+                }
+                if (!empty($tc['function']['name'])) {
+                    $st['tools'][$i]['function']['name'] = (string)$tc['function']['name'];
+                }
+                if (isset($tc['function']['arguments'])) {
+                    $st['tools'][$i]['function']['arguments'] .= (string)$tc['function']['arguments'];
+                }
+            }
+        }
+    }
+    return true;
+}
+
+/* Собранные вызовы инструментов — в том же виде, что у обычного ответа. */
+function ai_stream_tool_calls($st) {
+    $out = array();
+    foreach ($st['tools'] as $call) {
+        if ($call['function']['name'] !== '') {
+            $out[] = $call;
+        }
+    }
+    return $out;
+}
+
+/*
+ * Потоковый вызов модели. $on_delta получает каждый кусочек текста и может
+ * вернуть false — тогда соединение с провайдером обрывается (пользователь
+ * нажал «Остановить» или ушёл со страницы: платить за досказывание незачем).
+ */
+function ai_chat_stream(array $messages, array $options, $on_delta) {
+    $cfg = ai_config();
+    $provider = isset($options['provider']) ? $options['provider'] : $cfg['provider'];
+    $model = isset($options['model']) ? $options['model'] : $cfg['model'];
+    $options['stream'] = true;
+
+    $t0 = microtime(true);
+    $attempts_done = 0;
+    $finish = function ($result) use (&$attempts_done, $t0, $options, $provider, $model) {
+        $usage = isset($result['usage']) && is_array($result['usage']) ? $result['usage'] : array();
+        ai_usage_log_write(array(
+            'user_id' => isset($options['user_id']) ? $options['user_id'] : 0,
+            'kind' => isset($options['kind']) ? $options['kind'] : 'other',
+            'provider' => isset($result['provider']) ? $result['provider'] : $provider,
+            'model' => $provider === 'openrouter' ? $model : '',
+            'prompt_tokens' => isset($usage['prompt_tokens']) ? $usage['prompt_tokens'] : 0,
+            'completion_tokens' => isset($usage['completion_tokens']) ? $usage['completion_tokens'] : 0,
+            'total_tokens' => isset($usage['total_tokens']) ? $usage['total_tokens'] : 0,
+            'latency_ms' => (int)round((microtime(true) - $t0) * 1000),
+            'attempts' => max(1, $attempts_done),
+            'streamed' => true,
+            'ok' => !empty($result['ok']),
+            'error' => isset($result['error']) ? $result['error'] : '',
+        ));
+        return $result;
+    };
+
+    // Заглушка тоже «стримит»: интерфейс должен работать и выглядеть
+    // одинаково до подключения ключа.
+    if ($provider !== 'openrouter') {
+        $words = preg_split('/(?<=\s)/u', AI_STUB_REPLY);
+        $chunk = '';
+        foreach ($words as $w) {
+            $chunk .= $w;
+            if (mb_strlen($chunk, 'UTF-8') >= 12) {
+                if (call_user_func($on_delta, $chunk) === false) {
+                    break;
+                }
+                $chunk = '';
+            }
+        }
+        if ($chunk !== '') {
+            call_user_func($on_delta, $chunk);
+        }
+        return $finish(ai_result(true, AI_STUB_REPLY, null, 'stub'));
+    }
+    if ($cfg['api_key'] === '') {
+        return $finish(ai_result(false, '', null, 'openrouter', 'Не задан ключ доступа к ИИ'));
+    }
+
+    $payload = ai_payload_for($messages, $options, $cfg, $model, true);
+    $url = $cfg['base_url'] . '/chat/completions';
+    $attempts = max(1, $cfg['max_retries'] + 1);
+    $last_error = 'Сервис ИИ недоступен';
+
+    for ($i = 0; $i < $attempts; $i++) {
+        $attempts_done = $i + 1;
+        if ($i > 0) {
+            usleep((int)(500000 * pow(2, $i - 1)));
+        }
+
+        $st = ai_stream_state_new();
+        $http_code = 0;
+        $err_body = '';
+
+        $ch = curl_init($url);
+        curl_setopt_array($ch, array(
+            CURLOPT_POST => true,
+            CURLOPT_POSTFIELDS => json_encode($payload, JSON_UNESCAPED_UNICODE),
+            CURLOPT_HTTPHEADER => array(
+                'Content-Type: application/json',
+                'Accept: text/event-stream',
+                'Authorization: Bearer ' . $cfg['api_key'],
+            ),
+            CURLOPT_FOLLOWLOCATION => false,
+            CURLOPT_PROTOCOLS => CURLPROTO_HTTP | CURLPROTO_HTTPS,
+            CURLOPT_CONNECTTIMEOUT => min(10, (int)$cfg['timeout']),
+            CURLOPT_TIMEOUT => (int)$cfg['stream_timeout'],
+            // обрыв, если провайдер замолчал: покрывает и «нет первого байта»,
+            // и «поток завис на середине»
+            CURLOPT_LOW_SPEED_LIMIT => 1,
+            CURLOPT_LOW_SPEED_TIME => (int)$cfg['first_byte_timeout'],
+            CURLOPT_WRITEFUNCTION => function ($ch, $data) use (&$st, &$http_code, &$err_body, $on_delta) {
+                if (!$http_code) {
+                    $http_code = (int)curl_getinfo($ch, CURLINFO_HTTP_CODE);
+                }
+                if ($http_code >= 400) {
+                    $err_body .= $data;      // это не поток, а текст ошибки
+                    return strlen($data);
+                }
+                if (!ai_stream_feed($st, $data, $on_delta)) {
+                    return 0;                // получатель попросил остановиться
+                }
+                return strlen($data);
+            },
+        ));
+        curl_exec($ch);
+        $curl_errno = curl_errno($ch);
+        $curl_err = curl_error($ch);
+        if (!$http_code) {
+            $http_code = (int)curl_getinfo($ch, CURLINFO_HTTP_CODE);
+        }
+        curl_close($ch);
+
+        // Прерывание получателем — не ошибка: отдаём то, что уже показано.
+        if (!empty($st['aborted'])) {
+            $res = ai_result(true, $st['content'], ai_usage_normalize($st['usage']),
+                'openrouter', null, ai_stream_tool_calls($st));
+            $res['aborted'] = true;
+            return $finish($res);
+        }
+
+        if ($http_code >= 400) {
+            ai_log_error('stream http ' . $http_code . ': ' . substr($err_body, 0, 500));
+            if ($http_code === 429 || $http_code >= 500) {
+                $last_error = 'Сервис ИИ перегружен, попробуйте позже';
+                continue;                    // временная — повтор
+            }
+            return $finish(ai_result(false, '', null, 'openrouter',
+                'Запрос к ИИ отклонён. Обратитесь к администратору сайта'));
+        }
+
+        if ($st['error'] !== null) {
+            // Ошибка пришла ПОСРЕДИ выдачи. Повторять нельзя: часть ответа
+            // уже показана человеку, и второй прогон дал бы другой текст.
+            ai_log_error('stream error: ' . $st['error']);
+            $res = ai_result(false, $st['content'], ai_usage_normalize($st['usage']),
+                'openrouter', 'Ответ оборвался. Попробуйте ещё раз');
+            $res['partial'] = true;
+            return $finish($res);
+        }
+
+        if ($curl_errno) {
+            ai_log_error('stream curl: ' . $curl_err);
+            if ($st['emitted']) {
+                // часть текста уже у пользователя — повтор дал бы другой ответ
+                $res = ai_result(false, $st['content'], ai_usage_normalize($st['usage']),
+                    'openrouter', 'Связь с сервисом ИИ прервалась');
+                $res['partial'] = true;
+                return $finish($res);
+            }
+            $last_error = 'Сервис ИИ временно недоступен';
+            continue;
+        }
+
+        return $finish(ai_result(true, $st['content'], ai_usage_normalize($st['usage']),
+            'openrouter', null, ai_stream_tool_calls($st)));
+    }
+
+    return $finish(ai_result(false, '', null, 'openrouter', $last_error));
+}
+
+/* Тело запроса — одно для обоих режимов, чтобы они не разъезжались. */
+function ai_payload_for(array $messages, array $options, array $cfg, $model, $stream = false) {
+    $payload = array(
+        'model' => $model,
+        'messages' => array_values($messages),
+        'temperature' => isset($options['temperature']) ? $options['temperature'] : $cfg['temperature'],
+        'max_tokens' => isset($options['max_tokens']) ? (int)$options['max_tokens'] : $cfg['max_tokens'],
+    );
+    if (!empty($options['tools'])) {
+        $payload['tools'] = $options['tools'];
+    }
+    if ($stream) {
+        $payload['stream'] = true;
+        // просим шлюз прислать расход в последнем кусочке: иначе учёт по
+        // потоковым вызовам был бы нулевым
+        $payload['stream_options'] = array('include_usage' => true);
+    }
+    return $payload;
+}
+
+/* Расход: часть шлюзов отдаёт только слагаемые. */
+function ai_usage_normalize($usage) {
+    if (!is_array($usage)) {
+        return null;
+    }
+    $p = (int)(isset($usage['prompt_tokens']) ? $usage['prompt_tokens'] : 0);
+    $c = (int)(isset($usage['completion_tokens']) ? $usage['completion_tokens'] : 0);
+    $t = (int)(isset($usage['total_tokens']) ? $usage['total_tokens'] : 0);
+    return array(
+        'prompt_tokens' => $p,
+        'completion_tokens' => $c,
+        'total_tokens' => $t ?: ($p + $c),
+    );
 }

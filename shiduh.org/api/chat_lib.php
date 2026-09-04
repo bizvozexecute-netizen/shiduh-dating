@@ -46,6 +46,70 @@ function chat_emitter_json() {
     );
 }
 
+/*
+ * Потоковый эмиттер: отправляет событие сразу, не дожидаясь конца работы.
+ *
+ * Служебные строки («: ping») нужны не для красоты: молчащее соединение рвут
+ * и мобильные сети, и промежуточные прокси. Отправляются, пока модель думает.
+ */
+function chat_emitter_sse() {
+    $state = array('tool_events' => array(), 'last_ping' => microtime(true));
+
+    $write = function ($event, $payload) use (&$state) {
+        echo 'event: ' . $event . "\n";
+        echo 'data: ' . json_encode($payload, JSON_UNESCAPED_UNICODE) . "\n\n";
+        flush();
+        $state['last_ping'] = microtime(true);
+    };
+
+    return array(
+        'stream' => true,
+        'send' => function ($event, $payload) use ($write, &$state) {
+            if ($event === 'tool') {
+                $state['tool_events'][] = $payload;
+            }
+            $write($event, $payload);
+        },
+        'ping' => function () use (&$state) {
+            // не чаще раза в 10 секунд: чаще — лишний трафик, реже — рвётся
+            if (microtime(true) - $state['last_ping'] < 10) {
+                return;
+            }
+            echo ": ping\n\n";
+            flush();
+            $state['last_ping'] = microtime(true);
+        },
+        'collected' => function () use (&$state) {
+            return $state;
+        },
+    );
+}
+
+/*
+ * Открыть поток. Ядро NetCat включает ob_start() до нашего кода, поэтому
+ * буферы надо размотать — иначе события копятся и уходят одним куском в
+ * конце, и смысл потока теряется.
+ */
+function chat_stream_begin() {
+    while (ob_get_level() > 0) {
+        ob_end_clean();
+    }
+    if (function_exists('apache_setenv')) {
+        apache_setenv('no-gzip', '1');
+    }
+    @ini_set('zlib.output_compression', '0');
+    @ini_set('implicit_flush', '1');
+    @set_time_limit(180);
+    ignore_user_abort(true);      // обрыв обработаем сами: надо дописать ответ
+
+    header('Content-Type: text/event-stream; charset=utf-8');
+    header('Cache-Control: no-cache, no-transform');
+    header('X-Accel-Buffering: no');
+    header('Connection: keep-alive');
+    echo ": open\n\n";            // первые байты сразу: клиент видит тип ответа
+    flush();
+}
+
 /* ------------------------------------------------------------- проверки --- */
 
 /*
@@ -400,6 +464,47 @@ function chat_dispatch_tools($db, $uid, $user_message_id, $ctx, array $tool_call
     }
 }
 
+/*
+ * Обращение к модели. Режим выбирается по эмиттеру: в потоке каждая порция
+ * текста уходит клиенту сразу, в обычном — ответ собирается целиком.
+ * Возвращаемая структура одинакова, поэтому конвейер выше не разветвляется.
+ */
+function chat_call_model(array $messages, $ctx, $uid, $emit) {
+    $options = array(
+        'tools' => ai_tool_definitions(!empty($ctx['has_case'])),
+        'kind' => 'chat',
+        'user_id' => $uid,
+    );
+    if (empty($emit['stream'])) {
+        return ai_chat($messages, $options);
+    }
+
+    return ai_chat_stream($messages, $options, function ($piece) use ($emit) {
+        // Клиент ушёл — досказывать некому и незачем: прекращаем и платим
+        // только за уже полученное.
+        if (connection_aborted()) {
+            return false;
+        }
+        chat_emit($emit, 'delta', array('text' => $piece));
+        return true;
+    });
+}
+
+/* Отказ модели: наружу — общая формулировка, различаем лишь повторяемость. */
+function chat_model_failure($res, $user_message_id) {
+    return array(
+        'ok' => false,
+        'http' => 503,
+        'code' => 'llm_unavailable',
+        'message' => $res['error'] ?: 'Сервис ИИ временно недоступен',
+        // часть ответа уже показана: повторять нельзя — второй прогон даст
+        // другой текст, и человек увидит две разные версии одной реплики
+        'retryable' => empty($res['partial']),
+        'partial' => !empty($res['partial']),
+        'user_message_id' => $user_message_id,
+    );
+}
+
 function chat_emit($emit, $event, $payload) {
     if ($emit && isset($emit['send']) && is_callable($emit['send'])) {
         call_user_func($emit['send'], $event, $payload);
@@ -464,16 +569,26 @@ function chat_run($db, $uid, array $in, $emit = null) {
     }
 
     chat_emit($emit, 'status', array('text' => 'думаю'));
-    $res = ai_chat($messages, array(
-        'tools' => ai_tool_definitions($ctx['has_case']),
-        'kind' => 'chat', 'user_id' => $uid,
-    ));
+    $res = chat_call_model($messages, $ctx, $uid, $emit);
     if (!$res['ok']) {
-        return array('ok' => false, 'http' => 503, 'code' => 'llm_unavailable',
-            'message' => $res['error'] ?: 'Сервис ИИ временно недоступен',
-            'user_message_id' => $user_message_id);
+        return chat_model_failure($res, $user_message_id);
     }
     $tokens = (int)$res['usage']['total_tokens'];
+
+    // Пользователь нажал «Остановить» (или закрыл вкладку). Показанный текст
+    // уже прочитан — сохраняем его с пометкой, а не теряем и не выдаём за
+    // полный ответ.
+    if (!empty($res['aborted'])) {
+        $reply = trim((string)$res['content']);
+        if ($reply === '') {
+            return array('ok' => false, 'http' => 499, 'code' => 'aborted',
+                'message' => 'Ответ остановлен', 'user_message_id' => $user_message_id);
+        }
+        $saved = chat_insert_assistant($db, $uid, $thread, $reply, $tokens, 1);
+        return array('ok' => true, 'reply' => $reply, 'tokens' => $tokens,
+            'message_id' => $saved['id'], 'user_message_id' => $user_message_id,
+            'created_at' => $saved['created_at'], 'thread' => $thread, 'stopped' => true);
+    }
 
     if (!empty($res['tool_calls'])) {
         $messages[] = array(
@@ -481,21 +596,31 @@ function chat_run($db, $uid, array $in, $emit = null) {
             'content' => (string)$res['content'],
             'tool_calls' => $res['tool_calls'],
         );
+        // Модель могла написать текст И попросить инструмент. Этот текст —
+        // черновик перед действием, окончательным ответом станет следующий:
+        // просим клиента стереть показанное, иначе реплика задвоится.
+        if (trim((string)$res['content']) !== '') {
+            chat_emit($emit, 'reset', array());
+        }
         chat_dispatch_tools($db, $uid, $user_message_id, $ctx, $res['tool_calls'], $messages, $emit);
 
         // Второй вызов — последний: инструменты передаём, но повторный вызов
         // уже не исполняем, иначе диалог мог бы уйти в цикл за деньги.
-        $res = ai_chat($messages, array(
-            'tools' => ai_tool_definitions($ctx['has_case']),
-            'kind' => 'chat', 'user_id' => $uid,
-        ));
+        $res = chat_call_model($messages, $ctx, $uid, $emit);
         if (!$res['ok']) {
             // поля уже записаны — сделанное не откатываем
-            return array('ok' => false, 'http' => 503, 'code' => 'llm_unavailable',
-                'message' => $res['error'] ?: 'Сервис ИИ временно недоступен',
-                'user_message_id' => $user_message_id);
+            return chat_model_failure($res, $user_message_id);
         }
         $tokens += (int)$res['usage']['total_tokens'];
+        if (!empty($res['aborted'])) {
+            $reply = trim((string)$res['content']);
+            if ($reply !== '') {
+                $saved = chat_insert_assistant($db, $uid, $thread, $reply, $tokens, 1);
+                return array('ok' => true, 'reply' => $reply, 'tokens' => $tokens,
+                    'message_id' => $saved['id'], 'user_message_id' => $user_message_id,
+                    'created_at' => $saved['created_at'], 'thread' => $thread, 'stopped' => true);
+            }
+        }
     }
 
     // модель могла вернуть пустой текст (например, снова попросив инструмент)

@@ -69,7 +69,22 @@ if ($thread <= 0) {
     $thread = chat_current_thread($db, $uid);
 }
 
-$emit = chat_emitter_json();
+/*
+ * Потоковый режим включается заголовком Accept или полем stream=1. Всё, что
+ * может отказать дёшево (метод, права, длина, лимиты, замок), проверено выше и
+ * отвечает обычным JSON с настоящим кодом: клиенту не придётся разбирать
+ * события ради «слишком длинно». Поток открывается только когда работа
+ * действительно начинается.
+ */
+$accept = isset($_SERVER['HTTP_ACCEPT']) ? (string)$_SERVER['HTTP_ACCEPT'] : '';
+$want_stream = (stripos($accept, 'text/event-stream') !== false)
+            || ((string)$input->fetch_post('stream') === '1');
+
+$emit = $want_stream ? chat_emitter_sse() : chat_emitter_json();
+if ($want_stream) {
+    chat_stream_begin();
+}
+
 $result = chat_run($db, $uid, array(
     'text' => $check['text'],
     'thread' => $thread,
@@ -78,10 +93,36 @@ $result = chat_run($db, $uid, array(
 
 chat_lock_release($db, $uid);
 
+if ($want_stream) {
+    if (empty($result['ok'])) {
+        chat_emit($emit, 'error', array(
+            'code' => $result['code'],
+            'message' => $result['message'],
+            'retryable' => !empty($result['retryable']),
+            'partial' => !empty($result['partial']),
+            'user_message_id' => isset($result['user_message_id']) ? $result['user_message_id'] : 0,
+        ));
+        exit;
+    }
+    $collected = call_user_func($emit['collected']);
+    chat_emit($emit, 'done', array(
+        'reply' => $result['reply'],
+        'tokens' => $result['tokens'],
+        'message_id' => $result['message_id'],
+        'user_message_id' => $result['user_message_id'],
+        'created_at' => $result['created_at'],
+        'thread' => $result['thread'],
+        'stopped' => !empty($result['stopped']),
+        'tool_events' => $collected['tool_events'],
+    ));
+    exit;
+}
+
 if (empty($result['ok'])) {
     shiduh_json($result['http'], array(
         'error' => $result['message'],
         'code' => $result['code'],
+        'retryable' => !empty($result['retryable']),
         // сообщение пользователя уже сохранено — клиент повторит по этому id
         // и не создаст дубль
         'user_message_id' => isset($result['user_message_id']) ? $result['user_message_id'] : 0,

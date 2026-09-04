@@ -42,6 +42,120 @@
   var reduced = window.matchMedia &&
     window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
+  /* MDLITE-START */
+  /*
+   * Разметка ответов модели — близнец api/markdown_lite.php.
+   *
+   * Две реализации обязаны совпадать до символа: серверная рисует историю при
+   * загрузке страницы, эта — реплики, приходящие в живом диалоге. Разойдутся —
+   * и после перезагрузки человек увидит другой текст, чем видел минуту назад.
+   * Совпадение держится общими фикстурами и тестом-фаззером.
+   *
+   * Безопасность построена на порядке: текст экранируется ЦЕЛИКОМ, и только
+   * потом на безопасной строке расставляются теги. Никакого «разрешённого
+   * HTML» нет, поэтому вставить разметку из ответа модели невозможно.
+   */
+  var mdlite = (function () {
+    var LINK_ATTRS = ' rel="noopener noreferrer" target="_blank"';
+
+    function esc(s) {
+      return String(s)
+        .replace(/&/g, '&amp;')      // первым, иначе экранирует свои же замены
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
+    }
+
+    function inline(text) {
+      var s = esc(text);
+
+      // код — первым: внутри него оформление не действует
+      s = s.replace(/`([^`]+)`/gu, function (m, code) { return '<code>' + code + '</code>'; });
+
+      // ссылка [текст](адрес): только http(s), без кавычек и пробелов —
+      // «javascript:» и попытка выйти из атрибута остаются текстом
+      s = s.replace(/\[([^\]]+)\]\((https?:\/\/[^\s()<>"']+)\)/gu, function (m, label, url) {
+        return '<a href="' + url + '"' + LINK_ATTRS + '>' + label + '</a>';
+      });
+
+      // голая ссылка; хвостовая пунктуация в адрес не входит
+      s = s.replace(/(?<!href=")(?<!>)(https?:\/\/[^\s<>"']+)/gu, function (m, url) {
+        var tail = '';
+        while (url && '.,;:!?)»'.indexOf(url.slice(-1)) !== -1) {
+          tail = url.slice(-1) + tail;
+          url = url.slice(0, -1);
+        }
+        if (!url) { return m; }
+        return '<a href="' + url + '"' + LINK_ATTRS + '>' + url + '</a>' + tail;
+      });
+
+      // жирный до курсива: иначе «**текст**» распался бы на две звёздочки
+      s = s.replace(/\*\*(?=\S)([\s\S]+?)(?<=\S)\*\*/gu, '<strong>$1</strong>');
+      // границы слова через \p{L}\p{N}, а не \w: \w — только латиница, и
+      // «имя_поля_анкеты» с кириллицей стало бы курсивом
+      s = s.replace(/(?<![\p{L}\p{N}*])\*(?=\S)([^*]+?)(?<=\S)\*(?![\p{L}\p{N}*])/gu, '<em>$1</em>');
+      s = s.replace(/(?<![\p{L}\p{N}_])_(?=\S)([^_]+?)(?<=\S)_(?![\p{L}\p{N}_])/gu, '<em>$1</em>');
+      return s;
+    }
+
+    function toHtml(text) {
+      var src = String(text == null ? '' : text).replace(/\r\n|\r/g, '\n');
+      if (!src.trim()) { return ''; }
+
+      var out = '', list = null, para = [];
+
+      function closePara() {
+        if (para.length) { out += '<p>' + para.join('<br>') + '</p>'; para = []; }
+      }
+      function closeList() {
+        if (list) { out += '</' + list + '>'; list = null; }
+      }
+
+      src.split('\n').forEach(function (line) {
+        var trimmed = line.trim();
+        if (!trimmed) { closePara(); closeList(); return; }
+
+        var m = /^\s*[-*•]\s+([\s\S]*)$/u.exec(line);
+        if (m) {
+          closePara();
+          if (list !== 'ul') { closeList(); out += '<ul>'; list = 'ul'; }
+          out += '<li>' + inline(m[1]) + '</li>';
+          return;
+        }
+        m = /^\s*\d+[.)]\s+([\s\S]*)$/u.exec(line);
+        if (m) {
+          closePara();
+          if (list !== 'ol') { closeList(); out += '<ol>'; list = 'ol'; }
+          out += '<li>' + inline(m[1]) + '</li>';
+          return;
+        }
+        closeList();
+        para.push(inline(trimmed));
+      });
+
+      closePara();
+      closeList();
+      return out;
+    }
+
+    /* Разбор в узлы, а не innerHTML: строка проходит через уже безопасный
+       toHtml, но собираем через шаблон и переносим детей — так даже случайная
+       ошибка в грамматике не выполнит скрипт. */
+    function render(target, text) {
+      var tpl = document.createElement('template');
+      tpl.innerHTML = toHtml(text);
+      tpl.content.querySelectorAll('script, iframe, object, embed').forEach(function (n) {
+        n.remove();
+      });
+      target.textContent = '';
+      target.appendChild(tpl.content);
+    }
+
+    return { toHtml: toHtml, render: render };
+  })();
+  /* MDLITE-END */
+
   /* ------------------------------------------------------------ утилиты -- */
 
   function atBottom() {
@@ -154,50 +268,225 @@
     stop.hidden = !on;
   }
 
-  function submit(text, retryOf, failedNode) {
-    if (busy) { return; }
-    setBusy(true);
-    typing(true);
-    if (chips) { chips.hidden = true; }
+  /* Умеет ли браузер читать ответ по мере прихода. Если нет — работаем как
+     раньше, одним JSON: чат не должен зависеть от новых возможностей. */
+  var canStream = !!(window.ReadableStream && window.TextDecoder && window.AbortController);
+  var controller = null;
 
+  function requestBody(text, retryOf, streaming) {
     var body = new URLSearchParams({ message: text, thread: String(thread) });
     if (retryOf) { body.set('retry_of', String(retryOf)); }
+    if (streaming) { body.set('stream', '1'); }
+    return body;
+  }
 
+  function finishOk(js, failedNode) {
+    if (failedNode) {
+      failedNode.dataset.state = 'sent';
+      if (js.user_message_id) { failedNode.dataset.id = js.user_message_id; }
+    }
+    renderChips(js.chips);
+    toBottom(true);
+  }
+
+  function fail(js, text, retryOf, failedNode) {
+    if (failedNode) { failedNode.dataset.state = 'failed'; }
+    // Сообщение уже сохранено на сервере — повтор идёт по его id, чтобы не
+    // появилась вторая копия реплики и второй платный вызов.
+    errorBubble((js && js.error) || (js && js.message) ||
+                'Не удалось получить ответ. Попробуйте ещё раз.',
+                { text: text, userMessageId: (js && js.user_message_id) || retryOf, node: failedNode });
+  }
+
+  /* ---- обычный режим: ответ одним куском ---------------------------------- */
+  function submitJson(text, retryOf, failedNode) {
     fetch(cfg.endpoint || '/api/ai_chat.php', {
       method: 'POST',
       credentials: 'same-origin',
-      body: body
+      body: requestBody(text, retryOf, false)
     }).then(function (r) {
       return r.json().then(function (js) { return { status: r.status, js: js }; });
     }).then(function (res) {
       typing(false);
       setBusy(false);
       var js = res.js || {};
-
       if (res.status === 200 && js.reply) {
-        if (failedNode) {
-          failedNode.dataset.state = 'sent';
-          if (js.user_message_id) { failedNode.dataset.id = js.user_message_id; }
-        }
         bubble('assistant', js.reply, { id: js.message_id, created: js.created_at });
-        renderChips(js.chips);
-        toBottom(true);
+        finishOk(js, failedNode);
         return;
       }
-
-      // Сообщение уже сохранено на сервере — предлагаем повтор по его id,
-      // чтобы не появилась вторая копия реплики.
-      if (failedNode) { failedNode.dataset.state = 'failed'; }
-      errorBubble(js.error || 'Не удалось получить ответ. Попробуйте ещё раз.',
-                  { text: text, userMessageId: js.user_message_id || retryOf, node: failedNode });
+      fail(js, text, retryOf, failedNode);
     }).catch(function () {
       typing(false);
       setBusy(false);
-      if (failedNode) { failedNode.dataset.state = 'failed'; }
-      // Честная формулировка: мы не знаем, дошёл ли запрос до сервера.
-      errorBubble('Не удалось связаться с сервисом. Проверьте соединение и повторите.',
-                  { text: text, userMessageId: retryOf, node: failedNode });
+      // Честно: мы не знаем, дошёл ли запрос до сервера.
+      fail({ error: 'Не удалось связаться с сервисом. Проверьте соединение и повторите.' },
+           text, retryOf, failedNode);
     });
+  }
+
+  /* ---- потоковый режим: текст появляется по мере генерации ---------------- */
+  function submitStream(text, retryOf, failedNode) {
+    controller = new AbortController();
+    var streamNode = null;      // пузырь, в который дописывается ответ
+    var streamBody = null;
+    var acc = '';
+    var userMessageId = retryOf || 0;
+    var gotDelta = false;
+    var finished = false;
+
+    function ensureBubble() {
+      if (streamNode) { return; }
+      typing(false);
+      streamNode = bubble('assistant', '', {});
+      streamNode.classList.add('sh-msg--streaming');
+      streamBody = streamNode.querySelector('.sh-msg__body');
+      var cursor = document.createElement('span');
+      cursor.className = 'sh-cursor';
+      cursor.setAttribute('aria-hidden', 'true');
+      streamNode.appendChild(cursor);
+    }
+
+    function handle(name, data) {
+      if (name === 'meta') {
+        userMessageId = data.user_message_id || userMessageId;
+        if (failedNode && data.user_message_id) { failedNode.dataset.id = data.user_message_id; }
+        return;
+      }
+      if (name === 'status') { typing(true, data.text); return; }
+      if (name === 'delta') {
+        gotDelta = true;
+        ensureBubble();
+        acc += data.text;
+        streamBody.textContent = acc;
+        toBottom();
+        return;
+      }
+      if (name === 'reset') {
+        // Модель написала черновик и попросила инструмент: показанное надо
+        // стереть, окончательным ответом станет следующий текст.
+        acc = '';
+        if (streamBody) { streamBody.textContent = ''; }
+        return;
+      }
+      if (name === 'done') {
+        finished = true;
+        ensureBubble();
+        streamNode.classList.remove('sh-msg--streaming');
+        var cur = streamNode.querySelector('.sh-cursor');
+        if (cur) { cur.remove(); }
+        streamBody.textContent = data.reply;      // итог — источник истины
+        streamNode.dataset.id = data.message_id;
+        if (data.created_at) { streamNode.dataset.created = data.created_at; }
+        if (data.stopped) { streamNode.dataset.stopped = '1'; }
+        typing(false);
+        setBusy(false);
+        finishOk(data, failedNode);
+        return;
+      }
+      if (name === 'error') {
+        finished = true;
+        typing(false);
+        setBusy(false);
+        if (streamNode) {
+          // частичный текст оставляем на экране: человек его уже прочитал
+          streamNode.classList.remove('sh-msg--streaming');
+          var c2 = streamNode.querySelector('.sh-cursor');
+          if (c2) { c2.remove(); }
+        }
+        fail(data, text, userMessageId, failedNode);
+      }
+    }
+
+    fetch(cfg.endpoint || '/api/ai_chat.php', {
+      method: 'POST',
+      credentials: 'same-origin',
+      headers: { 'Accept': 'text/event-stream' },
+      body: requestBody(text, retryOf, true),
+      signal: controller.signal
+    }).then(function (r) {
+      var ctype = r.headers.get('Content-Type') || '';
+      // Не поток: это либо отказ с настоящим кодом (слишком длинно, лимит),
+      // либо прокси срезал потоковую выдачу — разбираем как обычный JSON.
+      if (ctype.indexOf('text/event-stream') === -1) {
+        return r.json().then(function (js) {
+          typing(false);
+          setBusy(false);
+          if (r.status === 200 && js.reply) {
+            bubble('assistant', js.reply, { id: js.message_id, created: js.created_at });
+            finishOk(js, failedNode);
+          } else {
+            fail(js, text, retryOf, failedNode);
+          }
+        });
+      }
+
+      var reader = r.body.getReader();
+      var decoder = new TextDecoder('utf-8');
+      var buf = '';
+
+      function pump() {
+        return reader.read().then(function (res) {
+          if (res.done) {
+            if (!finished) {
+              typing(false);
+              setBusy(false);
+              // Поток оборвался молча. Если текста ещё не было — пробуем ещё
+              // раз обычным запросом (по id, без дубля); если текст уже шёл —
+              // повтор дал бы другую версию той же реплики, поэтому просто
+              // сообщаем.
+              if (!gotDelta) {
+                submitJson(text, userMessageId, failedNode);
+              } else {
+                fail({ error: 'Ответ оборвался. Попробуйте ещё раз.' },
+                     text, userMessageId, failedNode);
+              }
+            }
+            return;
+          }
+          buf += decoder.decode(res.value, { stream: true });
+          var parts = buf.split('\n\n');
+          buf = parts.pop();
+          parts.forEach(function (block) {
+            var name = 'message';
+            var data = [];
+            block.split('\n').forEach(function (line) {
+              if (line.charAt(0) === ':') { return; }          // служебная строка
+              if (line.indexOf('event:') === 0) { name = line.slice(6).trim(); return; }
+              if (line.indexOf('data:') === 0) { data.push(line.slice(5).trim()); }
+            });
+            if (!data.length) { return; }
+            try {
+              handle(name, JSON.parse(data.join('\n')));
+            } catch (e) { /* нераспознанный кусок пропускаем */ }
+          });
+          return pump();
+        });
+      }
+      return pump();
+    }).catch(function (e) {
+      if (e && e.name === 'AbortError') { return; }             // «Остановить»
+      typing(false);
+      setBusy(false);
+      if (!gotDelta) {
+        submitJson(text, userMessageId, failedNode);             // тихий фолбэк
+      } else {
+        fail({ error: 'Связь прервалась. Попробуйте ещё раз.' },
+             text, userMessageId, failedNode);
+      }
+    });
+  }
+
+  function submit(text, retryOf, failedNode) {
+    if (busy) { return; }
+    setBusy(true);
+    typing(true);
+    if (chips) { chips.hidden = true; }
+    if (canStream) {
+      submitStream(text, retryOf, failedNode);
+    } else {
+      submitJson(text, retryOf, failedNode);
+    }
   }
 
   form.addEventListener('submit', function (e) {
@@ -241,11 +530,78 @@
   input.addEventListener('input', function () { autosize(); updateCount(); });
 
   stop.addEventListener('click', function () {
-    // Полноценная остановка генерации появится вместе с потоковой выдачей;
-    // сейчас просто возвращаем управление.
+    // Обрываем соединение: сервер видит это и сохраняет уже показанный текст
+    // с пометкой «остановлено», а не теряет его и не досказывает за деньги.
+    if (controller) {
+      try { controller.abort(); } catch (e) { /* уже завершено */ }
+    }
     typing(false);
     setBusy(false);
+    var streaming = log.querySelector('.sh-msg--streaming');
+    if (!streaming) { return; }
+    streaming.classList.remove('sh-msg--streaming');
+    var cur = streaming.querySelector('.sh-cursor');
+    if (cur) { cur.remove(); }
+
+    markStopped(streaming);
+    reconcileAfterStop(streaming);
   });
+
+  /*
+   * Сверка с сервером после остановки.
+   *
+   * Обрыв соединения PHP замечает не сразу: мелкие записи умещаются в буфер
+   * сокета, и модель обычно успевает договорить. Тогда сервер сохраняет
+   * ПОЛНЫЙ ответ — за него уже заплачено, и показывать вместо него обрывок
+   * неправильно: после перезагрузки человек увидел бы другой текст.
+   *
+   * Ответ появляется в базе не мгновенно, поэтому спрашиваем несколько раз с
+   * нарастающей паузой. Не нашли — оставляем пометку «остановлено».
+   */
+  function reconcileAfterStop(node) {
+    var afterId = lastUserMessageId();
+    if (!afterId) { return; }
+    var delays = [600, 1800, 4000, 8000];
+    var attempt = 0;
+
+    function ask() {
+      fetch((cfg.history || '/api/ai_history.php') + '?thread=' + thread + '&after_id=' + afterId,
+            { credentials: 'same-origin' })
+        .then(function (r) { return r.json(); })
+        .then(function (js) {
+          var answer = (js.messages || []).filter(function (m) { return m.role === 'assistant'; })[0];
+          if (!answer) {
+            if (attempt < delays.length) { setTimeout(ask, delays[attempt++]); }
+            return;
+          }
+          node.querySelector('.sh-msg__body').textContent = answer.content;
+          node.dataset.id = answer.id;
+          if (answer.created_at) { node.dataset.created = answer.created_at; }
+          if (!answer.stopped) {
+            // модель всё же договорила — пометка «остановлено» неуместна
+            node.removeAttribute('data-stopped');
+            var mark = node.querySelector('.sh-msg__stopped');
+            if (mark) { mark.remove(); }
+          }
+        })
+        .catch(function () { /* оставляем как есть */ });
+    }
+    setTimeout(ask, delays[attempt++]);
+  }
+
+  function markStopped(node) {
+    node.dataset.stopped = '1';
+    if (node.querySelector('.sh-msg__stopped')) { return; }
+    var note = document.createElement('footer');
+    note.className = 'sh-msg__meta sh-msg__stopped';
+    note.textContent = 'остановлено';
+    node.appendChild(note);
+  }
+
+  function lastUserMessageId() {
+    var mine = log.querySelectorAll('.sh-msg--me[data-id]');
+    return mine.length ? mine[mine.length - 1].dataset.id : 0;
+  }
 
   /* -------------------------------------------------------- быстрые ответы */
 

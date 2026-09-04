@@ -22,6 +22,7 @@
   always_500      — всегда 500 (отказ после ретраев)
   bad_request     — 400 с «утечкой» ключа и внутреннего URL в тексте
   no_total_tokens — usage без total_tokens (только слагаемые)
+  stream_error_mid— поток обрывается ошибкой на середине (break_after)
   tool_call       — первый вызов возвращает tool_calls (из tool_args),
                     последующие — обычный текст (двухфазный конвейер Э1.3)
 
@@ -48,6 +49,90 @@ FAKE_BASE = "http://127.0.0.1:%d" % FAKE_PORT
 FAKE_LLM = r"""<?php
 /* Фейковый LLM: роутер встроенного сервера PHP, принимает любой путь. */
 header('Content-Type: application/json; charset=utf-8');
+
+/*
+ * Единый выход роутера. Обычный запрос получает JSON как раньше; запрос с
+ * stream:true — поток SSE в формате OpenAI, чтобы клиент разбирал настоящий,
+ * а не упрощённый ответ.
+ */
+function fake_emit($content, $usage, $tool_calls, $raw, $s) {
+    if (empty($raw['stream'])) {
+        $msg = array('role' => 'assistant', 'content' => $content);
+        if ($tool_calls) { $msg['tool_calls'] = $tool_calls; }
+        echo json_encode(array(
+            'choices' => array(array('message' => $msg)),
+            'usage' => $usage,
+        ), JSON_UNESCAPED_UNICODE);
+        exit;
+    }
+
+    header('Content-Type: text/event-stream; charset=utf-8');
+    header('Cache-Control: no-cache, no-transform');
+    header('X-Accel-Buffering: no');
+    while (ob_get_level() > 0) { ob_end_clean(); }
+
+    $delay = isset($s['chunk_delay_ms']) ? ((int)$s['chunk_delay_ms']) * 1000 : 20000;
+    $put = function ($obj) {
+        echo 'data: ' . json_encode($obj, JSON_UNESCAPED_UNICODE) . "\n\n";
+        flush();
+    };
+
+    // первый чанк — только роль, как это делает настоящий шлюз
+    $put(array('choices' => array(array('index' => 0,
+        'delta' => array('role' => 'assistant', 'content' => ''), 'finish_reason' => null))));
+
+    if ($tool_calls) {
+        foreach ($tool_calls as $i => $call) {
+            $put(array('choices' => array(array('index' => 0, 'delta' => array(
+                'tool_calls' => array(array(
+                    'index' => $i,
+                    'id' => isset($call['id']) ? $call['id'] : ('call_' . $i),
+                    'type' => 'function',
+                    'function' => array('name' => $call['function']['name'], 'arguments' => ''),
+                )),
+            ), 'finish_reason' => null))));
+            // аргументы приходят кусками — парсер обязан их склеивать
+            $args = (string)$call['function']['arguments'];
+            foreach (str_split($args, max(1, (int)ceil(strlen($args) / 2))) as $piece) {
+                usleep($delay);
+                $put(array('choices' => array(array('index' => 0, 'delta' => array(
+                    'tool_calls' => array(array('index' => $i, 'function' => array('arguments' => $piece))),
+                ), 'finish_reason' => null))));
+            }
+        }
+        $put(array('choices' => array(array('index' => 0, 'delta' => new stdClass(),
+            'finish_reason' => 'tool_calls'))));
+    } else {
+        $words = preg_split('/(?<=\s)/u', $content);
+        $chunk = '';
+        $out = array();
+        foreach ($words as $w) {
+            $chunk .= $w;
+            if (mb_strlen($chunk, 'UTF-8') >= 12) { $out[] = $chunk; $chunk = ''; }
+        }
+        if ($chunk !== '') { $out[] = $chunk; }
+        if (!$out) { $out = array($content); }
+
+        foreach ($out as $n => $piece) {
+            usleep($delay);
+            if (!empty($s['break_after']) && $n >= (int)$s['break_after']) {
+                // обрыв посреди выдачи: ошибка приходит в самом потоке
+                $put(array('error' => array('message' => 'boom mid-stream')));
+                exit;
+            }
+            $put(array('choices' => array(array('index' => 0,
+                'delta' => array('content' => $piece), 'finish_reason' => null))));
+        }
+        $put(array('choices' => array(array('index' => 0, 'delta' => new stdClass(),
+            'finish_reason' => 'stop'))));
+    }
+
+    $put(array('choices' => array(), 'usage' => $usage));
+    echo "data: [DONE]\n\n";
+    flush();
+    exit;
+}
+
 $state = sys_get_temp_dir() . '/fake_llm_state.json';
 $s = @json_decode(@file_get_contents($state), true);
 if (!is_array($s)) { $s = array('mode' => 'ok', 'calls' => 0, 'fail_first' => 0); }
@@ -108,6 +193,11 @@ if ($mode === 'no_total_tokens') {
 }
 
 $raw = json_decode(file_get_contents('php://input'), true);
+if (!empty($s['pre_delay_ms']) && !empty($raw['stream'])) {
+    // долгое молчание до первого куска: так проверяются служебные
+    // строки, которыми поток удерживает соединение
+    usleep(((int)$s['pre_delay_ms']) * 1000);
+}
 $last = '';
 $system = '';
 $tool_seen = '';
@@ -124,34 +214,22 @@ if (isset($raw['messages']) && is_array($raw['messages'])) {
    результату инструмента — продолжает диалог обычным текстом. */
 if ($mode === 'tool_call') {
     if ($s['calls'] === 1) {
-        echo json_encode(array(
-            'choices' => array(array('message' => array(
-                'role' => 'assistant',
-                'content' => null,
-                'tool_calls' => array(array(
-                    'id' => 'call_1',
-                    'type' => 'function',
-                    'function' => array(
-                        'name' => 'update_profile_fields',
-                        'arguments' => json_encode(
-                            isset($s['tool_args']) ? $s['tool_args'] : array(),
-                            JSON_UNESCAPED_UNICODE
-                        ),
+        fake_emit('', array('prompt_tokens' => 11, 'completion_tokens' => 7, 'total_tokens' => 18),
+            array(array(
+                'id' => 'call_1',
+                'type' => 'function',
+                'function' => array(
+                    'name' => 'update_profile_fields',
+                    'arguments' => json_encode(
+                        isset($s['tool_args']) ? $s['tool_args'] : array(),
+                        JSON_UNESCAPED_UNICODE
                     ),
-                )),
-            ))),
-            'usage' => array('prompt_tokens' => 11, 'completion_tokens' => 7, 'total_tokens' => 18),
-        ), JSON_UNESCAPED_UNICODE);
-        exit;
+                ),
+            )), $raw, $s);
     }
-    echo json_encode(array(
-        'choices' => array(array('message' => array(
-            'role' => 'assistant',
-            'content' => 'ЗАПИСАНО. Результат инструмента: ' . $tool_seen,
-        ))),
-        'usage' => array('prompt_tokens' => 12, 'completion_tokens' => 8, 'total_tokens' => 20),
-    ), JSON_UNESCAPED_UNICODE);
-    exit;
+    fake_emit('ЗАПИСАНО. Результат инструмента: ' . $tool_seen,
+        array('prompt_tokens' => 12, 'completion_tokens' => 8, 'total_tokens' => 20),
+        array(), $raw, $s);
 }
 
 if ($mode === 'case_flow') {
@@ -210,36 +288,24 @@ if ($mode === 'case_flow') {
 }
 
 if ($mode === 'risk_tool') {
-    /* X-3: модель поднимает сигнал внимания инструментом, затем обычная реплика. */
+    /* X-3: модель поднимает сигнал внимания инструментом, потом договаривает. */
     if ($s['calls'] === 1) {
-        echo json_encode(array(
-            'choices' => array(array('message' => array(
-                'role' => 'assistant',
-                'content' => null,
-                'tool_calls' => array(array(
-                    'id' => 'risk_1',
-                    'type' => 'function',
-                    'function' => array(
-                        'name' => 'report_safety_concern',
-                        'arguments' => json_encode(
-                            isset($s['tool_args']) ? $s['tool_args'] : array(),
-                            JSON_UNESCAPED_UNICODE
-                        ),
+        fake_emit('', array('prompt_tokens' => 8, 'completion_tokens' => 4, 'total_tokens' => 12),
+            array(array(
+                'id' => 'risk_1',
+                'type' => 'function',
+                'function' => array(
+                    'name' => 'report_safety_concern',
+                    'arguments' => json_encode(
+                        isset($s['tool_args']) ? $s['tool_args'] : array('kind' => 'distress'),
+                        JSON_UNESCAPED_UNICODE
                     ),
-                )),
-            ))),
-            'usage' => array('prompt_tokens' => 8, 'completion_tokens' => 4, 'total_tokens' => 12),
-        ), JSON_UNESCAPED_UNICODE);
-        exit;
+                ),
+            )), $raw, $s);
     }
-    echo json_encode(array(
-        'choices' => array(array('message' => array(
-            'role' => 'assistant',
-            'content' => 'Понимаю вас. Расскажите, что для вас важно в семье?',
-        ))),
-        'usage' => array('prompt_tokens' => 6, 'completion_tokens' => 6, 'total_tokens' => 12),
-    ), JSON_UNESCAPED_UNICODE);
-    exit;
+    fake_emit('Понимаю вас. Расскажите, что для вас сейчас важнее всего.',
+        array('prompt_tokens' => 6, 'completion_tokens' => 6, 'total_tokens' => 12),
+        array(), $raw, $s);
 }
 
 if ($mode === 'tool_call_always') {
@@ -341,13 +407,9 @@ if ($mode === 'echo_tools') {
 }
 
 if ($mode === 'echo_system') { $last = $system; }
-echo json_encode(array(
-    'choices' => array(array('message' => array(
-        'role' => 'assistant',
-        'content' => 'ФЕЙК-ОТВЕТ на: ' . $last,
-    ))),
-    'usage' => array('prompt_tokens' => 11, 'completion_tokens' => 7, 'total_tokens' => 18),
-), JSON_UNESCAPED_UNICODE);
+fake_emit('ФЕЙК-ОТВЕТ на: ' . $last,
+    array('prompt_tokens' => 11, 'completion_tokens' => 7, 'total_tokens' => 18),
+    array(), $raw, $s);
 """
 
 
@@ -366,7 +428,8 @@ def web(*args):
                           encoding="utf-8", errors="replace", timeout=60)
 
 
-def set_fake_mode(mode, fail_first=0, tool_args=None, classify=None, multi=None, delay_ms=0):
+def set_fake_mode(mode, fail_first=0, tool_args=None, classify=None, multi=None,
+                  delay_ms=0, chunk_delay_ms=0, pre_delay_ms=0, break_after=0):
     # chmod 0666: файл пишет и CLI-PHP (root), и веб-сервер (www-data) —
     # без этого счётчик попыток не увеличивается и ретраи не проверить
     state = {"mode": mode, "calls": 0, "fail_first": fail_first}
@@ -380,6 +443,12 @@ def set_fake_mode(mode, fail_first=0, tool_args=None, classify=None, multi=None,
         # Пауза перед ответом: так тест видит поведение, пока запрос ещё
         # в работе (замок на параллельную отправку, индикатор ожидания).
         state["delay_ms"] = int(delay_ms)
+    if chunk_delay_ms:
+        state["chunk_delay_ms"] = int(chunk_delay_ms)   # пауза между кусками потока
+    if pre_delay_ms:
+        state["pre_delay_ms"] = int(pre_delay_ms)       # молчание до первого куска
+    if break_after:
+        state["break_after"] = int(break_after)         # обрыв потока ошибкой
     payload = base64.b64encode(
         json.dumps(state, ensure_ascii=False).encode("utf-8")).decode("ascii")
     web("php", "-r",
@@ -417,6 +486,72 @@ def use_fake_provider(rate_limit=1000, burst=1000):
     # chat_history_test, где он выставляется намеренно.
     setting("burst_per_minute", burst)
 
+
+
+def sse_post(path, sid, fields, timeout=120, abort_after=None, origin=None, csrf=True):
+    """POST с Accept: text/event-stream. Читает ответ ПО МЕРЕ ПРИХОДА и
+    возвращает (код, тип содержимого, события).
+
+    События — список (время_от_старта, имя, данные). Служебные строки
+    (комментарии SSE, которыми поток удерживает соединение) приходят как
+    имя 'comment'. abort_after=N — закрыть соединение после N кусков текста,
+    так проверяется поведение при нажатии «Остановить».
+    """
+    body = urllib.parse.urlencode(fields).encode()
+    req = urllib.request.Request(BASE + path, data=body, method="POST")
+    if sid:
+        req.add_header("Cookie", "PHP_AUTH_SID=%s; PHP_AUTH_LANG=Russian" % sid)
+    req.add_header("Accept", "text/event-stream")
+    browser_headers(req, sid, origin, csrf)
+
+    started = time.time()
+    events = []
+    try:
+        r = urllib.request.urlopen(req, timeout=timeout)
+    except urllib.error.HTTPError as e:
+        raw = e.read().decode("utf-8", "replace")
+        try:
+            return e.code, e.headers.get("Content-Type", ""), [(0.0, "json", json.loads(raw))]
+        except ValueError:
+            return e.code, e.headers.get("Content-Type", ""), [(0.0, "raw", raw)]
+
+    ctype = r.headers.get("Content-Type", "")
+    if "text/event-stream" not in ctype:
+        raw = r.read().decode("utf-8", "replace")
+        try:
+            return r.status, ctype, [(0.0, "json", json.loads(raw))]
+        except ValueError:
+            return r.status, ctype, [(0.0, "raw", raw)]
+
+    name, data, deltas = None, [], 0
+    try:
+        for line in r:
+            line = line.decode("utf-8", "replace").rstrip("\r\n")
+            if line.startswith(":"):
+                events.append((time.time() - started, "comment", line[1:].strip()))
+                continue
+            if line.startswith("event:"):
+                name = line[6:].strip()
+                continue
+            if line.startswith("data:"):
+                data.append(line[5:].strip())
+                continue
+            if line == "" and data:
+                payload = "\n".join(data)
+                try:
+                    payload = json.loads(payload)
+                except ValueError:
+                    pass
+                events.append((time.time() - started, name or "message", payload))
+                if name == "delta":
+                    deltas += 1
+                    if abort_after and deltas >= abort_after:
+                        r.close()
+                        break
+                name, data = None, []
+    except Exception:
+        pass          # обрыв соединения — штатная часть проверок
+    return r.status, ctype, events
 
 def start_fake_server():
     """Кладёт роутер в /tmp контейнера и поднимает встроенный сервер PHP."""
