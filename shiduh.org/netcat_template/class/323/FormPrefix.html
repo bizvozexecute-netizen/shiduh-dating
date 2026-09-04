@@ -12,7 +12,7 @@ $nc_uid = (int)$current_user['User_ID'];
 if (!$nc_uid) {
     // Самозащита компонента: макет ЛК и так редиректит гостей, но если это
     // когда-нибудь регрессирует — не показываем общий бакет user_id=0.
-    echo '<p style="text-align:center;color:#756d65;padding:30px">Войдите, чтобы открыть ИИ-консультанта.</p>';
+    echo '<p class="ai-page__guest">Войдите, чтобы открыть ИИ-консультанта.</p>';
     return;
 }
 // История: печатаем ХВОСТ переписки, а не всю. Раньше запрос шёл без
@@ -61,80 +61,21 @@ $nc_is_placeholder = (bool)$nc_core->db->get_var(
    консультанта расползались по ячейкам: рекомендации уезжали в колонку сайдбара,
    чат сжимался, опрос растягивался по высоте строки. Оборачиваем всё в один
    элемент — он и есть единственная ячейка контента. */ ?>
-<div class="ai-page" style="min-width:0">
+<div class="ai-page">
 <?php if ($nc_is_placeholder): ?>
-<section class="ai-claim" id="aiClaim" style="max-width:760px;margin:0 auto 14px;background:#fff;border:1px solid #e3ddd2;border-radius:14px;padding:16px 18px">
-  <div style="font-size:15px;font-weight:500;color:#3a2b2b;margin-bottom:4px">Закрепите аккаунт за собой</div>
-  <div style="font-size:13px;color:#756d65;margin-bottom:12px">Задайте свой email и пароль, чтобы возвращаться к анкете без ссылки. Это не обязательно — можно просто продолжить заполнение.</div>
-  <form id="aiClaimForm" autocomplete="off" style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
-    <input type="email" id="aiClaimEmail" placeholder="Ваш email" required style="flex:1;min-width:180px;border:1px solid #e3ddd2;background:#f5f2ec;border-radius:11px;padding:10px 12px;font:inherit;font-size:14px;color:#3a2b2b">
-    <input type="password" id="aiClaimPass" placeholder="Пароль (от 6 символов)" required minlength="6" style="flex:1;min-width:180px;border:1px solid #e3ddd2;background:#f5f2ec;border-radius:11px;padding:10px 12px;font:inherit;font-size:14px;color:#3a2b2b">
-    <button type="submit" style="flex:none;border:0;border-radius:11px;padding:10px 16px;font:inherit;font-size:14px;font-weight:500;background:#c8ae88;color:#262839;cursor:pointer">Закрепить</button>
+<section class="ai-claim" id="aiClaim">
+  <div class="ai-claim__h">Закрепите аккаунт за собой</div>
+  <div class="ai-claim__sub">Задайте свой email и пароль, чтобы возвращаться к анкете без ссылки. Это не обязательно — можно просто продолжить заполнение.</div>
+  <form id="aiClaimForm" class="ai-claim__form" autocomplete="off">
+    <input type="email" id="aiClaimEmail" class="ai-claim__input" placeholder="Ваш email" required autocomplete="email">
+    <input type="password" id="aiClaimPass" class="ai-claim__input" placeholder="Пароль (от 6 символов)" required minlength="6" autocomplete="new-password">
+    <button type="submit" class="button button--sm">Закрепить</button>
   </form>
-  <div id="aiClaimMsg" style="font-size:12.5px;margin-top:8px"></div>
-</section>
-<script>
-(function(){
-  var form = document.getElementById('aiClaimForm');
-  var msg = document.getElementById('aiClaimMsg');
-  var box = document.getElementById('aiClaim');
-  form.addEventListener('submit', function(e){
-    e.preventDefault();
-    msg.style.color = '#7e6440'; msg.textContent = 'Сохраняем…';
-    var body = new URLSearchParams();
-    body.append('email', document.getElementById('aiClaimEmail').value);
-    body.append('password', document.getElementById('aiClaimPass').value);
-    fetch('/api/invite_claim.php', { method:'POST', body: body, credentials:'same-origin' })
-      .then(function(r){ return r.json().then(function(j){ return { ok:r.ok, js:j }; }); })
-      .then(function(res){
-        if (res.ok && res.js && res.js.ok) {
-          box.innerHTML = '<div style="font-size:14px;color:#3a2b2b">Готово! Аккаунт закреплён — теперь можно входить по вашему email и паролю.</div>';
-        } else {
-          msg.style.color = '#c0392b';
-          msg.textContent = (res.js && res.js.error) ? res.js.error : 'Не удалось сохранить.';
-        }
-      })
-      .catch(function(){ msg.style.color = '#c0392b'; msg.textContent = 'Сервис временно недоступен.'; });
-  });
-})();
-</script>
-<?php endif; ?>
-
-<?php if ($nc_survey['total'] > 0): ?>
-<section class="ai-survey" id="aiSurvey"
-         data-answered="<?= (int)$nc_survey['answered'] ?>"
-         data-total="<?= (int)$nc_survey['total'] ?>"
-         <?php /* повтор опроса — осознанный: клиент передаст restart=1, и
-            сервер заведёт новую версию; без него повторный ответ на уже
-            отвеченный сценарий считается устаревшей вкладкой */ ?>
-         <?= $nc_retake ? 'data-restart="1"' : '' ?>>
-  <?php if ($nc_survey['next']): ?>
-    <h2 class="ai-survey__h">Ценностный опрос</h2>
-    <p class="ai-survey__sub" id="aiSurveyProgress">Отвечено <?= (int)$nc_survey['answered'] ?> из <?= (int)$nc_survey['total'] ?></p>
-    <div class="ai-survey__progress"><i id="aiSurveyBar" style="width:<?= (int)round($nc_survey['answered'] * 100 / max(1, $nc_survey['total'])) ?>%"></i></div>
-    <p class="ai-survey__q" id="aiSurveyQ"><?= htmlspecialchars($nc_survey['next']['scenario_text'], ENT_QUOTES, 'UTF-8') ?></p>
-    <textarea class="ai-survey__input" id="aiSurveyAnswer" placeholder="Ответьте своими словами"></textarea>
-    <button type="button" class="ai-survey__btn" id="aiSurveySend"
-            data-case="<?= (int)$nc_survey['next']['id'] ?>">Ответить</button>
-    <div class="ai-survey__msg" id="aiSurveyMsg" role="status"></div>
-  <?php else: ?>
-    <h2 class="ai-survey__h">Опрос пройден</h2>
-    <p class="ai-survey__sub">Спасибо! Ответы учтены — шадхану виден ваш ценностный портрет.</p>
-    <?php if ($nc_my_profile): ?>
-      <?php /* Кандидату показываем проценты, но НЕ текст психотипа: он пишется
-         для шадхана и обращён к нему, а не к самому человеку. */ ?>
-      <?= profile_bars_html($nc_my_profile, 'love_language', 'ai-survey') ?>
-      <?php /* X-4: та же оговорка, что и у шадхана — человек не должен
-         прочитать свои проценты как диагноз. */ ?>
-      <p style="font-size:12.5px;line-height:1.6;color:#8a6d1a;margin:12px 0 0"><?= htmlspecialchars(profile_disclaimer(), ENT_QUOTES, 'UTF-8') ?></p>
-    <?php endif; ?>
-    <button type="button" class="ai-survey__btn ai-survey__btn--ghost" id="aiSurveyRetake">Пройти заново</button>
-    <div class="ai-survey__msg" id="aiSurveyMsg" role="status"></div>
-  <?php endif; ?>
+  <div id="aiClaimMsg" class="ai-claim__msg" role="status"></div>
 </section>
 <?php endif; ?>
 
-
+<div class="ai-page__main">
 <section class="sh-chat" id="shChat"
          data-thread="<?= (int)$nc_thread ?>"
          data-has-more="<?= $nc_has_more ? '1' : '0' ?>"
@@ -168,6 +109,16 @@ $nc_is_placeholder = (bool)$nc_core->db->get_var(
       <?php endif; ?>
     </div>
   </header>
+  <?php /* A6: письмо живого шадхана лежит в другом разделе, а человек сидит
+     здесь. Счётчик тот же, что в меню кабинета, — и тот же потому, что ядро
+     мемоизирует первый вызов nc_auth_messages_new() без учёта аргументов
+     (сайдбар зовёт её раньше с теми же умолчаниями). Считаются все личные
+     сообщения, включая письма администратора, поэтому без «от шадхана». */ ?>
+  <?php $nc_unread = (int)nc_auth_messages_new(); if ($nc_unread > 0): ?>
+  <a class="sh-chat__unread" href="/my/message/">
+    У вас <?= $nc_unread ?> <?= num2word($nc_unread, array('новое сообщение', 'новых сообщения', 'новых сообщений')) ?> — прочитать
+  </a>
+  <?php endif; ?>
 
   <?php /* X-3: прозрачность. Консультант может отметить шадхану, что стоит
      обратить внимание, — человек должен знать об этом заранее, а не узнать
@@ -241,9 +192,45 @@ $nc_is_placeholder = (bool)$nc_core->db->get_var(
   </form>
   <?php endif; ?>
 </section>
+</div>
 
-<?php /* Блок стоит ПОД чатом намеренно: выше он попадал в поле зрения при
-   каждом открытии страницы, и ленивая загрузка не экономила ничего. */ ?>
+<?php /* Правая колонка на широких экранах, ниже чата — на узких: чат первым,
+   потому что ради него человек и пришёл. */ ?>
+<aside class="ai-page__side">
+<?php if ($nc_survey['total'] > 0): ?>
+<section class="ai-survey" id="aiSurvey"
+         data-answered="<?= (int)$nc_survey['answered'] ?>"
+         data-total="<?= (int)$nc_survey['total'] ?>"
+         <?php /* повтор опроса — осознанный: клиент передаст restart=1, и
+            сервер заведёт новую версию; без него повторный ответ на уже
+            отвеченный сценарий считается устаревшей вкладкой */ ?>
+         <?= $nc_retake ? 'data-restart="1"' : '' ?>>
+  <?php if ($nc_survey['next']): ?>
+    <h2 class="ai-survey__h">Ценностный опрос</h2>
+    <p class="ai-survey__sub" id="aiSurveyProgress">Отвечено <?= (int)$nc_survey['answered'] ?> из <?= (int)$nc_survey['total'] ?></p>
+    <div class="ai-survey__progress"><i id="aiSurveyBar" style="width:<?= (int)round($nc_survey['answered'] * 100 / max(1, $nc_survey['total'])) ?>%"></i></div>
+    <p class="ai-survey__q" id="aiSurveyQ"><?= htmlspecialchars($nc_survey['next']['scenario_text'], ENT_QUOTES, 'UTF-8') ?></p>
+    <textarea class="ai-survey__input" id="aiSurveyAnswer" placeholder="Ответьте своими словами"></textarea>
+    <button type="button" class="ai-survey__btn" id="aiSurveySend"
+            data-case="<?= (int)$nc_survey['next']['id'] ?>">Ответить</button>
+    <div class="ai-survey__msg" id="aiSurveyMsg" role="status"></div>
+  <?php else: ?>
+    <h2 class="ai-survey__h">Опрос пройден</h2>
+    <p class="ai-survey__sub">Спасибо! Ответы учтены — шадхану виден ваш ценностный портрет.</p>
+    <?php if ($nc_my_profile): ?>
+      <?php /* Кандидату показываем проценты, но НЕ текст психотипа: он пишется
+         для шадхана и обращён к нему, а не к самому человеку. */ ?>
+      <?= profile_bars_html($nc_my_profile, 'love_language', 'ai-survey') ?>
+      <?php /* X-4: та же оговорка, что и у шадхана — человек не должен
+         прочитать свои проценты как диагноз. */ ?>
+      <p class="ai-survey__note"><?= htmlspecialchars(profile_disclaimer(), ENT_QUOTES, 'UTF-8') ?></p>
+    <?php endif; ?>
+    <button type="button" class="ai-survey__btn ai-survey__btn--ghost" id="aiSurveyRetake">Пройти заново</button>
+    <div class="ai-survey__msg" id="aiSurveyMsg" role="status"></div>
+  <?php endif; ?>
+</section>
+<?php endif; ?>
+
 <?php
 /* Э3.4 / B8. Рекомендованные пары — кандидат видит СВОИ пары тем же
    движком match_list, но ОБЕЗЛИЧЕННО (возраст, город, совпадение; без
@@ -268,6 +255,7 @@ $nc_mine_has_anketa = (bool)$nc_core->db->get_var(
   </div>
 </section>
 <?php endif; ?>
+</aside>
 
 <script>
   /* Настройки для js/chat.js: разметку печатает PHP, поведение живёт в

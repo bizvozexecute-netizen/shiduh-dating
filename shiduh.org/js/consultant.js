@@ -127,6 +127,51 @@
     }
   }
 
+  /* ------------------------------------------------ закрепить аккаунт -- */
+
+  /* Приглашённый кандидат заходит в аккаунт-заготовку (вход только по
+     ссылке). Форма задаёт ему свой email и пароль (XI-4). */
+  var claimForm = document.getElementById('aiClaimForm');
+  if (claimForm) {
+    var claimMsg = document.getElementById('aiClaimMsg');
+    var claimBox = document.getElementById('aiClaim');
+    var claimBtn = claimForm.querySelector('button[type="submit"]');
+    claimForm.addEventListener('submit', function (e) {
+      e.preventDefault();
+      if (claimBtn && claimBtn.disabled) { return; }      // двойной клик — один запрос
+      if (claimBtn) { claimBtn.disabled = true; }
+      claimMsg.classList.remove('is-err');
+      claimMsg.textContent = 'Сохраняем…';
+      var body = new URLSearchParams();
+      body.append('email', document.getElementById('aiClaimEmail').value);
+      body.append('password', document.getElementById('aiClaimPass').value);
+      fetch('/api/invite_claim.php', { method: 'POST', body: body, credentials: 'same-origin' })
+        .then(function (r) { return r.json().then(function (j) { return { ok: r.ok, js: j }; }); })
+        .then(function (res) {
+          if (res.ok && res.js && res.js.ok) {
+            // Успех пишем в тот же live-region, что и ошибки: экранная читалка
+            // объявит его. Форму и приглашение прячем, а не сносим блок —
+            // иначе фокус с кнопки падал бы на body.
+            claimForm.hidden = true;
+            claimBox.querySelectorAll('.ai-claim__h, .ai-claim__sub').forEach(function (el) { el.hidden = true; });
+            claimMsg.className = 'ai-claim__msg ai-claim__done';
+            claimMsg.textContent = 'Готово! Аккаунт закреплён — теперь можно входить по вашему email и паролю.';
+            claimMsg.setAttribute('tabindex', '-1');
+            claimMsg.focus();
+          } else {
+            if (claimBtn) { claimBtn.disabled = false; }
+            claimMsg.classList.add('is-err');
+            claimMsg.textContent = (res.js && res.js.error) ? res.js.error : 'Не удалось сохранить.';
+          }
+        })
+        .catch(function () {
+          if (claimBtn) { claimBtn.disabled = false; }
+          claimMsg.classList.add('is-err');
+          claimMsg.textContent = 'Сервис временно недоступен.';
+        });
+    });
+  }
+
   /* ---------------------------------------------------------- мои пары -- */
 
   var mine = document.getElementById('lkMine');

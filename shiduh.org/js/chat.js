@@ -548,6 +548,9 @@
 
   function autosize() {
     if (!input) { return; }
+    // Пустое поле — базовая высота: на узком экране обёрнутый плейсхолдер
+    // попадает в scrollHeight, и поле раздувалось в три строки до ввода.
+    if (!input.value) { input.style.height = ''; return; }
     input.style.height = 'auto';
     input.style.height = Math.min(input.scrollHeight, window.innerHeight * 0.4) + 'px';
   }
