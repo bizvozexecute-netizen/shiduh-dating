@@ -168,12 +168,18 @@ def test_no_inline_origin_checks():
 
 
 def test_no_json_envelope_clones():
+    # Ищем по ТЕЛУ, а не по имени: клон — это функция, которая сама ставит код
+    # ответа, печатает JSON и завершает запрос. Иначе под подозрение попадают
+    # безобидные имена вроде chat_emitter_json (фабрика эмиттера).
     bad = []
     for n in api_files():
         if n == "admin_lib.php":
             continue
-        for m in re.finditer(r"function (\w*_?json)\(", api_src(n)):
-            bad.append("%s:%s" % (n, m.group(1)))
+        src = api_src(n)
+        for m in re.finditer(r"function (\w+)\s*\([^)]*\)\s*\{", src):
+            body = src[m.end():m.end() + 400]
+            if "http_response_code(" in body and "json_encode(" in body and "exit" in body:
+                bad.append("%s:%s" % (n, m.group(1)))
     assert not bad, "клон JSON-конверта вместо shiduh_json: " + ", ".join(bad)
 
 

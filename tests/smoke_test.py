@@ -100,7 +100,7 @@ def test_candidate_pages_alive():
 def test_candidate_ai_consultant_renders_chat():
     code, html = fetch("/my/ai-consultant/", SESSIONS["candidate"])
     assert code == 200, "консультант не открылся: %d" % code
-    assert "ai-chat" in html or "консультант" in html.lower(), "нет интерфейса чата"
+    assert "sh-chat" in html or "консультант" in html.lower(), "нет интерфейса чата"
     assert_no_php_errors("/my/ai-consultant/", html)
 
 

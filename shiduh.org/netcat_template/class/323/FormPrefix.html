@@ -15,12 +15,14 @@ if (!$nc_uid) {
     echo '<p style="text-align:center;color:#756d65;padding:30px">Войдите, чтобы открыть ИИ-консультанта.</p>';
     return;
 }
-$nc_core->db->query(
-    "SELECT `role`, `content` FROM `ai_chat_messages` "
-    . "WHERE `user_id`=$nc_uid ORDER BY `id` ASC",
-    ARRAY_A
-);
-$nc_history = $nc_core->db->last_result;
+// История: печатаем ХВОСТ переписки, а не всю. Раньше запрос шёл без
+// LIMIT, и у активного пользователя разметка росла без предела; остальное
+// клиент догружает через /api/ai_history.php по кнопке «показать ранее».
+require_once $nc_core->DOCUMENT_ROOT . '/api/chat_lib.php';
+$nc_thread = chat_current_thread($nc_core->db, $nc_uid);
+$nc_page = chat_history_page($nc_core->db, $nc_uid, $nc_thread);
+$nc_history = $nc_page['messages'];
+$nc_has_more = !empty($nc_page['has_more']);
 
 // Ценностный опрос (Э2.4): следующий кейс, прогресс и собственный профиль.
 // Профиль читаем напрямую из БД — здесь это не поле NetCat, экранирования нет.
@@ -44,28 +46,6 @@ $nc_is_placeholder = (bool)$nc_core->db->get_var(
    чат сжимался, опрос растягивался по высоте строки. Оборачиваем всё в один
    элемент — он и есть единственная ячейка контента. */ ?>
 <div class="ai-page" style="min-width:0">
-<style>
-.ai-chat{max-width:760px;margin:0 auto;background:#fff;border:1px solid #e3ddd2;border-radius:14px;overflow:hidden;display:flex;flex-direction:column}
-.ai-chat__head{background:#262839;color:#fff;padding:14px 18px;display:flex;align-items:center;gap:11px}
-.ai-chat__ava{width:36px;height:36px;border-radius:50%;flex:none;display:grid;place-items:center;background:linear-gradient(140deg,#c8ae88,#a68556);color:#262839;font-size:16px}
-.ai-chat__title{font-size:15px;font-weight:500}
-.ai-chat__sub{font-size:11.5px;color:#c3beb7}
-.ai-chat__log{background:#f5f2ec;padding:16px 14px;display:flex;flex-direction:column;gap:11px;min-height:340px;max-height:60vh;overflow-y:auto}
-.ai-msg{max-width:82%;font-size:14.5px;line-height:1.55;padding:10px 13px;border-radius:15px;white-space:pre-wrap;word-wrap:break-word}
-.ai-msg--ai{background:#fff;border:1px solid #e3ddd2;border-bottom-left-radius:4px;align-self:flex-start;color:#3a2b2b}
-.ai-msg--me{background:#c8ae88;color:#262839;border-bottom-right-radius:4px;align-self:flex-end}
-.ai-chat__hello{align-self:center;text-align:center;color:#756d65;font-size:13.5px;max-width:46ch;padding:20px 0}
-.ai-chat__compose{display:flex;gap:8px;padding:12px 14px;background:#fff;border-top:1px solid #e3ddd2;align-items:center}
-.ai-chat__input{flex:1;min-width:0;border:1px solid #e3ddd2;background:#f5f2ec;border-radius:11px;padding:11px 13px;font:inherit;font-size:14px;color:#3a2b2b}
-.ai-chat__btn{flex:none;border:0;border-radius:11px;padding:11px 17px;font:inherit;font-size:14.5px;font-weight:500;background:#c8ae88;color:#262839;cursor:pointer}
-.ai-chat__btn:hover{background:#a68556}
-.ai-chat__mic{flex:none;width:42px;height:42px;border-radius:50%;border:0;display:grid;place-items:center;background:#f5f2ec;color:#7e6440;cursor:pointer}
-.ai-chat__mic:hover{background:#efe7d8}
-.ai-chat__mic--on{background:#df2e7a;color:#fff;animation:aiPulse 1.2s infinite}
-@keyframes aiPulse{0%,100%{opacity:1}50%{opacity:.55}}
-@media(prefers-reduced-motion:reduce){.ai-chat__mic--on{animation:none}}
-</style>
-
 <?php if ($nc_is_placeholder): ?>
 <section class="ai-claim" id="aiClaim" style="max-width:760px;margin:0 auto 14px;background:#fff;border:1px solid #e3ddd2;border-radius:14px;padding:16px 18px">
   <div style="font-size:15px;font-weight:500;color:#3a2b2b;margin-bottom:4px">Закрепите аккаунт за собой</div>
@@ -276,101 +256,74 @@ if ($nc_mine_anketa) {
 </section>
 <?php endif; ?>
 
-<section class="ai-chat">
-  <div class="ai-chat__head">
-    <div class="ai-chat__ava">✡</div>
+<section class="sh-chat" id="shChat"
+         data-thread="<?= (int)$nc_thread ?>"
+         data-has-more="<?= $nc_has_more ? '1' : '0' ?>"
+         data-max-len="4000">
+  <header class="sh-chat__head">
+    <div class="sh-chat__ava" aria-hidden="true">✡</div>
     <div>
-      <div class="ai-chat__title">Ваш ИИ-консультант</div>
-      <div class="ai-chat__sub">поможет дозаполнить анкету в диалоге</div>
+      <div class="sh-chat__title">Ваш ИИ-консультант</div>
+      <div class="sh-chat__sub">поможет дозаполнить анкету в диалоге</div>
     </div>
-  </div>
+  </header>
+
   <?php /* X-3: прозрачность. Консультант может отметить шадхану, что стоит
      обратить внимание, — человек должен знать об этом заранее, а не узнать
      постфактум. Формулировка без запугивания: что именно и зачем. */ ?>
-  <div style="font-size:12.5px;line-height:1.6;color:#756d65;background:#f5f2ec;padding:9px 14px;border-bottom:1px solid #e3ddd2">
-    Переписку видите только вы. Если консультант заметит, что вам тяжело или разговор идёт резко, он может отметить вашему шадхану, что стоит обратить внимание, — без текста переписки.
-  </div>
+  <p class="sh-chat__notice">
+    Переписку видите только вы. Если консультант заметит, что вам тяжело или
+    разговор идёт резко, он может отметить это вашему шадхану — без текста
+    переписки, только пометку «стоит поговорить».
+  </p>
 
-  <div class="ai-chat__log" id="aiLog">
-    <?php if (empty($nc_history)): ?>
-      <div class="ai-chat__hello">Здравствуйте! Напишите или продиктуйте сообщение — я помогу заполнить анкету в живой беседе.</div>
-    <?php else: foreach ($nc_history as $nc_m): ?>
-      <div class="ai-msg ai-msg--<?= $nc_m['role'] === 'user' ? 'me' : 'ai' ?>"><?= htmlspecialchars($nc_m['content'], ENT_QUOTES, 'UTF-8') ?></div>
-    <?php endforeach; endif; ?>
-  </div>
-
-  <form class="ai-chat__compose" id="aiForm" autocomplete="off">
-    <button type="button" class="ai-chat__mic" id="aiMic" aria-label="Ввести голосом" title="Ввести голосом" hidden>
-      <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><path fill="currentColor" d="M12 15a3 3 0 0 0 3-3V6a3 3 0 0 0-6 0v6a3 3 0 0 0 3 3Zm5-3a5 5 0 0 1-10 0H5a7 7 0 0 0 6 6.9V22h2v-3.1A7 7 0 0 0 19 12h-2Z"/></svg>
+  <div class="sh-chat__scroll" id="shScroll">
+    <button type="button" class="sh-chat__more" id="shMore" <?= $nc_has_more ? '' : 'hidden' ?>>
+      Показать более ранние сообщения
     </button>
-    <input type="text" class="ai-chat__input" id="aiInput" placeholder="Напишите или продиктуйте…" aria-label="Сообщение">
-    <button type="submit" class="ai-chat__btn" id="aiSend">Отправить</button>
+    <div class="sh-chat__log" id="shLog" role="log" aria-live="polite" aria-relevant="additions">
+      <?php if (empty($nc_history)): ?>
+        <p class="sh-chat__hello">Здравствуйте! Расскажите о себе — я помогу дозаполнить анкету,
+          чтобы шадхану было проще подобрать пару.</p>
+      <?php else: foreach ($nc_history as $nc_m): ?>
+        <article class="sh-msg sh-msg--<?= $nc_m['role'] === 'user' ? 'me' : 'ai' ?>"
+                 data-id="<?= (int)$nc_m['id'] ?>"
+                 data-role="<?= htmlspecialchars($nc_m['role'], ENT_QUOTES, 'UTF-8') ?>"
+                 data-created="<?= htmlspecialchars($nc_m['created_at'], ENT_QUOTES, 'UTF-8') ?>"
+                 <?= $nc_m['stopped'] ? 'data-stopped="1"' : '' ?>>
+          <span class="sh-visually-hidden"><?= $nc_m['role'] === 'user' ? 'Вы:' : 'Консультант:' ?></span>
+          <div class="sh-msg__body"><?= htmlspecialchars($nc_m['content'], ENT_QUOTES, 'UTF-8') ?></div>
+        </article>
+      <?php endforeach; endif; ?>
+    </div>
+  </div>
+
+  <div class="sh-chips" id="shChips" role="group" aria-label="Быстрые ответы" hidden></div>
+
+  <form class="sh-composer" id="shForm" autocomplete="off">
+    <button type="button" class="sh-composer__mic sh-btn-icon" id="shMic"
+            aria-label="Ввести голосом" aria-pressed="false" hidden>
+      <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><path fill="currentColor" d="M12 15a3 3 0 0 0 3-3V6a3 3 0 0 0-6 0v6a3 3 0 0 0 3 3zm5-3a5 5 0 0 1-10 0H5a7 7 0 0 0 6 6.92V21h2v-2.08A7 7 0 0 0 19 12z"/></svg>
+    </button>
+    <textarea class="sh-composer__input" id="shInput" rows="1" maxlength="4000"
+              enterkeyhint="send" aria-label="Сообщение"
+              placeholder="Напишите или продиктуйте…"></textarea>
+    <span class="sh-composer__count" id="shCount" hidden></span>
+    <button type="submit" class="button sh-composer__send" id="shSend">Отправить</button>
+    <button type="button" class="button button--secondary sh-composer__stop" id="shStop" hidden>Остановить</button>
   </form>
 </section>
 
 <script>
-(function(){
-  var form = document.getElementById('aiForm');
-  var input = document.getElementById('aiInput');
-  var log = document.getElementById('aiLog');
-  var send = document.getElementById('aiSend');
-  var mic = document.getElementById('aiMic');
-
-  function esc(s){ var d = document.createElement('div'); d.textContent = s; return d.innerHTML; }
-  function bubble(role, text){
-    var hello = log.querySelector('.ai-chat__hello');
-    if (hello) hello.remove();
-    var el = document.createElement('div');
-    el.className = 'ai-msg ai-msg--' + (role === 'user' ? 'me' : 'ai');
-    el.innerHTML = esc(text);
-    log.appendChild(el);
-    log.scrollTop = log.scrollHeight;
-  }
-  log.scrollTop = log.scrollHeight;
-
-  form.addEventListener('submit', function(e){
-    e.preventDefault();
-    var text = input.value.trim();
-    if (!text) return;
-    bubble('user', text);
-    input.value = '';
-    send.disabled = true;
-    var body = new URLSearchParams(); body.append('message', text);
-    fetch('/api/ai_chat.php', { method:'POST', body: body, credentials:'same-origin' })
-      .then(function(r){ return r.json().catch(function(){ return {}; }); })
-      .then(function(js){
-        if (js && js.reply) bubble('assistant', js.reply);
-        // сервер объяснил причину (например, ИИ временно недоступен) — показываем её,
-        // а не общее «не удалось»
-        else if (js && js.error) bubble('assistant', js.error);
-        else bubble('assistant', 'Не удалось получить ответ. Попробуйте ещё раз.');
-        send.disabled = false; input.focus();
-      })
-      .catch(function(){
-        bubble('assistant', 'Сервис временно недоступен. Ваше сообщение сохранено.');
-        send.disabled = false; input.focus();
-      });
-  });
-
-  // Голосовой ввод — браузерный Web Speech API. Нет поддержки — кнопка скрыта.
-  var SR = window.SpeechRecognition || window.webkitSpeechRecognition;
-  if (SR) {
-    var rec = new SR();
-    rec.lang = 'ru-RU'; rec.interimResults = false; rec.maxAlternatives = 1;
-    var listening = false;
-    mic.hidden = false;
-    mic.addEventListener('click', function(){
-      if (listening) { rec.stop(); return; }
-      try { rec.start(); } catch(e){}
-    });
-    rec.onstart = function(){ listening = true; mic.classList.add('ai-chat__mic--on'); };
-    rec.onend = function(){ listening = false; mic.classList.remove('ai-chat__mic--on'); };
-    rec.onresult = function(ev){
-      var t = ev.results[0][0].transcript;
-      input.value = (input.value ? input.value + ' ' : '') + t;
-      input.focus();
-    };
-  }
-})();
+  /* Настройки для js/chat.js: разметку печатает PHP, поведение живёт в
+     отдельном файле — так его кэширует браузер и видит линтер. */
+  window.SH_CHAT = {
+    thread: <?= (int)$nc_thread ?>,
+    hasMore: <?= $nc_has_more ? 'true' : 'false' ?>,
+    maxLen: 4000,
+    endpoint: '/api/ai_chat.php',
+    history: '/api/ai_history.php'
+  };
 </script>
+<script src="/js/chat.js?v=<?= (int)@filemtime($nc_core->DOCUMENT_ROOT . '/js/chat.js') ?>" defer></script>
 </div>

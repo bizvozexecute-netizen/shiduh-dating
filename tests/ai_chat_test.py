@@ -179,7 +179,7 @@ def test_section_opens_for_candidate():
     sid = login(CAND_A)
     code, html = get_section(sid)
     assert code == 200, "раздел не открылся, код %s" % code
-    assert "ai-chat__log" in html, "нет UI чата в разделе"
+    assert "sh-chat__log" in html, "нет UI чата в разделе"
     assert "lk-aside__nav" in html, "нет сайдбара ЛК (макет 17 не подтянулся)"
     assert "Fatal error" not in html and "Parse error" not in html
 

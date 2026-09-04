@@ -40,6 +40,8 @@ def sid_of(email):
 
 def setup_module(module):
     start_fake_server()
+    # набор шлёт сообщения подряд: поминутный лимит (шесть) отсекал бы их
+    setting("burst_per_minute", "1000")
 
 
 def teardown_module(module):

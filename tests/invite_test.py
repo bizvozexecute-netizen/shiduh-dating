@@ -302,7 +302,7 @@ def test_redeem_logs_in_candidate():
     # новая сессия авторизована как кандидат: консультант открывается (200)
     scode, body = get_with_sid("/my/ai-consultant/", new_sid)
     assert scode == 200, "сессия кандидата не авторизована: %s" % scode
-    assert ("ai-chat" in body) or ("консультант" in body.lower())
+    assert ("sh-chat" in body) or ("консультант" in body.lower())
     # used_at проставлен
     assert dbq("SELECT used_at IS NOT NULL FROM invite_tokens WHERE token='%s'" % token) == "1"
 

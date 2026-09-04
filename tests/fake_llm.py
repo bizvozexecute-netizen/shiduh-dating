@@ -65,6 +65,9 @@ if ($auth !== 'Bearer __KEY__') {
 }
 
 $mode = $s['mode'];
+if (!empty($s['delay_ms'])) {
+    usleep(((int)$s['delay_ms']) * 1000);   // имитация медленной модели
+}
 if ($mode === 'fail_then_ok' && $s['calls'] <= (int)$s['fail_first']) {
     http_response_code(500);
     echo json_encode(array('error' => array('message' => 'temporary')));
@@ -363,7 +366,7 @@ def web(*args):
                           encoding="utf-8", errors="replace", timeout=60)
 
 
-def set_fake_mode(mode, fail_first=0, tool_args=None, classify=None, multi=None):
+def set_fake_mode(mode, fail_first=0, tool_args=None, classify=None, multi=None, delay_ms=0):
     # chmod 0666: файл пишет и CLI-PHP (root), и веб-сервер (www-data) —
     # без этого счётчик попыток не увеличивается и ретраи не проверить
     state = {"mode": mode, "calls": 0, "fail_first": fail_first}
@@ -373,6 +376,10 @@ def set_fake_mode(mode, fail_first=0, tool_args=None, classify=None, multi=None)
         state["classify"] = classify
     if multi is not None:
         state["multi"] = multi
+    if delay_ms:
+        # Пауза перед ответом: так тест видит поведение, пока запрос ещё
+        # в работе (замок на параллельную отправку, индикатор ожидания).
+        state["delay_ms"] = int(delay_ms)
     payload = base64.b64encode(
         json.dumps(state, ensure_ascii=False).encode("utf-8")).decode("ascii")
     web("php", "-r",
@@ -398,13 +405,17 @@ def clear_ai_settings():
     dbq("DELETE FROM `Settings` WHERE `Module`='ai'")
 
 
-def use_fake_provider(rate_limit=1000):
+def use_fake_provider(rate_limit=1000, burst=1000):
     setting("provider", "openrouter")
     setting("api_key", FAKE_KEY)
     setting("base_url", FAKE_BASE)
     setting("model", "test/model")
     setting("max_retries", 2)
     setting("rate_limit_per_hour", rate_limit)
+    # Наборы шлют сообщения подряд, без пауз: поминутный лимит (по умолчанию
+    # шесть) отсекал бы их с середины. Сам лимит проверяется отдельно, в
+    # chat_history_test, где он выставляется намеренно.
+    setting("burst_per_minute", burst)
 
 
 def start_fake_server():
