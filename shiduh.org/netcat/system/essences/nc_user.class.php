@@ -1,4 +1,6 @@
 <?php
+// C6: пароли — bcrypt, см. api/password_lib.php и DEPLOY.prod.md §2.1
+require_once dirname(__FILE__) . '/../../../api/password_lib.php';
 
 class nc_User extends nc_Essence {
 
@@ -123,7 +125,7 @@ class nc_User extends nc_Essence {
         );
 
         $insert_values = array(
-            $this->core->MYSQL_ENCRYPT . '("' . $password . '")',
+            shiduh_password_sql($this->db, $password),   // C6: bcrypt
             "'" . date('Y-m-d H:i:s') . "'",
             (int)nc_array_value($add_fields, 'Checked', 1),
             min($groups),
@@ -197,7 +199,7 @@ class nc_User extends nc_Essence {
 
     public function change_password($user_id, $password, $delete_reg_code = false) {
         $user_id = (int)$user_id;
-        $password_hash = $this->core->MYSQL_ENCRYPT . "('" . $this->db->escape($password) . "')";
+        $password_hash = shiduh_password_sql($this->db, $password);   // C6: bcrypt
         $reg_code_nullification = $delete_reg_code ? ", `RegistrationCode` = ''" : '';
 
         $this->db->query("UPDATE `User` SET `Password` = {$password_hash} {$reg_code_nullification} WHERE `User_ID` = '{$user_id}'");
@@ -326,17 +328,28 @@ class nc_User extends nc_Essence {
             $bind_to_catalogue = " AND `u`.Catalogue_ID IN(0, {$catalogue})";
         }
 
+        // C6: пароль сверяется в PHP (bcrypt / унаследованный MD5), а не SQL-функцией.
         $user_result = $this->db->get_results(
             "SELECT u.*, ug.`PermissionGroup_ID` AS PermissionGroups_ID
              FROM `User` as u, `User_Group` as ug
              WHERE u.`{$this->core->AUTHORIZE_BY}` = '{$this->db->escape($login)}'
-             AND u.`Password` = {$this->core->MYSQL_ENCRYPT}('{$this->db->escape($password)}')
              AND u.`Checked` = 1
              AND u.User_ID = ug.`User_ID`
              {$bind_to_catalogue}
              ORDER BY ug.ID",
             ARRAY_A
         );
+        // $password пришёл глобалом с эмуляцией magic quotes (addslashed) —
+        // сверяем и хэшируем ЧИСТОЕ значение, как и при регистрации
+        $plain = stripslashes($password);
+        if ($user_result && !shiduh_password_verify($plain, $user_result[0]['Password'])) {
+            $user_result = array();
+        }
+        if ($user_result && shiduh_password_needs_rehash($user_result[0]['Password'])) {
+            // старый MD5 заменяем bcrypt при первом же удачном входе
+            $this->db->query("UPDATE `User` SET `Password` = " . shiduh_password_sql($this->db, $plain)
+                . " WHERE `User_ID` = " . (int)$user_result[0]['User_ID']);
+        }
 
         $this->update_user_login_counter($login, (bool)$user_result);
 
@@ -432,10 +445,13 @@ class nc_User extends nc_Essence {
                 "SELECT u.*, ug.`PermissionGroup_ID` AS PermissionGroups_ID
                  FROM `User` AS u, `User_Group` AS ug
                  WHERE u.`{$nc_core->AUTHORIZE_BY}` = '{$db->escape($PHP_AUTH_USER)}'
-                 AND Password = {$nc_core->MYSQL_ENCRYPT}('{$db->escape($PHP_AUTH_PW)}')
                  AND u.`User_ID` = ug.`User_ID`",
                 ARRAY_A
             );
+            // C6: сверка пароля в PHP (чистое значение, без magic-quotes слэшей)
+            if ($user_result && !shiduh_password_verify(stripslashes($PHP_AUTH_PW), $user_result[0]['Password'])) {
+                $user_result = array();
+            }
         } else {
             $s = $this->get_session_id();
             $bind_to_catalogue = '';

@@ -100,14 +100,26 @@ BASELINE_ROWS = 1189         # строк в Message204
 BASELINE_NAME_FILLED = 1189  # Name заполнено у всех
 
 
+def reset_bcrypt_passwords():
+    """Миграция 025 (C6) отказывается откатываться, пока в User есть
+    bcrypt-хэши: сужение колонки до varchar(45) их бы порезало. За время
+    прогона rehash-on-login наплодил такие хэши, и down-all упал бы. В
+    dev-БД все аккаунты после анонимизации — MD5('shiduh'); возвращаем этот
+    базис, чтобы миграция откатилась. Пароли фикстур это не портит: они и
+    так MD5('shiduh')."""
+    dbq("UPDATE `User` SET `Password`=MD5('shiduh') WHERE `Password` LIKE '$2y$%' OR LENGTH(`Password`)>45")
+
+
 def setup_module(module):
     # чистое состояние: откатываем всё, что могло остаться от прошлых прогонов
+    reset_bcrypt_passwords()
     migrate("down-all")
 
 
 def teardown_module(module):
     # Возвращаем схему в штатное «всё применено»: dev-среда и остальные наборы
     # тестов рассчитывают на применённые миграции (поля AI_summary и др.).
+    reset_bcrypt_passwords()
     migrate("down-all")
     migrate("up")
 
@@ -140,6 +152,13 @@ class TestUp:
             size = head.split(":")[0]
             assert size.isdigit() and int(size) == int(prefix.split(":")[0]),                 "размер не считывается из формата поля %d: %s" % (fid, head)
             assert "image" in head, "тип не считывается из формата поля %d: %s" % (fid, head)
+
+    def test_password_column_fits_bcrypt(self):
+        """C6: bcrypt-хэш — 60 символов, колонка была varchar(45) (025)."""
+        col = dbq("SELECT COLUMN_TYPE FROM information_schema.COLUMNS WHERE TABLE_SCHEMA='shiduh_org' "
+                  "AND TABLE_NAME='User' AND COLUMN_NAME='Password'")
+        m = re.match(r"varchar\((\d+)\)", col)
+        assert m and int(m.group(1)) >= 60, "User.Password не вместит bcrypt: " + col
 
     def test_dictionaries_created_and_registered(self):
         for t in NEW_DICTS:

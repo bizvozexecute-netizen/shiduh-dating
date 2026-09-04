@@ -1,4 +1,6 @@
 <?php
+// C6: пароли — bcrypt, см. api/password_lib.php и DEPLOY.prod.md §2.1
+require_once dirname(__FILE__) . '/../../../api/password_lib.php';
 if (!class_exists("nc_System"))
     die("Unable to load file.");
 if (!isset($UserID)) {
@@ -1046,7 +1048,7 @@ function ActionUserCompleted($action_file, $type) {
         else {
             $insert .= "0, ";
         }
-        $insert .= $nc_core->MYSQL_ENCRYPT . "('" . $Password . "'),'$Checked','" . date("Y-m-d H:i:s") . "', '" . (int) $InsideAdminAccess . "')";
+        $insert .= shiduh_password_sql($db, $Password) . ",'$Checked','" . date("Y-m-d H:i:s") . "', '" . (int) $InsideAdminAccess . "')";   // C6: $Password из fetch_post_get — уже сырой
 
         // execute core action
         $nc_core->event->execute(nc_Event::BEFORE_USER_CREATED, 0);

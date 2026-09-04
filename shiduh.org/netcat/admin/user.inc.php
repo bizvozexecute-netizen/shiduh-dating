@@ -1,4 +1,6 @@
 <?php
+// C6: пароли — bcrypt, см. api/password_lib.php и DEPLOY.prod.md §2.1
+require_once dirname(__FILE__) . '/../../api/password_lib.php';
 
 /* $Id: user.inc.php 8121 2012-09-11 08:50:28Z ewind $ */
 
@@ -19,10 +21,15 @@ function ChangePassword($UserID, $Password, $db) {
     global $nc_core;
 
     $UserID = intval($UserID);
-    $Password = $db->escape($Password);
+    // C6: $Password1 приходит из user/index.php голым глобалом (extract →
+    // эмуляция magic quotes, addslashed) — снимаем слэши, как во входе и
+    // регистрации; иначе пароль со спецсимволом сохранился бы слэшированным
+    // и человек не смог бы войти. В SQL пароль не попадает — только хэшем.
+    $Password = stripslashes($Password);
+    $stored = (string)$db->get_var("SELECT `Password` FROM `User` WHERE `User_ID` = '".$UserID."'");
 
     // новый пароль совпадает с текущим?
-    if ($db->get_var("SELECT `User_ID` FROM `User` WHERE `User_ID` = '".$UserID."' AND `Password` = ".$nc_core->MYSQL_ENCRYPT."('".$Password."')")) {
+    if ($stored !== '' && shiduh_password_verify($Password, $stored)) {
         nc_print_status(CONTROL_USER_ERROR_NEWPASS_IS_CURRENT, 'error');
         return;
     }
@@ -47,7 +54,7 @@ function ChangePassword($UserID, $Password, $db) {
     $nc_core->event->execute(nc_Event::BEFORE_USER_UPDATED, $UserID);
 
     // сообственно, запро
-    $db->query("UPDATE `User` SET `Password`=".$nc_core->MYSQL_ENCRYPT."('".$Password."'), `RegistrationCode` = '' WHERE `User_ID` = '".$UserID."'");
+    $db->query("UPDATE `User` SET `Password`=".shiduh_password_sql($db, $Password).", `RegistrationCode` = '' WHERE `User_ID` = '".$UserID."'");
 
     if (!$db->last_error) {
         nc_print_status(CONTROL_USER_OK_CHANGEDPASS, 'ok');

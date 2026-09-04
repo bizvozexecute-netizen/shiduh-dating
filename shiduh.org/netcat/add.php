@@ -1,4 +1,6 @@
 <?php
+// C6: пароли — bcrypt, см. api/password_lib.php и DEPLOY.prod.md §2.1
+require_once dirname(__FILE__) . '/../api/password_lib.php';
 
 $action = 'add';
 
@@ -336,7 +338,7 @@ do {
                 $resMsg = $db->query("INSERT INTO `User`
     			(" . $fieldString . "`Password`, `PermissionGroup_ID`, `Checked`, `Created`, `RegistrationCode`" . ($nc_core->get_settings('confirm', 'auth') ? ", `Confirmed`" : "") . ", Catalogue_ID)
     			VALUES
-    			(" . $valueString . " " . $nc_core->MYSQL_ENCRYPT . "('" . $Password . "'), '" . $mainGroup . "', '" . $IsChecked . "', \"" . date("Y-m-d H:i:s") . "\", '" . $RegistrationCode . "'" . ($nc_core->get_settings('confirm', 'auth') ? ",'0'" : "") . ", " . $catalogue . ")");
+    			(" . $valueString . " " . shiduh_password_sql($db, stripslashes($Password)) . ", '" . $mainGroup . "', '" . $IsChecked . "', \"" . date("Y-m-d H:i:s") . "\", '" . $RegistrationCode . "'" . ($nc_core->get_settings('confirm', 'auth') ? ",'0'" : "") . ", " . $catalogue . ")");
                 $msgID = $db->insert_id;
 
                 foreach ($nc_multifield_field_names as $nc_multifield_field_name) {

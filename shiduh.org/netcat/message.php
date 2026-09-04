@@ -1,4 +1,6 @@
 <?php
+// C6: пароли — bcrypt, см. api/password_lib.php и DEPLOY.prod.md §2.1
+require_once dirname(__FILE__) . '/../api/password_lib.php';
 
 $action = "change";
 
@@ -857,7 +859,7 @@ do {
                 else {
                     if ($user_table_mode) {
                         $nc_core->event->execute(nc_Event::BEFORE_USER_UPDATED, $message);
-                        $resMsg = $db->query("UPDATE `User` SET " . $updateString . " `Checked` = `Checked`" . ($admin_mode ? ", `Keyword` = '" . $f_Keyword . "'" : "") . " " . ($Password ? ", `Password` = " . $nc_core->MYSQL_ENCRYPT . "('" . $db->escape($Password) . "'), `UserType` = 'normal' " : "") . " WHERE `User_ID` = '" . $message . "'");
+                        $resMsg = $db->query("UPDATE `User` SET " . $updateString . " `Checked` = `Checked`" . ($admin_mode ? ", `Keyword` = '" . $f_Keyword . "'" : "") . " " . ($Password ? ", `Password` = " . shiduh_password_sql($db, stripslashes($Password)) . ", `UserType` = 'normal' " : "") . " WHERE `User_ID` = '" . $message . "'");
                     }
                     else {
                         $nc_core->event->execute(nc_Event::BEFORE_OBJECT_UPDATED, $catalogue, $sub, $cc, $classID, $message);

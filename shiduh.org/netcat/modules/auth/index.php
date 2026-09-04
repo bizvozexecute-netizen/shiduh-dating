@@ -109,7 +109,6 @@ do {
         $nc_auth->login_form();
     } else {
         $redirect = nc_get_scheme() . '://' . $HTTP_HOST . $REQUESTED_FROM;
-        $Password = $db->get_var('SELECT ' . $nc_core->MYSQL_ENCRYPT . "('${AUTH_PW}')");
         if ($redirect) {
             nc_check_redirect($redirect);
             exit;
