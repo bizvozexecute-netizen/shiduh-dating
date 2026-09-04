@@ -63,3 +63,6 @@ desktop.ini
 *.swp
 .idea/
 .vscode/
+
+# служебные логи браузерных проверок
+.playwright-mcp/

@@ -57,6 +57,6 @@ shiduh_json(200, array(
     'ok' => true,
     'created' => $result['created'],
     'message' => $result['message'],
-    'chips' => chat_chips($db, $uid),
+    'chips' => chat_chips($db, $uid, array('thread' => $thread)),
     'thread' => $thread,
 ));

@@ -232,6 +232,60 @@ if ($mode === 'tool_call') {
         array(), $raw, $s);
 }
 
+/* B6. Человек согласился на замену — модель подтверждает её инструментом.
+   Значения в вызове нет: инструмент принимает только имена полей. */
+if ($mode === 'confirm_call') {
+    if ($s['calls'] === 1) {
+        fake_emit('', array('prompt_tokens' => 11, 'completion_tokens' => 7, 'total_tokens' => 18),
+            array(array(
+                'id' => 'conf_1',
+                'type' => 'function',
+                'function' => array(
+                    'name' => 'confirm_profile_update',
+                    'arguments' => json_encode(
+                        isset($s['tool_args']) ? $s['tool_args'] : array('fields' => array()),
+                        JSON_UNESCAPED_UNICODE
+                    ),
+                ),
+            )), $raw, $s);
+    }
+    fake_emit('ПОМЕНЯНО. Результат инструмента: ' . $tool_seen,
+        array('prompt_tokens' => 12, 'completion_tokens' => 8, 'total_tokens' => 20),
+        array(), $raw, $s);
+}
+
+/* B6. Модель предлагает замену и тут же сама её подтверждает, ни о чём не
+   спросив: проверка, что согласие в одном ходу с предложением не считается. */
+if ($mode === 'propose_then_confirm') {
+    if ($s['calls'] === 1) {
+        $args = isset($s['tool_args']) ? $s['tool_args'] : array();
+        fake_emit('', array('prompt_tokens' => 11, 'completion_tokens' => 7, 'total_tokens' => 18),
+            array(
+                array(
+                    'id' => 'prop_1',
+                    'type' => 'function',
+                    'function' => array(
+                        'name' => 'update_profile_fields',
+                        'arguments' => json_encode($args, JSON_UNESCAPED_UNICODE),
+                    ),
+                ),
+                array(
+                    'id' => 'conf_1',
+                    'type' => 'function',
+                    'function' => array(
+                        'name' => 'confirm_profile_update',
+                        'arguments' => json_encode(
+                            array('fields' => array_keys($args)), JSON_UNESCAPED_UNICODE
+                        ),
+                    ),
+                ),
+            ), $raw, $s);
+    }
+    fake_emit('ГОТОВО. Результат инструмента: ' . $tool_seen,
+        array('prompt_tokens' => 12, 'completion_tokens' => 8, 'total_tokens' => 20),
+        array(), $raw, $s);
+}
+
 if ($mode === 'case_flow') {
     /* Вплетение кейса в диалог (Э2.2-c): 1-й вызов — модель просит записать
        ответ на кейс; 2-й — классификатор (scoring_classify) получает строгий
@@ -385,11 +439,17 @@ if ($mode === 'echo_payload') {
 
 if ($mode === 'echo_tools') {
     /* Отдаём, какие инструменты пришли в запросе — так тест доказывает, что
-       описание инструмента реально доезжает до модели. */
+       описание инструмента реально доезжает до модели. У каждого в скобках
+       его параметры: без этого нельзя проверить, чего у инструмента НЕТ. */
     $names = array();
     if (isset($raw['tools']) && is_array($raw['tools'])) {
         foreach ($raw['tools'] as $t) {
-            if (isset($t['function']['name'])) { $names[] = $t['function']['name']; }
+            if (!isset($t['function']['name'])) { continue; }
+            $p = array();
+            if (isset($t['function']['parameters']['properties'])) {
+                $p = array_keys($t['function']['parameters']['properties']);
+            }
+            $names[] = $t['function']['name'] . '(' . implode('|', $p) . ')';
         }
     }
     $props = array();

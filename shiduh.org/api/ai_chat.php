@@ -106,7 +106,7 @@ if ($want_stream) {
     }
     $collected = call_user_func($emit['collected']);
     chat_emit($emit, 'done', array(
-        'chips' => chat_chips($db, $uid),
+        'chips' => chat_chips($db, $uid, array('thread' => $result['thread'])),
         'reply' => $result['reply'],
         'tokens' => $result['tokens'],
         'message_id' => $result['message_id'],
@@ -134,7 +134,7 @@ $collected = call_user_func($emit['collected']);
 shiduh_json(200, array(
     'ok' => true,
     // подсказки пересчитываются после ответа: часть полей могла заполниться
-    'chips' => chat_chips($db, $uid),
+    'chips' => chat_chips($db, $uid, array('thread' => $result['thread'])),
     // reply и tokens сохраняем: на них опираются прежние тесты и клиент
     'reply' => $result['reply'],
     'tokens' => $result['tokens'],

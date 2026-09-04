@@ -399,6 +399,32 @@ function chat_build_system($db, $uid, $text, $cfg, &$ctx, $emit = null) {
         $appended = true;
     }
 
+    /*
+     * Заданные вопросы о замене значения (ТЗ Э1.3). Модель должна помнить,
+     * что она уже спросила: без этого блока она в следующей же реплике
+     * предложит то же самое заново, а на «да» ответит «записал» — ничего не
+     * записав, потому что заполненное поле инструмент записи не трогает.
+     * В блоке — человеческие значения: подтверждать «поменять на 4» нельзя.
+     */
+    $ctx['pending'] = ai_pending_list($db, $uid,
+        isset($ctx['thread']) ? (int)$ctx['thread'] : null);
+    if ($ctx['pending']) {
+        $lines = array();
+        foreach ($ctx['pending'] as $p) {
+            $lines[] = '— ' . $p['tool_key'] . ': сейчас "' . $p['current_label']
+                . '", вы предложили "' . $p['proposed_label'] . '"';
+        }
+        $system .= "\n\n"
+            . 'Вы уже предложили собеседнику заменить в анкете заполненные значения '
+            . 'и ждёте его ответа:' . "\n" . implode("\n", $lines) . "\n"
+            . 'Если он в этом сообщении согласился — вызовите инструмент '
+            . 'confirm_profile_update и перечислите подтверждённые поля. Если отказался '
+            . 'или ответил о другом — не вызывайте его и не предлагайте ту же замену '
+            . 'второй раз подряд. Само значение передавать не нужно и нельзя: сервер '
+            . 'запишет ровно то, о чём вы спросили.';
+        $appended = true;
+    }
+
     if ($appended) {
         $system .= "\n\n" . AI_SAFETY_PREAMBLE;
     }
@@ -426,7 +452,19 @@ function chat_dispatch_tools($db, $uid, $user_message_id, $ctx, array $tool_call
 
         if ($name === 'update_profile_fields') {
             chat_emit($emit, 'status', array('text' => 'записываю в анкету…'));
-            $report = ai_tool_apply($db, $uid, $args, $user_message_id);
+            $report = ai_tool_apply($db, $uid, $args, $user_message_id,
+                isset($ctx['thread']) ? (int)$ctx['thread'] : 1);
+            chat_emit($emit, 'tool', array(
+                'name' => $name,
+                'applied' => array_keys((array)(isset($report['applied']) ? $report['applied'] : array())),
+                'pending' => array_keys((array)(isset($report['pending']) ? $report['pending'] : array())),
+            ));
+        } elseif ($name === 'confirm_profile_update') {
+            // Замена ранее заполненного — только по вопросу, заданному в
+            // прошлом ходу. Проверяет это ai_tool_confirm по номеру реплики.
+            chat_emit($emit, 'status', array('text' => 'меняю в анкете…'));
+            $report = ai_tool_confirm($db, $uid, $args, $user_message_id,
+                isset($ctx['thread']) ? (int)$ctx['thread'] : null);
             chat_emit($emit, 'tool', array(
                 'name' => $name,
                 'applied' => array_keys((array)(isset($report['applied']) ? $report['applied'] : array())),
@@ -471,7 +509,10 @@ function chat_dispatch_tools($db, $uid, $user_message_id, $ctx, array $tool_call
  */
 function chat_call_model(array $messages, $ctx, $uid, $emit) {
     $options = array(
-        'tools' => ai_tool_definitions(!empty($ctx['has_case'])),
+        'tools' => ai_tool_definitions(
+            !empty($ctx['has_case']),
+            isset($ctx['pending']) ? (array)$ctx['pending'] : array()
+        ),
         'kind' => 'chat',
         'user_id' => $uid,
     );
@@ -534,9 +575,35 @@ function chat_chip_labels() {
     );
 }
 
+/* Значение в подсказку: длинное «о себе» кнопкой не сделаешь. */
+function chat_chip_value($text) {
+    $text = trim(preg_replace('/\s+/u', ' ', (string)$text));
+    if (mb_strlen($text, 'UTF-8') > 22) {
+        $text = mb_substr($text, 0, 21, 'UTF-8') . '…';
+    }
+    return $text;
+}
+
 function chat_chips($db, $uid, $ctx = array()) {
     $uid = (int)$uid;
     $chips = array();
+
+    /*
+     * Незакрытый вопрос о замене — первым и в обе стороны. Консультант
+     * спросил «поменять X на Y?»: отказ должен стоить того же одного клика,
+     * что и согласие, иначе подсказки подталкивают соглашаться.
+     */
+    if (!isset($ctx['pending'])) {
+        $ctx['pending'] = ai_pending_list($db, $uid,
+            isset($ctx['thread']) ? (int)$ctx['thread'] : null);
+    }
+    if (!empty($ctx['pending'])) {
+        $p = $ctx['pending'][0];
+        $chips[] = 'Да, поменять на «' . chat_chip_value($p['proposed_label']) . '»';
+        $chips[] = 'Нет, оставить «' . chat_chip_value($p['current_label']) . '»';
+        // и не выходим: подсказки про незаполненные поля нужны и тому, кому
+        // сейчас задан вопрос, — иначе он остаётся с двумя кнопками
+    }
 
     $labels = chat_chip_labels();
     $columns = array_keys($labels);
@@ -547,14 +614,16 @@ function chat_chips($db, $uid, $ctx = array()) {
     );
 
     if ($row) {
+        $about_profile = 0;
         foreach ($columns as $col) {
-            if (count($chips) >= 2) {
+            if ($about_profile >= 2) {
                 break;                      // не больше двух про анкету за раз
             }
             $value = isset($row[$col]) ? trim((string)$row[$col]) : '';
             // словарные поля хранят id: «0» значит «не выбрано»
             if ($value === '' || $value === '0') {
                 $chips[] = $labels[$col];
+                $about_profile++;
             }
         }
     }
@@ -644,6 +713,11 @@ function chat_greet($db, $uid, $thread) {
         );
     }
 
+    // Диалог начинается с чистого листа — незакрытые вопросы о замене
+    // значений относились к прошлому разговору, и подтверждать их «да» из
+    // нового было бы согласием неизвестно на что.
+    ai_pending_clear($db, $uid);
+
     $text = chat_greeting_text($db, $uid);
     $tokens = 0;
 
@@ -728,7 +802,7 @@ function chat_run($db, $uid, array $in, $emit = null) {
         }
     }
 
-    $ctx = array('has_case' => false);
+    $ctx = array('has_case' => false, 'thread' => $thread);
     $system = chat_build_system($db, $uid, $text, $cfg, $ctx, $emit);
 
     $messages = array(array('role' => 'system', 'content' => $system));
@@ -790,6 +864,14 @@ function chat_run($db, $uid, array $in, $emit = null) {
             }
         }
     }
+
+    /*
+     * Ход человека завершён. Неподтверждённый вопрос о замене снимается: он
+     * был адресован именно этой реплике. Иначе «нет» и молчание копились бы
+     * до суток, и согласие на совсем другой вопрос консультанта позже зачлось
+     * бы за согласие на замену.
+     */
+    ai_pending_expire_answered($db, $uid, $user_message_id, $thread);
 
     // модель могла вернуть пустой текст (например, снова попросив инструмент)
     $reply = trim((string)$res['content']);

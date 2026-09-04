@@ -60,9 +60,16 @@ function ai_tool_field_map() {
  * добавляется инструмент записи ответа на кейс. КАКОЙ кейс — определяет
  * сервер (следующий неотвеченный), модель передаёт только сам ответ:
  * доверять ей выбор кейса нельзя.
+ *
+ * $pending — заданные ранее вопросы «поменять X на Y?». Пока их нет,
+ * инструмента подтверждения в списке тоже нет: инструмент — это приглашение
+ * им воспользоваться, а подтверждать нечего.
  */
-function ai_tool_definitions($with_case = false) {
+function ai_tool_definitions($with_case = false, array $pending = array()) {
     $tools = ai_tool_profile_definitions();
+    if ($pending) {
+        $tools[] = ai_tool_confirm_definition($pending);
+    }
     if ($with_case) {
         $tools[] = array(
             'type' => 'function',
@@ -179,8 +186,12 @@ function ai_tool_dict_id($db, $column, $value) {
 /*
  * Применяет запрос модели к анкете пользователя.
  * Возвращает отчёт: array('applied'=>[поле=>значение], 'skipped'=>[поле=>причина]).
+ *
+ * $chat_message_id — реплика человека, в ответ на которую пришёл вызов. Нужна
+ * для вопроса о замене: подтверждение будет засчитано только со следующей
+ * реплики (см. ai_tool_confirm).
  */
-function ai_tool_apply($db, $user_id, $args) {
+function ai_tool_apply($db, $user_id, $args, $chat_message_id = 0, $thread = 1) {
     $user_id = (int)$user_id;
     $report = array('applied' => array(), 'skipped' => array());
     if (!is_array($args) || !$user_id) {
@@ -215,15 +226,10 @@ function ai_tool_apply($db, $user_id, $args) {
         }
 
         $column = $map[$key]['column'];
-        $current = (string)$db->get_var(
-            "SELECT `$column` FROM `Message204` WHERE `Message_ID`=$anketa_id"
-        );
-        if (trim($current) !== '' && trim($current) !== '0') {
-            // человек (или прошлый диалог) уже заполнил — не перетираем
-            $report['skipped'][$key] = 'уже заполнено';
-            continue;
-        }
 
+        // Приведение к хранимому виду ДО проверки «занято»: иначе про
+        // несуществующее значение справочника пришлось бы задавать вопрос
+        // о замене, а записать его всё равно было бы нечем.
         if ($map[$key]['type'] === 'dict') {
             $id = ai_tool_dict_id($db, $column, $value);
             if (!$id) {
@@ -234,6 +240,30 @@ function ai_tool_apply($db, $user_id, $args) {
         } else {
             $stored = mb_substr($value, 0, 2000);
         }
+
+        $current = (string)$db->get_var(
+            "SELECT `$column` FROM `Message204` WHERE `Message_ID`=$anketa_id"
+        );
+        if (trim($current) !== '' && trim($current) !== '0') {
+            // Поле занято. Молча перетирать нельзя (ТЗ Э1.3), но и молча
+            // ронять предложение — значит запереть человека: переехал в
+            // другой город, а сказать об этом консультанту некому.
+            // Записываем вопрос и просим модель задать его словами.
+            if (trim($current) === trim($stored)) {
+                ai_pending_drop($db, $user_id, $column);
+                $report['skipped'][$key] = 'там уже это же значение';
+                continue;
+            }
+            $report['skipped'][$key] = 'уже заполнено';
+            $report['pending'][$key] = ai_pending_ask(
+                $db, $user_id, $key, $column, $map[$key]['type'],
+                $current, $stored, $chat_message_id, $thread
+            );
+            continue;
+        }
+
+        // поле пустое — прежний вопрос о нём (если был) уже не о чем
+        ai_pending_drop($db, $user_id, $column);
 
         $db->query(
             "UPDATE `Message204` SET `$column`='" . $db->prepare($stored) . "' "
@@ -249,7 +279,8 @@ function ai_tool_apply($db, $user_id, $args) {
             . "`user_id`=$user_id, `field`='" . $db->prepare($column) . "', "
             . "`old_value`='" . $db->prepare($current) . "', "
             . "`new_value`='" . $db->prepare($stored) . "', "
-            . "`source`='ai', `created_at`=NOW()"
+            . "`source`='ai', `chat_message_id`=" . (int)$chat_message_id . ", "
+            . "`created_at`=NOW()"
         );
         if ($db->is_error) {
             // Транзакций нет (MyISAM): поле уже записано, а журнал — нет.
@@ -328,4 +359,354 @@ function ai_tool_report_concern($db, $user_id, $args) {
     // 'noted' и когда заметка не создана (дубль за сутки): модели знать
     // о дедупликации незачем, иначе она начнёт «пробовать ещё раз»
     return array('noted' => true, 'stored' => (bool)$ok);
+}
+
+/* ------------------------------- вопрос о замене значения (ТЗ Э1.3) ------ */
+
+/*
+ * Сколько живёт заданный вопрос. Сутки — потому что «да» через неделю
+ * относится уже к другому разговору: человек не помнит, о чём его спросили,
+ * а модель охотно подтвердит что угодно, лишь бы согласиться с собеседником.
+ */
+define('AI_PENDING_TTL_HOURS', 24);
+
+/* ID справочника → имя. Пустая строка, если такого ID нет. */
+function ai_tool_dict_name($db, $column, $id) {
+    $id = (int)$id;
+    if (!$id) {
+        return '';
+    }
+    $table = 'Classificator_' . $column;      // имя из карты полей, не из запроса
+    return (string)$db->get_var(
+        "SELECT `{$column}_Name` FROM `$table` WHERE `{$column}_ID`=$id LIMIT 1"
+    );
+}
+
+/*
+ * Хранимое значение → то, что можно показать человеку. Для справочников это
+ * имя: в вопросе «поменять на 4?» согласиться невозможно.
+ */
+function ai_tool_value_label($db, $column, $type, $stored) {
+    if ($type === 'dict') {
+        $name = ai_tool_dict_name($db, $column, $stored);
+        $text = $name !== '' ? $name : (string)$stored;
+    } else {
+        $text = (string)$stored;
+    }
+
+    /*
+     * Метка уходит в СИСТЕМНЫЙ промпт и в описание инструмента, а берётся из
+     * поля анкеты, которое человек заполняет сам. Без очистки строка, где
+     * после кавычки идёт новая строка с указанием модели, выходит за границу
+     * блока данных и читается как инструкция. Соседние блоки (фрагменты книг,
+     * текст сценария) чистятся ровно так же — этот не исключение.
+     */
+    $text = str_replace(array("\r", "\n", "\t", "\xC2\xAB", "\xC2\xBB"),
+                        array(' ', ' ', ' ', '"', '"'), $text);
+    $clean = preg_replace('/\s+/u', ' ', $text);
+    if ($clean === null) {           // битый UTF-8: иначе метка стала бы пустой
+        $clean = preg_replace('/\s+/', ' ', $text);
+    }
+    return mb_substr(trim((string)$clean), 0, 200);
+}
+
+/* Снять вопрос по одному полю (ответили, протух или стал бессмысленным). */
+function ai_pending_drop($db, $user_id, $column) {
+    $db->query(
+        "DELETE FROM `ai_pending_overwrites` WHERE `user_id`=" . (int)$user_id
+        . " AND `field`='" . $db->prepare($column) . "'"
+    );
+}
+
+/*
+ * Окно согласия — ровно одна следующая реплика человека.
+ *
+ * Проверки «вопрос задан раньше текущей реплики» мало: она доказывает лишь,
+ * что человек после вопроса что-то написал. Скажи он «нет» — вопрос всё
+ * равно висел бы, и «да» на совсем другой вопрос консультанта тремя
+ * репликами позже модель зачла бы за согласие на замену. Поэтому вопрос,
+ * доживший до конца отвечающего хода неподтверждённым, снимается: отдельно
+ * фиксировать отказ не нужно, молчание — тоже не согласие.
+ *
+ * Вызывается в конце обмена: подтверждение к этому моменту свою строку уже
+ * удалило, а заново предложенное в этом же ходу имеет номер текущей реплики
+ * и под условие не попадает.
+ */
+function ai_pending_expire_answered($db, $user_id, $current_message_id, $thread = null) {
+    $current_message_id = (int)$current_message_id;
+    if ($current_message_id <= 0) {
+        return;
+    }
+    // Реплика в другом диалоге чужой вопрос не отвечает — и не должна
+    // съедать его окно: у каждого разговора свой ход.
+    $where = $thread === null ? '' : " AND `thread`=" . (int)$thread;
+    $db->query(
+        "DELETE FROM `ai_pending_overwrites` WHERE `user_id`=" . (int)$user_id
+        . " AND `asked_message_id` < $current_message_id" . $where
+    );
+}
+
+/* Снять все вопросы пользователя (новый диалог: прежние уже не о чём). */
+function ai_pending_clear($db, $user_id) {
+    $db->query("DELETE FROM `ai_pending_overwrites` WHERE `user_id`=" . (int)$user_id);
+}
+
+/*
+ * Запомнить вопрос «поменять X на Y?» и вернуть его же для отчёта модели.
+ * REPLACE, а не INSERT: по полю висит ровно один вопрос — последний. Иначе
+ * передумавшая по ходу разговора модель оставила бы два предложения, и «да»
+ * относилось бы неизвестно к какому.
+ */
+function ai_pending_ask($db, $user_id, $key, $column, $type, $current, $proposed, $chat_message_id, $thread = 1) {
+    $current_label  = ai_tool_value_label($db, $column, $type, $current);
+    $proposed_label = ai_tool_value_label($db, $column, $type, $proposed);
+
+    /*
+     * По полю висит ровно один вопрос — последний: передумавшая по ходу
+     * разговора модель иначе оставила бы два предложения, и «да» относилось
+     * бы неизвестно к какому.
+     *
+     * Но при повторе ТОГО ЖЕ предложения номер реплики не сдвигаем. Модель
+     * часто присылает в одном ответе и повтор предложения, и подтверждение;
+     * сдвинутый номер превратил бы явное согласие человека в «он ещё не
+     * ответил», и кнопка «Да, поменять» переставала бы работать.
+     */
+    $db->query(
+        "INSERT INTO `ai_pending_overwrites` SET "
+        . "`user_id`=" . (int)$user_id . ", "
+        . "`field`='" . $db->prepare($column) . "', "
+        . "`tool_key`='" . $db->prepare($key) . "', "
+        . "`thread`=" . (int)$thread . ", "
+        . "`current_value`='" . $db->prepare($current) . "', "
+        . "`current_label`='" . $db->prepare($current_label) . "', "
+        . "`proposed_value`='" . $db->prepare($proposed) . "', "
+        . "`proposed_label`='" . $db->prepare($proposed_label) . "', "
+        . "`asked_message_id`=" . (int)$chat_message_id . ", "
+        . "`asked_at`=NOW() "
+        . "ON DUPLICATE KEY UPDATE "
+        . "`tool_key`=VALUES(`tool_key`), `thread`=VALUES(`thread`), "
+        . "`current_value`=VALUES(`current_value`), `current_label`=VALUES(`current_label`), "
+        . "`proposed_label`=VALUES(`proposed_label`), "
+        . "`asked_message_id`=IF(`proposed_value`=VALUES(`proposed_value`), "
+        . "`asked_message_id`, VALUES(`asked_message_id`)), "
+        . "`proposed_value`=VALUES(`proposed_value`), `asked_at`=NOW()"
+    );
+    if ($db->is_error) {
+        shiduh_log('ai', 'не сохранён вопрос о замене поля ' . $column
+            . ', пользователь ' . (int)$user_id);
+    }
+
+    return array(
+        'сейчас' => $current_label,
+        'предложено' => $proposed_label,
+        'что_делать' => 'спросите собеседника, менять ли; после явного согласия '
+            . 'вызовите confirm_profile_update с этим полем',
+    );
+}
+
+/*
+ * Живые вопросы пользователя. Заодно чистит те, что потеряли смысл:
+ *   - старше суток;
+ *   - значение в анкете успело измениться (человек правил её через форму) —
+ *     тогда согласие относилось бы к тому, чего человек уже не видит.
+ * Проверка здесь, а не только при подтверждении, потому что протухший вопрос
+ * не должен ни попадать в промпт, ни висеть подсказкой «да/нет».
+ */
+function ai_pending_list($db, $user_id, $thread = null) {
+    $user_id = (int)$user_id;
+    $ttl = (int)AI_PENDING_TTL_HOURS;
+    // Забираем все строки пользователя разом (в обычной жизни их 0-1) и
+    // разбираем в PHP: отдельный DELETE на каждый вызов брал бы табличную
+    // блокировку MyISAM даже там, где чистить нечего.
+    $rows = (array)$db->get_results(
+        "SELECT *, (`asked_at` < DATE_SUB(NOW(), INTERVAL $ttl HOUR)) AS `expired` "
+        . "FROM `ai_pending_overwrites` WHERE `user_id`=$user_id ORDER BY `id`",
+        ARRAY_A
+    );
+    if (!$rows) {
+        return array();
+    }
+
+    $fresh = array();
+    foreach ($rows as $r) {
+        if (!empty($r['expired'])) {
+            ai_pending_drop($db, $user_id, (string)$r['field']);
+            continue;
+        }
+        // Вопрос из другого диалога: «да» в новом разговоре не должно
+        // подтверждать то, о чём спрашивали в старом. Номер диалога приходит
+        // от клиента, поэтому очистки при приветствии недостаточно.
+        if ($thread !== null && (int)$r['thread'] !== (int)$thread) {
+            continue;
+        }
+        $fresh[] = $r;
+    }
+    $rows = $fresh;
+    if (!$rows) {
+        return array();
+    }
+
+    $anketa_id = (int)$db->get_var(
+        "SELECT `Message_ID` FROM `Message204` WHERE `User_ID`=$user_id "
+        . "ORDER BY `Message_ID` LIMIT 1"
+    );
+    if (!$anketa_id) {
+        return array();
+    }
+
+    $map = ai_tool_field_map();
+    $live = array();
+    foreach ($rows as $r) {
+        // колонку берём из нашей карты, а не из строки таблицы: в SQL не
+        // должно попадать ничего, чего мы не объявляли сами
+        $key = (string)$r['tool_key'];
+        if (!isset($map[$key]) || $map[$key]['column'] !== $r['field']) {
+            ai_pending_drop($db, $user_id, (string)$r['field']);
+            continue;
+        }
+        $column = $map[$key]['column'];
+        $now = (string)$db->get_var(
+            "SELECT `$column` FROM `Message204` WHERE `Message_ID`=$anketa_id"
+        );
+        if (trim($now) !== trim((string)$r['current_value'])) {
+            ai_pending_drop($db, $user_id, $column);
+            continue;
+        }
+        $r['column'] = $column;
+        $r['type'] = $map[$key]['type'];
+        $live[] = $r;
+    }
+    return $live;
+}
+
+/*
+ * Описание инструмента подтверждения. Появляется только когда вопрос задан:
+ * инструмент в списке — это приглашение им воспользоваться, а приглашать
+ * подтверждать нечего не нужно.
+ *
+ * Параметра значения НЕТ намеренно. Что записать, сервер знает сам из строки
+ * вопроса; будь у модели возможность передать значение — она могла бы
+ * подставить не то, о чём спрашивала, и вся проверка потеряла бы смысл.
+ */
+function ai_tool_confirm_definition(array $pending) {
+    $keys = array();
+    $lines = array();
+    foreach ($pending as $p) {
+        $keys[] = (string)$p['tool_key'];
+        $lines[] = $p['tool_key'] . ': "' . $p['current_label'] . '" -> "' . $p['proposed_label'] . '"';
+    }
+    return array(
+        'type' => 'function',
+        'function' => array(
+            'name' => 'confirm_profile_update',
+            'description' => 'Заменить в анкете ранее заполненное значение на предложенное. '
+                . 'Вызывайте ТОЛЬКО после того, как собеседник прямо согласился на замену '
+                . 'в ответ на ваш вопрос. Ожидают подтверждения: ' . implode('; ', $lines)
+                . '. Если он отказался — не вызывайте, оставьте как есть.',
+            'parameters' => array(
+                'type' => 'object',
+                'properties' => array(
+                    'fields' => array(
+                        'type' => 'array',
+                        'description' => 'Поля, замену которых собеседник подтвердил',
+                        'items' => array('type' => 'string', 'enum' => $keys),
+                    ),
+                ),
+                'required' => array('fields'),
+                'additionalProperties' => false,
+            ),
+        ),
+    );
+}
+
+/*
+ * Применение подтверждённой замены.
+ *
+ * Согласие засчитывается, только если вопрос был задан РАНЬШЕ текущей реплики
+ * человека. Предложение и подтверждение в одном ходу модель может выдать сама,
+ * ни о чём не спросив; по её же словам этого не отличить, а по номеру реплики
+ * видно однозначно.
+ */
+function ai_tool_confirm($db, $user_id, $args, $chat_message_id = 0, $thread = null) {
+    $user_id = (int)$user_id;
+    $chat_message_id = (int)$chat_message_id;
+    $report = array('applied' => array(), 'skipped' => array());
+
+    $fields = array();
+    if (is_array($args) && isset($args['fields'])) {
+        $fields = is_array($args['fields']) ? $args['fields'] : array($args['fields']);
+    }
+    if (!$fields || !$user_id) {
+        $report['skipped']['_'] = 'не указано, что подтверждать';
+        return $report;
+    }
+
+    $anketa_id = (int)$db->get_var(
+        "SELECT `Message_ID` FROM `Message204` WHERE `User_ID`=$user_id "
+        . "ORDER BY `Message_ID` LIMIT 1"
+    );
+    if (!$anketa_id) {
+        $report['skipped']['_'] = 'анкета не найдена';
+        return $report;
+    }
+
+    $pending = array();
+    foreach (ai_pending_list($db, $user_id, $thread) as $p) {
+        $pending[(string)$p['tool_key']] = $p;
+    }
+
+    foreach ($fields as $key) {
+        $key = is_string($key) ? trim($key) : '';
+        if ($key === '' || !isset($pending[$key])) {
+            // спросили не об этом — или вопрос уже снят как потерявший смысл
+            $report['skipped'][(string)$key] = 'подтверждать нечего: такого вопроса не задавали';
+            continue;
+        }
+        $row = $pending[$key];
+        if ((int)$row['asked_message_id'] >= $chat_message_id) {
+            // вопрос задан в этом же ходу: собеседник ещё не отвечал
+            $report['skipped'][$key] = 'собеседник ещё не ответил на ваш вопрос';
+            continue;
+        }
+
+        $column = (string)$row['column'];
+        $stored = (string)$row['proposed_value'];
+        // Условие по прежнему значению — вместо транзакции (MyISAM их не
+        // умеет): между сверкой снимка выше и этой записью человек мог
+        // сохранить форму анкеты, и его правку затёрло бы молча.
+        $db->query(
+            "UPDATE `Message204` SET `$column`='" . $db->prepare($stored) . "' "
+            . "WHERE `Message_ID`=$anketa_id "
+            . "AND `$column`='" . $db->prepare((string)$row['current_value']) . "'"
+        );
+        if ($db->is_error) {
+            $report['skipped'][$key] = 'ошибка записи';
+            continue;
+        }
+        if ((int)$db->rows_affected === 0) {
+            ai_pending_drop($db, $user_id, $column);
+            $report['skipped'][$key] = 'значение в анкете уже другое, спросите заново';
+            continue;
+        }
+
+        $db->query(
+            "INSERT INTO `ai_field_writes` SET "
+            . "`user_id`=$user_id, `field`='" . $db->prepare($column) . "', "
+            . "`old_value`='" . $db->prepare((string)$row['current_value']) . "', "
+            . "`new_value`='" . $db->prepare($stored) . "', "
+            . "`source`='ai', `chat_message_id`=" . $chat_message_id . ", "
+            . "`created_at`=NOW()"
+        );
+        if ($db->is_error) {
+            // Транзакций нет (MyISAM). Замену не откатываем, но замена без
+            // следа — худший вид изменения анкеты: пишем в лог.
+            shiduh_log('ai', 'не записан журнал подтверждённой замены: поле ' . $column
+                . ', пользователь ' . $user_id);
+        }
+
+        ai_pending_drop($db, $user_id, $column);
+        $report['applied'][$column] = $stored;
+    }
+
+    return $report;
 }

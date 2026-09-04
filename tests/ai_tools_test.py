@@ -61,6 +61,9 @@ def clear_fields():
 def clear_chat():
     dbq("DELETE FROM `ai_chat_messages` WHERE user_id=%d" % UID)
     dbq("DELETE FROM `ai_field_writes` WHERE user_id=%d" % UID)
+    # заполненное поле теперь взводит вопрос о замене — прерванный прогон
+    # оставил бы его в общей dev-БД
+    dbq("DELETE FROM `ai_pending_overwrites` WHERE user_id=%d" % UID)
 
 
 def writes_log():
