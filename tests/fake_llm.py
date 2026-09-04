@@ -466,6 +466,26 @@ if ($mode === 'echo_tools') {
     exit;
 }
 
+if ($mode === 'echo_dialog') {
+    /* Весь диалог, который реально ушёл модели: так тест видит, что попало
+       в промпт, а что осталось за его границей (например, прошлый тред). */
+    $parts = array();
+    if (isset($raw['messages']) && is_array($raw['messages'])) {
+        foreach ($raw['messages'] as $m) {
+            $parts[] = (isset($m['role']) ? $m['role'] : '?') . ': '
+                . (isset($m['content']) ? (string)$m['content'] : '');
+        }
+    }
+    echo json_encode(array(
+        'choices' => array(array('message' => array(
+            'role' => 'assistant',
+            'content' => implode(' | ', $parts),
+        ))),
+        'usage' => array('prompt_tokens' => 5, 'completion_tokens' => 5, 'total_tokens' => 10),
+    ), JSON_UNESCAPED_UNICODE);
+    exit;
+}
+
 if ($mode === 'echo_system') { $last = $system; }
 fake_emit('ФЕЙК-ОТВЕТ на: ' . $last,
     array('prompt_tokens' => 11, 'completion_tokens' => 7, 'total_tokens' => 18),
@@ -699,6 +719,36 @@ def browser_headers(req, sid, origin=None, csrf=True):
         token = csrf_token(sid) if csrf is True else csrf
         if token:
             req.add_header("X-CSRF-Token", token)
+
+
+def get_text(path, sid=None, params="", timeout=120):
+    """GET страницы → (код, тело как текст). Для проверок разметки."""
+    url = BASE + path + (("?" + params) if params else "")
+    req = urllib.request.Request(url)
+    if sid:
+        req.add_header("Cookie", "PHP_AUTH_SID=%s; PHP_AUTH_LANG=Russian" % sid)
+    try:
+        r = urllib.request.urlopen(req, timeout=timeout)
+        return r.status, r.read().decode("utf-8", "replace")
+    except urllib.error.HTTPError as e:
+        return e.code, e.read().decode("utf-8", "replace")
+
+
+def get_json(path, sid=None, params="", timeout=120):
+    """GET → (код, разобранный JSON). Для эндпоинтов, которые только читают."""
+    url = BASE + path + (("?" + params) if params else "")
+    req = urllib.request.Request(url)
+    if sid:
+        req.add_header("Cookie", "PHP_AUTH_SID=%s; PHP_AUTH_LANG=Russian" % sid)
+    try:
+        r = urllib.request.urlopen(req, timeout=timeout)
+        raw, code = r.read().decode("utf-8", "replace"), r.status
+    except urllib.error.HTTPError as e:
+        raw, code = e.read().decode("utf-8", "replace"), e.code
+    try:
+        return code, json.loads(raw)
+    except ValueError:
+        return code, {"_raw": raw[:300]}
 
 
 def post_json(path, sid, fields, origin=None, timeout=180, csrf=True):

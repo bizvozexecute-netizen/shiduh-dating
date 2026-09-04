@@ -20,7 +20,22 @@ if (!$nc_uid) {
 // клиент догружает через /api/ai_history.php по кнопке «показать ранее».
 require_once $nc_core->DOCUMENT_ROOT . '/api/chat_lib.php';
 require_once $nc_core->DOCUMENT_ROOT . '/api/markdown_lite.php';
-$nc_thread = chat_current_thread($nc_core->db, $nc_uid);
+$nc_current_thread = chat_current_thread($nc_core->db, $nc_uid);
+// ?thread=N — прошлый разговор. Он открывается только для чтения: дописать в
+// него нельзя (сервер ответит 409), поэтому поле ввода не показываем вовсе,
+// а не просто блокируем — иначе человек будет искать, почему не отправляется.
+$nc_threads = chat_thread_list($nc_core->db, $nc_uid);
+$nc_thread = isset($_GET['thread']) ? (int)$_GET['thread'] : 0;
+// открываем только существующий разговор: пропущенный или выдуманный номер
+// иначе рисовал бы пустую «архивную» страницу с приглашением поздороваться
+$nc_known = array();
+foreach ($nc_threads as $nc_t) {
+    $nc_known[(int)$nc_t['thread']] = true;
+}
+if ($nc_thread <= 0 || $nc_thread >= $nc_current_thread || empty($nc_known[$nc_thread])) {
+    $nc_thread = $nc_current_thread;
+}
+$nc_readonly = $nc_thread < $nc_current_thread;
 $nc_page = chat_history_page($nc_core->db, $nc_uid, $nc_thread);
 $nc_history = $nc_page['messages'];
 $nc_has_more = !empty($nc_page['has_more']);
@@ -261,12 +276,33 @@ if ($nc_mine_anketa) {
          data-thread="<?= (int)$nc_thread ?>"
          data-has-more="<?= $nc_has_more ? '1' : '0' ?>"
          data-max-len="4000"
-         data-needs-greeting="<?= empty($nc_history) ? '1' : '0' ?>">
+         data-needs-greeting="<?= (empty($nc_history) && !$nc_readonly) ? '1' : '0' ?>">
   <header class="sh-chat__head">
     <div class="sh-chat__ava" aria-hidden="true">✡</div>
-    <div>
+    <div class="sh-chat__who">
       <div class="sh-chat__title">Ваш ИИ-консультант</div>
-      <div class="sh-chat__sub">поможет дозаполнить анкету в диалоге</div>
+      <div class="sh-chat__sub"><?= $nc_readonly
+        ? 'прошлый разговор — только для чтения'
+        : 'поможет дозаполнить анкету в диалоге' ?></div>
+    </div>
+    <?php /* B7: прошлые разговоры и «Новый диалог». Список — только если
+       разговоров больше одного: пустой переключатель лишь отвлекает. */ ?>
+    <div class="sh-chat__tools">
+      <?php if (count($nc_threads) > 1): ?>
+      <select class="sh-threads" id="shThreads" aria-label="Выбрать разговор">
+        <?php foreach ($nc_threads as $nc_t): ?>
+        <option value="<?= (int)$nc_t['thread'] ?>" <?= (int)$nc_t['thread'] === $nc_thread ? 'selected' : '' ?>>
+          <?= (int)$nc_t['thread'] === $nc_current_thread ? 'Текущий разговор' : 'Разговор от ' . date('d.m.Y', strtotime($nc_t['first_at'])) ?>
+        </option>
+        <?php endforeach; ?>
+      </select>
+      <?php endif; ?>
+      <?php if ($nc_readonly): ?>
+      <a class="button button--secondary button--sm" href="/my/ai-consultant/">К текущему</a>
+      <?php else: ?>
+      <button type="button" class="button button--secondary button--sm" id="shNewThread"
+              title="Начать разговор с чистого листа — прошлый останется в списке">Новый диалог</button>
+      <?php endif; ?>
     </div>
   </header>
 
@@ -303,6 +339,18 @@ if ($nc_mine_anketa) {
                 ? htmlspecialchars($nc_m['content'], ENT_QUOTES, 'UTF-8')
                 : markdown_lite_html($nc_m['content']);
           ?></div>
+          <?php if ($nc_m['role'] === 'assistant'): $nc_r = $nc_m['rating']; ?>
+          <?php /* B7: оценка ответа. Состояние печатает сервер, чтобы после
+             перезагрузки нажатое не выглядело ненажатым. */ ?>
+          <div class="sh-msg__rate" role="group" aria-label="Оценить ответ">
+            <button type="button" class="sh-rate" data-rate="1" aria-pressed="<?= $nc_r === 1 ? 'true' : 'false' ?>" aria-label="Полезный ответ" title="Полезно">
+              <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><path fill="currentColor" d="M2 21h4V9H2v12zm20-11c0-1.1-.9-2-2-2h-6.3l1-4.6v-.3c0-.4-.2-.8-.4-1.1L13.2 1 6.6 7.6C6.2 7.9 6 8.4 6 9v10c0 1.1.9 2 2 2h9c.8 0 1.5-.5 1.8-1.2l3-7.1c.1-.2.2-.5.2-.7v-2z"/></svg>
+            </button>
+            <button type="button" class="sh-rate" data-rate="-1" aria-pressed="<?= $nc_r === -1 ? 'true' : 'false' ?>" aria-label="Ответ не помог" title="Не помогло">
+              <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><path fill="currentColor" d="M22 3h-4v12h4V3zM2 14c0 1.1.9 2 2 2h6.3l-1 4.6v.3c0 .4.2.8.4 1.1l1.1 1 6.6-6.6c.4-.3.6-.8.6-1.4V5c0-1.1-.9-2-2-2H7c-.8 0-1.5.5-1.8 1.2l-3 7.1c-.1.2-.2.5-.2.7v2z"/></svg>
+            </button>
+          </div>
+          <?php endif; ?>
         </article>
       <?php endforeach; endif; ?>
     </div>
@@ -310,6 +358,12 @@ if ($nc_mine_anketa) {
 
   <div class="sh-chips" id="shChips" role="group" aria-label="Быстрые ответы" hidden></div>
 
+  <?php if ($nc_readonly): ?>
+  <p class="sh-chat__readonly">
+    Это прошлый разговор — он доступен только для чтения.
+    <a href="/my/ai-consultant/">Вернуться к текущему диалогу</a>
+  </p>
+  <?php else: ?>
   <form class="sh-composer" id="shForm" autocomplete="off">
     <button type="button" class="sh-composer__mic sh-btn-icon" id="shMic"
             aria-label="Ввести голосом" aria-pressed="false" hidden>
@@ -322,6 +376,7 @@ if ($nc_mine_anketa) {
     <button type="submit" class="button sh-composer__send" id="shSend">Отправить</button>
     <button type="button" class="button button--secondary sh-composer__stop" id="shStop" hidden>Остановить</button>
   </form>
+  <?php endif; ?>
 </section>
 
 <script>
@@ -330,9 +385,13 @@ if ($nc_mine_anketa) {
   window.SH_CHAT = {
     thread: <?= (int)$nc_thread ?>,
     hasMore: <?= $nc_has_more ? 'true' : 'false' ?>,
-    needsGreeting: <?= empty($nc_history) ? 'true' : 'false' ?>,
-    chips: <?= json_encode(chat_chips($nc_core->db, $nc_uid), JSON_UNESCAPED_UNICODE) ?>,
+    current: <?= (int)$nc_current_thread ?>,
+    readOnly: <?= $nc_readonly ? 'true' : 'false' ?>,
+    needsGreeting: <?= (empty($nc_history) && !$nc_readonly) ? 'true' : 'false' ?>,
+    chips: <?= json_encode($nc_readonly ? array() : chat_chips($nc_core->db, $nc_uid, array('thread' => $nc_thread)), JSON_UNESCAPED_UNICODE) ?>,
     greet: '/api/ai_greet.php',
+    rate: '/api/ai_rate.php',
+    newThread: '/api/ai_thread_new.php',
     maxLen: 4000,
     endpoint: '/api/ai_chat.php',
     history: '/api/ai_history.php'

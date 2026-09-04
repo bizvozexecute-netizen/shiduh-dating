@@ -213,6 +213,12 @@
       el.appendChild(meta);
     }
 
+    // Оценка — только у сохранённого ответа консультанта: у потокового
+    // черновика ещё нет id, оценивать нечего.
+    if (role !== 'user' && opts.id) {
+      el.appendChild(rateGroup(opts.rating));
+    }
+
     var hello = log.querySelector('.sh-chat__hello');
     if (hello) { hello.remove(); }
     log.appendChild(el);
@@ -300,6 +306,13 @@
 
   function fail(js, text, retryOf, failedNode) {
     if (failedNode) { failedNode.dataset.state = 'failed'; }
+    // Вкладка отстала: разговор уже другой (вторая вкладка нажала «Новый
+    // диалог»). «Повторить» тут не поможет никогда — честнее перезагрузить.
+    if (js && js.code === 'stale_thread') {
+      errorBubble((js.error || 'Разговор изменился в другой вкладке.') + ' Страница обновится.');
+      setTimeout(function () { window.location.href = window.location.pathname; }, 2500);
+      return;
+    }
     // Сообщение уже сохранено на сервере — повтор идёт по его id, чтобы не
     // появилась вторая копия реплики и второй платный вызов.
     errorBubble((js && js.error) || (js && js.message) ||
@@ -391,6 +404,7 @@
         streamNode.dataset.id = data.message_id;
         if (data.created_at) { streamNode.dataset.created = data.created_at; }
         if (data.stopped) { streamNode.dataset.stopped = '1'; }
+        ensureRate(streamNode);                   // потоковый пузырь создан без id
         typing(false);
         setBusy(false);
         finishOk(data, failedNode);
@@ -501,7 +515,10 @@
     }
   }
 
-  form.addEventListener('submit', function (e) {
+  // Поля ввода нет у прошлого разговора (страница только для чтения):
+  // привязки ниже обязаны это переживать, иначе падает весь скрипт вместе с
+  // переключателем разговоров.
+  if (form) form.addEventListener('submit', function (e) {
     e.preventDefault();
     var text = input.value.trim();
     if (!text || busy) { return; }
@@ -519,7 +536,7 @@
   /* Enter отправляет, Shift+Enter переносит строку. Проверка isComposing
      обязательна: при наборе иероглифов и по словарю Enter подтверждает
      выбор, а не отправляет сообщение. */
-  input.addEventListener('keydown', function (e) {
+  if (input) input.addEventListener('keydown', function (e) {
     if (e.key !== 'Enter' || e.shiftKey) { return; }
     if (e.isComposing || e.keyCode === 229) { return; }
     e.preventDefault();
@@ -527,11 +544,13 @@
   });
 
   function autosize() {
+    if (!input) { return; }
     input.style.height = 'auto';
     input.style.height = Math.min(input.scrollHeight, window.innerHeight * 0.4) + 'px';
   }
 
   function updateCount() {
+    if (!input || !count) { return; }
     var left = maxLen - input.value.length;
     // Счётчик появляется ближе к пределу: постоянный отвлекает.
     var show = input.value.length > maxLen * 0.8;
@@ -539,9 +558,9 @@
     if (show) { count.textContent = input.value.length + ' / ' + maxLen; }
   }
 
-  input.addEventListener('input', function () { autosize(); updateCount(); });
+  if (input) input.addEventListener('input', function () { autosize(); updateCount(); });
 
-  stop.addEventListener('click', function () {
+  if (stop) stop.addEventListener('click', function () {
     // Обрываем соединение: сервер видит это и сохраняет уже показанный текст
     // с пометкой «остановлено», а не теряет его и не досказывает за деньги.
     if (controller) {
@@ -589,6 +608,7 @@
           mdlite.render(node.querySelector('.sh-msg__body'), answer.content);
           node.dataset.id = answer.id;
           if (answer.created_at) { node.dataset.created = answer.created_at; }
+          ensureRate(node);
           if (!answer.stopped) {
             // модель всё же договорила — пометка «остановлено» неуместна
             node.removeAttribute('data-stopped');
@@ -651,7 +671,9 @@
         .then(function (js) {
           more.disabled = false;
           (js.messages || []).slice().reverse().forEach(function (m) {
-            var el = bubble(m.role, m.content, { id: m.id, created: m.created_at });
+            // rating — иначе догруженный ответ выглядит неоценённым, и клик
+            // по другой кнопке молча перезапишет прежнюю оценку
+            var el = bubble(m.role, m.content, { id: m.id, created: m.created_at, rating: m.rating });
             log.insertBefore(el, log.firstChild);
           });
           // сохраняем положение чтения: иначе экран прыгает к началу
@@ -690,6 +712,142 @@
       updateCount();
       input.focus();
     };
+  }
+
+  /* ------------------------------------------------------- оценка ответа -- */
+
+  /* Палец вверх/вниз у ответа консультанта. Даёт администратору сигнал «где
+     модель отвечает мимо», не открывая содержания переписки. */
+  function rateButton(value, pressed) {
+    var b = document.createElement('button');
+    b.type = 'button';
+    b.className = 'sh-rate';
+    b.dataset.rate = String(value);
+    b.setAttribute('aria-pressed', pressed ? 'true' : 'false');
+    b.setAttribute('aria-label', value > 0 ? 'Полезный ответ' : 'Ответ не помог');
+    b.title = value > 0 ? 'Полезно' : 'Не помогло';
+    b.innerHTML = value > 0
+      ? '<svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><path fill="currentColor" d="M2 21h4V9H2v12zm20-11c0-1.1-.9-2-2-2h-6.3l1-4.6v-.3c0-.4-.2-.8-.4-1.1L13.2 1 6.6 7.6C6.2 7.9 6 8.4 6 9v10c0 1.1.9 2 2 2h9c.8 0 1.5-.5 1.8-1.2l3-7.1c.1-.2.2-.5.2-.7v-2z"/></svg>'
+      : '<svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><path fill="currentColor" d="M22 3h-4v12h4V3zM2 14c0 1.1.9 2 2 2h6.3l-1 4.6v.3c0 .4.2.8.4 1.1l1.1 1 6.6-6.6c.4-.3.6-.8.6-1.4V5c0-1.1-.9-2-2-2H7c-.8 0-1.5.5-1.8 1.2l-3 7.1c-.1.2-.2.5-.2.7v2z"/></svg>';
+    return b;
+  }
+
+  function rateGroup(rating) {
+    var g = document.createElement('div');
+    g.className = 'sh-msg__rate';
+    g.setAttribute('role', 'group');
+    g.setAttribute('aria-label', 'Оценить ответ');
+    g.appendChild(rateButton(1, rating === 1));
+    g.appendChild(rateButton(-1, rating === -1));
+    return g;
+  }
+
+  /* Пузырь, получивший id позже создания (потоковый ответ, сверка после
+     «Остановить»), кнопок оценки не имеет — дорисовываем один раз. */
+  function ensureRate(node) {
+    if (!node || !node.dataset.id || node.querySelector('.sh-msg__rate')) { return; }
+    node.appendChild(rateGroup(null));
+  }
+
+  // Делегирование: кнопки есть и в напечатанной сервером истории, и в живых
+  // репликах — один обработчик на весь журнал покрывает оба случая.
+  log.addEventListener('click', function (e) {
+    var btn = e.target.closest ? e.target.closest('.sh-rate') : null;
+    if (!btn) { return; }
+    var msg = btn.closest('.sh-msg');
+    if (!msg || !msg.dataset.id) { return; }
+    var group = btn.parentNode;
+    var value = parseInt(btn.dataset.rate, 10);
+    // повторное нажатие снимает оценку: нажал не туда — поправил
+    var next = btn.getAttribute('aria-pressed') === 'true' ? 0 : value;
+
+    var buttons = group.querySelectorAll('.sh-rate');
+    buttons.forEach(function (b) { b.disabled = true; });
+    fetch(cfg.rate || '/api/ai_rate.php', {
+      method: 'POST',
+      credentials: 'same-origin',
+      body: new URLSearchParams({ message_id: msg.dataset.id, rating: String(next) })
+    }).then(function (r) { return r.json().then(function (js) { return { ok: r.ok, js: js }; }); })
+      .then(function (res) {
+        buttons.forEach(function (b) { b.disabled = false; });
+        if (!res.ok) { throw new Error((res.js && res.js.error) || 'rate'); }
+        buttons.forEach(function (b) {
+          b.setAttribute('aria-pressed', parseInt(b.dataset.rate, 10) === next ? 'true' : 'false');
+        });
+        if (next !== 0 && window.sh && window.sh.toast) {
+          window.sh.toast({ type: 'ok', text: 'Спасибо, оценка учтена', timeout: 1800 });
+        }
+      })
+      .catch(function () {
+        buttons.forEach(function (b) { b.disabled = false; });
+        if (window.sh && window.sh.toast) {
+          window.sh.toast({ type: 'err', text: 'Не удалось сохранить оценку' });
+        }
+      });
+  });
+
+  /* ---------------------------------------------------- прошлые разговоры -- */
+
+  var threadsSel = document.getElementById('shThreads');
+  var newThreadBtn = document.getElementById('shNewThread');
+
+  // Прошлый разговор открывается страницей, а не подменой журнала: он статичен
+  // и только для чтения, серверный рендер здесь честнее и проще.
+  if (threadsSel) {
+    threadsSel.addEventListener('change', function () {
+      var n = parseInt(threadsSel.value, 10);
+      if (!n) { return; }
+      window.location.href = n === (cfg.current || thread)
+        ? window.location.pathname
+        : window.location.pathname + '?thread=' + n;
+    });
+  }
+
+  if (newThreadBtn) {
+    newThreadBtn.addEventListener('click', function () {
+      if (busy) { return; }
+      newThreadBtn.disabled = true;
+      typing(true, 'начинаю новый разговор…');
+      fetch(cfg.newThread || '/api/ai_thread_new.php', { method: 'POST', credentials: 'same-origin' })
+        .then(function (r) { return r.json().then(function (js) { return { status: r.status, js: js }; }); })
+        .then(function (res) {
+          typing(false);
+          newThreadBtn.disabled = false;
+          var js = res.js || {};
+          if (res.status !== 200 || !js.thread) {
+            if (window.sh && window.sh.toast) {
+              window.sh.toast({ type: 'err', text: js.error || 'Не удалось начать новый диалог' });
+            }
+            return;
+          }
+          if (js.thread === thread) {
+            // Пустой разговор уже открыт — сервер ничего не создал. Но если
+            // стартовое приветствие не дошло по сети, дорисовываем его.
+            if (js.message && !log.querySelector('.sh-msg[data-id="' + js.message.id + '"]')) {
+              var hello = log.querySelector('.sh-chat__hello');
+              if (hello) { hello.remove(); }
+              bubble('assistant', js.message.content, { id: js.message.id, created: js.message.created_at });
+              renderChips(js.chips);
+              toBottom(true);
+            } else if (window.sh && window.sh.toast) {
+              window.sh.toast({ type: 'ok', text: 'Вы уже в новом разговоре', timeout: 1800 });
+            }
+            return;
+          }
+          // Свежий лист рисует сервер: переключатель разговоров, список
+          // прошлых и приветствие — всё это его разметка. Подменять журнал на
+          // месте значило бы держать вторую копию этой логики на клиенте, и
+          // переключатель уже врал бы про «текущий» разговор.
+          window.location.href = window.location.pathname;
+        })
+        .catch(function () {
+          typing(false);
+          newThreadBtn.disabled = false;
+          if (window.sh && window.sh.toast) {
+            window.sh.toast({ type: 'err', text: 'Не удалось начать новый диалог' });
+          }
+        });
+    });
   }
 
   /* --------------------------------------------------------------- старт -- */

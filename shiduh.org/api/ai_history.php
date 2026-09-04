@@ -41,22 +41,11 @@ if ($thread <= 0) {
 
 // Список тредов: для переключателя «прошлые диалоги»
 if ((string)$in->fetch_get('threads') === '1') {
-    $db->query(
-        "SELECT `thread`, COUNT(*) AS `count`, MIN(`created_at`) AS `first_at`, "
-        . "MAX(`created_at`) AS `last_at` FROM `ai_chat_messages` "
-        . "WHERE `user_id`=$uid GROUP BY `thread` ORDER BY `thread` DESC",
-        ARRAY_A
-    );
-    $threads = array();
-    foreach ((array)$db->last_result as $r) {
-        $threads[] = array(
-            'thread' => (int)$r['thread'],
-            'count' => (int)$r['count'],
-            'first_at' => (string)$r['first_at'],
-            'last_at' => (string)$r['last_at'],
-        );
-    }
-    shiduh_json(200, array('ok' => true, 'current' => chat_current_thread($db, $uid), 'threads' => $threads));
+    shiduh_json(200, array(
+        'ok' => true,
+        'current' => chat_current_thread($db, $uid),
+        'threads' => chat_thread_list($db, $uid),
+    ));
 }
 
 $page = chat_history_page(

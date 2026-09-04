@@ -65,8 +65,27 @@ register_shutdown_function(function () use ($db, $uid) {
 });
 
 $thread = (int)$input->fetch_post('thread');
+$current_thread = chat_current_thread($db, $uid);
 if ($thread <= 0) {
-    $thread = chat_current_thread($db, $uid);
+    $thread = $current_thread;
+}
+/*
+ * Писать можно только в текущий разговор. В прошлый — нельзя: клиент прячет
+ * поле ввода на архивной странице, но одной разметки мало — реплика ушла бы
+ * туда, где человек её не увидит, а модель получила бы промпт не того
+ * разговора. В будущий — тоже нельзя: это создание нового треда в обход
+ * дневного предела (новые создаёт только api/ai_thread_new.php), а номер
+ * вроде 2147483647 к тому же упёрся бы в int(11) и сломал «Новый диалог»
+ * этому пользователю навсегда.
+ */
+if ($thread !== $current_thread) {
+    shiduh_json(409, array(
+        'error' => $thread < $current_thread
+            ? 'Это прошлый разговор — он доступен только для чтения. Вернитесь в текущий диалог.'
+            : 'Такого разговора нет. Обновите страницу.',
+        'code' => 'stale_thread',
+        'current' => $current_thread,
+    ));
 }
 
 /*

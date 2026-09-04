@@ -35,6 +35,10 @@ ENDPOINTS = [
     # а тест не должен ничего записывать. С «валидными» телами он сохранял
     # промпт и ответы опроса и ронял чужие наборы через общее состояние.
     ("/api/ai_chat.php", CANDIDATE, {"message": ""}),
+    ("/api/ai_greet.php", CANDIDATE, {"thread": "999999"}),        # 409: такого треда нет
+    ("/api/ai_rate.php", CANDIDATE, {"message_id": "0", "rating": "5"}),
+    # ai_thread_new.php у него нет невалидного тела — верный токен создал бы
+    # разговор; его CSRF проверяет chat_thread_test::test_requires_csrf
     ("/api/assessment_answer.php", CANDIDATE, {"case_id": "0", "answer": ""}),
     ("/api/cases_save.php", ADMIN, {"action": ""}),
     ("/api/prompt_save.php", ADMIN, {"action": ""}),

@@ -315,16 +315,33 @@
 
 /* «Тихая» кнопка: в карточке шадхана такие уже используются, но в бандле
    класса нет вовсе — раньше они выглядели как обычный текст. */
-:where(.button--secondary, .sh-btn-ghost) {
+.button.button--secondary,
+.sh-btn-ghost {
+  /* Два класса, а не :where(): у :where() нулевая специфичность, и золотой
+     фон бандлового .button (0,1,0) побеждал — «тихая» кнопка рисовалась
+     как основная. */
   background: transparent;
   color: var(--sh-gold-ink);
   border: 1px solid var(--sh-line);
+  box-shadow: none;
 }
 
-:where(.button--secondary, .sh-btn-ghost):hover {
+.button.button--secondary:hover,
+.sh-btn-ghost:hover {
   background: var(--sh-cream-2);
   border-color: var(--sh-gold);
   color: var(--sh-gold-ink);
+}
+
+/* Компактная кнопка для шапок и строк: обычная слишком тяжёлая рядом с
+   заголовком панели. */
+.button.button--sm {
+  min-height: 0;
+  height: auto;
+  padding: 7px 14px;
+  font-size: var(--sh-fs-sm);
+  letter-spacing: .02em;
+  text-transform: none;
 }
 
 /* Ожидание ответа: кнопка занята, но ширину сохраняет — иначе строка
@@ -831,6 +848,93 @@
 :where(.sh-msg):hover .sh-msg__meta,
 :where(.sh-msg):focus-within .sh-msg__meta,
 :where(.sh-msg--meta-open) .sh-msg__meta { opacity: 1; }
+
+/* Оценка ответа (B7). Прячется до наведения, как и время: две кнопки под
+   каждой репликой иначе спорят с текстом за внимание. На сенсорных экранах
+   наведения нет — там показываем всегда. */
+:where(.sh-msg__rate) {
+  display: flex;
+  gap: 2px;
+  /* Ряд невидим до наведения, но место занимает: прижимаем его к нижнему
+     отступу пузыря, чтобы под каждым ответом не висела пустая полоса. */
+  margin: 2px 0 -6px -6px;
+  height: 24px;
+  opacity: 0;
+  transition: opacity var(--sh-t-fast) var(--sh-ease-out);
+}
+
+:where(.sh-msg):hover .sh-msg__rate,
+:where(.sh-msg):focus-within .sh-msg__rate,
+:where(.sh-msg__rate):has([aria-pressed="true"]) { opacity: 1; }
+
+@media (hover: none) {
+  :where(.sh-msg__rate) { opacity: 1; }
+}
+
+.sh-rate {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  padding: 0;
+  border: 1px solid transparent;
+  border-radius: 50%;
+  background: transparent;
+  color: var(--sh-ink-3);
+  cursor: pointer;
+  transition: color var(--sh-t-fast), background var(--sh-t-fast), transform var(--sh-t-fast);
+}
+
+.sh-rate:hover { color: var(--sh-ink); background: rgba(38, 40, 57, .06); }
+.sh-rate:active { transform: scale(.92); }
+.sh-rate[aria-pressed="true"] { color: var(--sh-navy); background: var(--sh-gold); }
+.sh-rate:disabled { opacity: .5; cursor: default; }
+
+/* Шапка чата: справа — переключатель разговоров и «Новый диалог». */
+:where(.sh-chat__who) { min-width: 0; flex: 1 1 auto; }
+
+:where(.sh-chat__tools) {
+  display: flex;
+  align-items: center;
+  gap: var(--sh-s-2);
+  flex: none;
+}
+
+.sh-threads {
+  max-width: 240px;             /* «Разговор от 04.09.2026» целиком, без обрезки */
+  padding: 6px 28px 6px 10px;
+  border: 1px solid var(--sh-line);
+  border-radius: var(--sh-r-pill);
+  background: var(--sh-paper) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M1 1l4 4 4-4' fill='none' stroke='%23756d65' stroke-width='1.5'/%3E%3C/svg%3E") no-repeat right 10px center;
+  color: var(--sh-ink);
+  font: inherit;
+  font-size: var(--sh-fs-sm);
+  appearance: none;
+  -webkit-appearance: none;
+  cursor: pointer;
+}
+
+.sh-threads:focus-visible { outline: 2px solid var(--sh-gold); outline-offset: 2px; }
+
+@media (max-width: 560px) {
+  :where(.sh-chat__head) { flex-wrap: wrap; }
+  :where(.sh-chat__tools) { width: 100%; justify-content: flex-end; }
+}
+
+/* Прошлый разговор — только для чтения: вместо поля ввода объяснение и
+   дорога назад, а не заблокированная кнопка без причины. */
+:where(.sh-chat__readonly) {
+  margin: 0;
+  padding: var(--sh-s-4) var(--sh-s-5) calc(var(--sh-s-4) + env(safe-area-inset-bottom, 0px));
+  border-top: 1px solid var(--sh-line);
+  background: var(--sh-cream-2);
+  color: var(--sh-ink-2);
+  font-size: var(--sh-fs-sm);
+  text-align: center;
+}
+
+:where(.sh-chat__readonly) a { color: var(--sh-gold-ink); text-decoration: underline; text-underline-offset: 2px; }
 
 /* Курсор во время потоковой выдачи: показывает, что ответ ещё пишется. */
 :where(.sh-cursor) {

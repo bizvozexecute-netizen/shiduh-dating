@@ -334,8 +334,15 @@ def test_question_is_bound_to_its_dialogue():
     wipe()
     set_city("Москва")
     propose("Ашдод")
-    set_fake_mode("confirm_call", tool_args={"fields": ["city"]})
-    code, js = post_json(CHAT, sid_of(CANDIDATE), {"message": "да", "thread": 2})
+    # Новый разговор через штатный вызов чистит вопросы; возвращаем строку
+    # как если бы она пережила это (сбой, гонка) — сама привязка к треду
+    # обязана отбить её и без очистки.
+    code, js = post_json("/api/ai_thread_new.php", sid_of(CANDIDATE), {})
+    assert code == 200 and js["thread"] == 2, js
+    dbq("INSERT INTO `ai_pending_overwrites` (user_id, field, tool_key, thread, current_value, "
+        "current_label, proposed_value, proposed_label, asked_message_id, asked_at) "
+        "VALUES (%d, 'City', 'city', 1, 'Москва', 'Москва', 'Ашдод', 'Ашдод', 1, NOW())" % uid())
+    code, js = confirm()
     assert code == 200, js
     assert city() == "Москва", "подтверждено из другого диалога"
     assert len(pending()) == 1, "чужой ход съел окно согласия: %s" % pending()

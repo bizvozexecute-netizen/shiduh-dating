@@ -153,6 +153,9 @@ def test_admin_screens_deny_guest():
 
 API_ENDPOINTS = [
     "/api/ai_chat.php",
+    "/api/ai_greet.php",
+    "/api/ai_rate.php",
+    "/api/ai_thread_new.php",
     "/api/invite_create.php",
     "/api/invite_claim.php",
     "/api/invite_send_email.php",

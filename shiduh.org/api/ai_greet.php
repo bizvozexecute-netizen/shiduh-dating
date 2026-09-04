@@ -37,8 +37,22 @@ shiduh_csrf_check($uid);
 
 $db = $nc_core->db;
 $thread = (int)$nc_core->input->fetch_post('thread');
+$current_thread = chat_current_thread($db, $uid);
 if ($thread <= 0) {
-    $thread = chat_current_thread($db, $uid);
+    $thread = $current_thread;
+}
+/*
+ * Номер выше текущего здесь не принимаем: приветствие в несуществующий тред
+ * — это создание нового разговора в обход дневного предела (и с живым ключом
+ * — платный вызов на каждый POST). Новые разговоры создаёт только
+ * api/ai_thread_new.php, там и предел.
+ */
+if ($thread > $current_thread) {
+    shiduh_json(409, array(
+        'error' => 'Такого разговора нет',
+        'code' => 'no_such_thread',
+        'current' => $current_thread,
+    ));
 }
 
 // Замок общий с обычной отправкой: два одновременных открытия страницы иначе

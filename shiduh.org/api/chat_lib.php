@@ -24,6 +24,7 @@ define('CHAT_MAX_LEN', 4000);
 define('CHAT_HISTORY_FOR_MODEL', 20);   // сколько последних реплик уходит в промпт
 define('CHAT_PAGE_SIZE', 30);           // сколько показывается на странице и за раз в истории
 define('CHAT_PAGE_MAX', 100);
+define('CHAT_THREADS_PER_DAY', 10);  // новых разговоров в сутки: каждый стоит приветствия
 
 /* ------------------------------------------------------------- эмиттеры --- */
 
@@ -122,6 +123,42 @@ function chat_current_thread($db, $uid) {
     return max(1, (int)$db->get_var("SELECT IFNULL(MAX(`thread`),1) FROM `ai_chat_messages` WHERE `user_id`=$uid"));
 }
 
+/* Список диалогов — для переключателя «прошлые разговоры», свежие сверху. */
+function chat_thread_list($db, $uid) {
+    $uid = (int)$uid;
+    $rows = (array)$db->get_results(
+        "SELECT `thread`, COUNT(*) AS `count`, MIN(`created_at`) AS `first_at`, "
+        . "MAX(`created_at`) AS `last_at` FROM `ai_chat_messages` "
+        . "WHERE `user_id`=$uid GROUP BY `thread` ORDER BY `thread` DESC",
+        ARRAY_A
+    );
+    $threads = array();
+    foreach ($rows as $r) {
+        $threads[] = array(
+            'thread' => (int)$r['thread'],
+            'count' => (int)$r['count'],
+            'first_at' => (string)$r['first_at'],
+            'last_at' => (string)$r['last_at'],
+        );
+    }
+    return $threads;
+}
+
+/*
+ * Сколько разговоров человек начал за последние $hours часов. Считаем по
+ * первой реплике треда, а не по числу тредов вообще: иначе давняя переписка
+ * навсегда съедала бы дневной предел.
+ */
+function chat_threads_started_since($db, $uid, $hours = 24) {
+    $uid = (int)$uid;
+    $hours = (int)$hours;
+    return (int)$db->get_var(
+        "SELECT COUNT(*) FROM (SELECT `thread` FROM `ai_chat_messages` "
+        . "WHERE `user_id`=$uid GROUP BY `thread` "
+        . "HAVING MIN(`created_at`) > DATE_SUB(NOW(), INTERVAL $hours HOUR)) t"
+    );
+}
+
 /*
  * Проверка сообщения. Длинное — ОТКАЗ, а не обрезка: раньше текст молча
  * усекался до 4000 символов, и человек был уверен, что модель прочла всё.
@@ -203,10 +240,10 @@ function chat_find_retry_row($db, $uid, $thread, $text, $retry_of) {
     $thread = (int)$thread;
     $retry_of = (int)$retry_of;
 
-    $answered = function ($id) use ($db, $uid) {
+    $answered = function ($id) use ($db, $uid, $thread) {
         return (int)$db->get_var(
             "SELECT COUNT(*) FROM `ai_chat_messages` WHERE `user_id`=$uid "
-            . "AND `role`='assistant' AND `id` > " . (int)$id
+            . "AND `thread`=$thread AND `role`='assistant' AND `id` > " . (int)$id
         ) > 0;
     };
 
@@ -215,9 +252,12 @@ function chat_find_retry_row($db, $uid, $thread, $text, $retry_of) {
         // если ответ уже есть. Именно этот случай опаснее всего: сервер
         // ответил, но ответ до клиента не дошёл — без переиспользования
         // повтор создал бы дубль реплики И второй платный вызов.
+        // Только в пределах текущего разговора: id из прошлого треда иначе
+        // «воспроизвёл» бы ответ на другой вопрос как ответ на этот.
         $row = $db->get_row(
             "SELECT `id` FROM `ai_chat_messages` "
-            . "WHERE `id`=$retry_of AND `user_id`=$uid AND `role`='user'", ARRAY_A
+            . "WHERE `id`=$retry_of AND `user_id`=$uid AND `thread`=$thread AND `role`='user'",
+            ARRAY_A
         );
         return $row ? (int)$row['id'] : 0;
     }
@@ -242,6 +282,12 @@ function chat_insert_user($db, $uid, $thread, $text) {
         . "`content`='" . $db->prepare($text) . "', `tokens_used`=0, "
         . "`thread`=" . (int)$thread . ", `created_at`=NOW()"
     );
+    if ($db->is_error) {
+        // Ноль — сигнал вызывающему отказать ДО обращения к модели: иначе
+        // платный вызов случится, а ни вопрос, ни ответ не сохранятся.
+        shiduh_log('ai', 'не сохранена реплика пользователя ' . (int)$uid);
+        return 0;
+    }
     return (int)$db->insert_id;
 }
 
@@ -772,6 +818,11 @@ function chat_run($db, $uid, array $in, $emit = null) {
         // сообщение сохраняем сразу: даже если модель не ответит, написанное
         // не пропадёт
         $user_message_id = chat_insert_user($db, $uid, $thread, $text);
+        if (!$user_message_id) {
+            return array('ok' => false, 'http' => 500, 'code' => 'db',
+                'message' => 'Не удалось сохранить сообщение. Попробуйте ещё раз.',
+                'retryable' => true, 'user_message_id' => 0);
+        }
     }
     chat_emit($emit, 'meta', array(
         'user_message_id' => $user_message_id,
