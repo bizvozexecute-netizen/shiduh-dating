@@ -76,6 +76,112 @@ h2 {
   color: var(--sh-paper);
 }
 
+.nav .nav__back { margin-left: auto; border-color: transparent; }
+
+/* Утилиты вместо style="…": CSP запрещает инлайновые стили (style-src 'self'),
+   а девять атрибутов на трёх экранах не стоили исключения в политике. */
+.u-w100 { width: 100%; }
+.u-right { text-align: right; }
+.u-mt0 { margin-top: 0; }
+.u-mt6 { margin-top: 6px; }
+.u-mt9 { margin-top: 9px; }
+.u-mt14 { margin-top: 14px; }
+.stack { display: flex; flex-direction: column; gap: 14px; }
+
+/* Общие мелочи экранов: раньше каждая страница объявляла их заново. */
+.sub { margin: 0 0 var(--sh-s-5); color: var(--mut); font-size: var(--sh-fs-sm); }
+.mini { font-size: var(--sh-fs-xs); color: var(--mut); }
+.spacer { flex: 1; }
+.denied { max-width: 480px; margin: 80px auto; text-align: center; }
+.denied p { color: var(--mut); }
+
+/* Кейсы опроса */
+.case {
+  margin-bottom: var(--sh-s-3);
+  padding: 14px 16px;
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: var(--sh-r-m);
+}
+.case--off { opacity: .55; }
+.case .txt, .add .txt { min-height: 74px; }     /* сценарий — одна-две строки */
+.case__head { display: flex; flex-wrap: wrap; align-items: center; gap: var(--sh-s-3); margin-bottom: var(--sh-s-2); }
+.dim { font-size: var(--sh-fs-xs); letter-spacing: .06em; text-transform: uppercase; color: var(--mut); }
+.badge--off { background: var(--sh-cream-2); color: var(--mut); border-color: var(--line); }
+.add {
+  margin-top: var(--sh-s-4);
+  padding: var(--sh-s-4);
+  background: var(--card);
+  border: 1px dashed var(--line);
+  border-radius: var(--sh-r-m);
+}
+
+/* Промпт: журнал версий */
+.ver {
+  margin-bottom: 9px;
+  padding: 12px 14px;
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: var(--sh-r-m);
+}
+.ver__head { display: flex; flex-wrap: wrap; align-items: center; gap: var(--sh-s-3); }
+.ver__text { margin-top: 7px; font-size: var(--sh-fs-sm); color: var(--mut); white-space: pre-wrap; max-height: 4.6em; overflow: hidden; }
+.state {
+  display: inline-block;
+  padding: 2px 10px;
+  border-radius: var(--sh-r-pill);
+  border: 1px solid var(--line);
+  background: var(--sh-cream-2);
+  color: var(--mut);
+  font-size: var(--sh-fs-xs);
+}
+
+/* Рассылка */
+.fld { margin-top: var(--sh-s-3); }
+.fld label { display: block; margin-bottom: 5px; font-size: var(--sh-fs-sm); color: var(--mut); }
+.two { display: grid; grid-template-columns: 1fr 1fr; gap: var(--sh-s-2); }
+.count {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 14px;
+  padding: 16px 18px;
+  border-radius: var(--sh-r-l);
+  background: var(--navy);
+  color: var(--sh-paper);
+}
+.count__n { font-size: 30px; line-height: 1.1; }
+.count .lbl, .count .mini { color: #c3beb7; }
+.pill {
+  display: inline-block;
+  padding: 3px 10px;
+  border-radius: var(--sh-r-pill);
+  border: 1px solid var(--sh-warn-ink);
+  background: var(--sh-warn-bg);
+  color: var(--sh-warn-ink);
+  font-size: var(--sh-fs-xs);
+}
+.warnbox, .okbox, .errbox {
+  margin-top: var(--sh-s-3);
+  padding: 10px 13px;
+  border-radius: var(--sh-r-m);
+  border: 1px solid;
+  font-size: var(--sh-fs-sm);
+}
+.warnbox { background: var(--sh-warn-bg); border-color: var(--sh-warn-ink); color: var(--sh-warn-ink); }
+.okbox { background: var(--sh-ok-bg); border-color: var(--sh-ok-ink); color: var(--sh-ok-ink); }
+.errbox { background: var(--sh-err-bg); border-color: var(--sh-err-ink); color: var(--sh-err-ink); }
+
+/* Настройки ИИ (C9) */
+.form-grid { display: grid; gap: var(--sh-s-3) var(--sh-s-4); grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); }
+.form-grid .fld { margin-top: 0; }
+.fld .hint { display: block; margin-top: 4px; font-size: var(--sh-fs-xs); color: var(--mut); }
+.stat { display: grid; gap: var(--sh-s-3); grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); }
+.stat__n { font-size: 26px; line-height: 1.1; font-variant-numeric: tabular-nums; }
+.bars { display: flex; align-items: flex-end; gap: 3px; height: 90px; }
+.bars > i { flex: 1; min-width: 4px; background: var(--brand); border-radius: 3px 3px 0 0; }
+.bars > i.is-empty { background: var(--line); }
+
 .panel {
   background: var(--card);
   border: 1px solid var(--line);

@@ -388,6 +388,12 @@
         <? if($current_user['User_ID'] != 119): ?>
         <a class="lk-aside__write" href="/my/message/add_soobscheniya.html?uid=119">Написать админу</a>
         <? endif;?>
+        <?php /* C8: экраны администрирования раньше открывались только по
+           адресу наизусть. Ссылка — только администратору. */
+        require_once nc_core::get_object()->DOCUMENT_ROOT . '/api/admin_layout.php';
+        if (shiduh_is_admin(nc_core::get_object()->db, (int)$current_user['User_ID'])): ?>
+        <a class="lk-aside__write lk-aside__admin" href="<?= htmlspecialchars(admin_home_url(), ENT_QUOTES) ?>">Администрирование</a>
+        <?php endif; ?>
       </div>
     </div>
     

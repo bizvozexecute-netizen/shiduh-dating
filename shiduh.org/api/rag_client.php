@@ -25,7 +25,8 @@ function rag_config() {
     $nc = nc_core::get_object();
     $get = function ($key, $default) use ($nc) {
         $v = $nc->get_settings($key, 'ai', false, 0);
-        return ($v === false || $v === '' || $v === null) ? $default : $v;
+        // без строк у модуля ядро отвечает array(), а не false — см. ai_config()
+        return (!is_scalar($v) || $v === false || $v === '') ? $default : $v;
     };
     return array(
         'url' => rtrim((string)$get('rag_url', ''), '/'),

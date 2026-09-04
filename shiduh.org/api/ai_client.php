@@ -99,7 +99,10 @@ function ai_config() {
     // catalogue_id=0 — настройки общие для сайта, не зависят от текущего каталога
     $get = function ($key, $default) use ($nc) {
         $v = $nc->get_settings($key, 'ai', false, 0);
-        return ($v === false || $v === '' || $v === null) ? $default : $v;
+        // Ядро отвечает array() (а не false), когда у модуля нет ни одной
+        // строки настроек: без этой проверки каждый ключ становился массивом,
+        // и на экране появлялось «Провайдер сейчас: Array».
+        return (!is_scalar($v) || $v === false || $v === '') ? $default : $v;
     };
     return array(
         'provider'    => (string)$get('provider', 'stub'),

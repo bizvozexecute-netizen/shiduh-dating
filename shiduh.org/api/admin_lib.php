@@ -27,7 +27,13 @@ function shiduh_is_admin($db, $uid) {
     if ($uid <= 0) {
         return false;
     }
-    return (bool)$db->get_var(
+    // Кэш на запрос: с C8 проверку зовут партиалы меню на каждой странице
+    // кабинета (сайдбар и мобильное меню) — два одинаковых запроса на рендер.
+    static $cache = array();
+    if (isset($cache[$uid])) {
+        return $cache[$uid];
+    }
+    return $cache[$uid] = (bool)$db->get_var(
         "SELECT 1 FROM `Permission` WHERE `AdminType` IN (6,7) "
         . "AND (`User_ID`=$uid OR `PermissionGroup_ID` IN "
         . "(SELECT ug.`PermissionGroup_ID` FROM `User_Group` ug "
@@ -138,6 +144,17 @@ function shiduh_require_admin($db, $uid) {
  * Супер-администраторы. В унаследованных шаблонах их id зашиты числами в 79
  * местах (AUDIT №8); здесь — одно место, значения правятся настройкой.
  */
+/*
+ * Настройка модуля из Settings (Catalogue_ID=0 — общая для сайта). Ядро
+ * отвечает array(), когда у модуля нет ни одной строки, — это тоже «нет
+ * значения». Раньше функция вызывалась, но не была объявлена: любой вызов
+ * shiduh_is_superadmin() падал бы фаталом.
+ */
+function shiduh_setting($module, $key, $default = '') {
+    $v = nc_core::get_object()->get_settings($key, $module, false, 0);
+    return (!is_scalar($v) || $v === false || $v === '') ? $default : $v;
+}
+
 function shiduh_is_superadmin($uid) {
     $ids = (string)shiduh_setting('security', 'superadmin_ids', '1,119,43');
     return in_array((int)$uid, array_map('intval', explode(',', $ids)), true);

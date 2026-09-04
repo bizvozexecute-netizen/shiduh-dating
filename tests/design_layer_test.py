@@ -256,7 +256,9 @@ def test_admin_stylesheet_exists_and_maps_tokens():
     assert os.path.exists(path), "нет css/one-admin.css"
     src = read(path)
     kb = len(src.encode("utf-8")) / 1024.0
-    assert kb <= 8, "one-admin.css разросся: %.1f КБ" % kb
+    # C8: лист принял стили всех админ-экранов (раньше — три копии в самих
+    # файлах), поэтому бюджет вырос с 8 до 12 КБ
+    assert kb <= 12, "one-admin.css разросся: %.1f КБ" % kb
     assert "var(--sh-" in src, "лист админки не опирается на токены слоя"
 
 
