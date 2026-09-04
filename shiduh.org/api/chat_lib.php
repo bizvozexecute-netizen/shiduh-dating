@@ -511,6 +511,174 @@ function chat_emit($emit, $event, $payload) {
     }
 }
 
+/* --------------------------------------------- приветствие и подсказки --- */
+
+/*
+ * Подсказки под полем ввода. Считает сервер и только по фактам: какие поля
+ * анкеты пусты и есть ли неотвеченный сценарий опроса. Модель не спрашиваем
+ * намеренно — подсказка не должна стоить денег и меняться от запуска к запуску.
+ *
+ * Порядок фиксирован: сначала то, что чаще спрашивает шадхан.
+ */
+function chat_chip_labels() {
+    return array(
+        'City' => 'Рассказать, где я живу',
+        'Place_of_birth' => 'Откуда я родом',
+        'Kashrut_level' => 'Рассказать о кашруте',
+        'Shabbat_level' => 'Как я соблюдаю Шаббат',
+        'Family_values' => 'Что для меня важно в семье',
+        'Are_you_ready_to_move' => 'Готов(а) ли я к переезду',
+        'About_self' => 'Рассказать о себе',
+        'Languages_spoken' => 'На каких языках говорю',
+        'Housing_after_marriage' => 'Где хотелось бы жить после свадьбы',
+    );
+}
+
+function chat_chips($db, $uid, $ctx = array()) {
+    $uid = (int)$uid;
+    $chips = array();
+
+    $labels = chat_chip_labels();
+    $columns = array_keys($labels);
+    $row = $db->get_row(
+        "SELECT " . implode(', ', array_map(function ($c) { return "`$c`"; }, $columns))
+        . " FROM `Message204` WHERE `User_ID`=$uid ORDER BY `Message_ID` LIMIT 1",
+        ARRAY_A
+    );
+
+    if ($row) {
+        foreach ($columns as $col) {
+            if (count($chips) >= 2) {
+                break;                      // не больше двух про анкету за раз
+            }
+            $value = isset($row[$col]) ? trim((string)$row[$col]) : '';
+            // словарные поля хранят id: «0» значит «не выбрано»
+            if ($value === '' || $value === '0') {
+                $chips[] = $labels[$col];
+            }
+        }
+    }
+
+    // Неотвеченный сценарий опроса — если он есть и дневной предел не исчерпан
+    if (!isset($ctx['survey'])) {
+        $ctx['survey'] = cases_survey_state($db, $uid);
+    }
+    if (!empty($ctx['survey']['next']) && !scoring_daily_cap_reached($db, $uid)) {
+        $chips[] = 'Ответить на вопрос консультанта';
+    }
+
+    // Общие — чтобы человеку было с чего начать, даже когда анкета полна
+    foreach (array('Что ты умеешь?', 'Помоги дозаполнить анкету') as $generic) {
+        if (count($chips) >= 4) {
+            break;
+        }
+        if (!in_array($generic, $chips, true)) {
+            $chips[] = $generic;
+        }
+    }
+
+    return array_slice($chips, 0, 4);
+}
+
+/*
+ * Текст первой реплики. Шаблон, а не вызов модели: приветствие должно быть и
+ * без ключа, и стоить ноль. Заканчивается вопросом про первое незаполненное
+ * поле — иначе человек остаётся перед чистым листом и разговор не начинается.
+ */
+function chat_greeting_text($db, $uid) {
+    $base = 'Здравствуйте! Я консультант сервиса знакомств. Помогу рассказать о себе '
+          . 'так, чтобы шадхану было проще подобрать пару: в спокойной беседе дозаполним '
+          . 'анкету, а если захотите — пройдём короткий ценностный опрос. ';
+
+    $questions = array(
+        'City' => 'Начнём с простого: где вы сейчас живёте?',
+        'Place_of_birth' => 'Начнём с простого: откуда вы родом?',
+        'Kashrut_level' => 'Расскажите, как у вас с кашрутом?',
+        'Shabbat_level' => 'Расскажите, как проходит ваш Шаббат?',
+        'Family_values' => 'Что для вас важнее всего в будущей семье?',
+        'About_self' => 'Расскажите немного о себе — чем живёте, что любите?',
+    );
+
+    $columns = array_keys($questions);
+    $row = $db->get_row(
+        "SELECT " . implode(', ', array_map(function ($c) { return "`$c`"; }, $columns))
+        . " FROM `Message204` WHERE `User_ID`=" . (int)$uid . " ORDER BY `Message_ID` LIMIT 1",
+        ARRAY_A
+    );
+
+    if ($row) {
+        foreach ($columns as $col) {
+            $value = trim((string)$row[$col]);
+            if ($value === '' || $value === '0') {
+                return $base . $questions[$col];
+            }
+        }
+    }
+    // анкета заполнена — говорим о главном
+    return $base . 'Расскажите, что для вас сейчас важнее всего в поиске пары?';
+}
+
+/*
+ * Первая реплика в треде. Идемпотентно: если сообщения уже есть, возвращаем
+ * первое из них и НИЧЕГО не создаём — иначе каждое открытие страницы плодило
+ * бы приветствия, а с живым ключом ещё и стоило денег.
+ */
+function chat_greet($db, $uid, $thread) {
+    $uid = (int)$uid;
+    $thread = (int)$thread;
+
+    $existing = $db->get_row(
+        "SELECT `id`, `role`, `content`, `created_at` FROM `ai_chat_messages` "
+        . "WHERE `user_id`=$uid AND `thread`=$thread ORDER BY `id` ASC LIMIT 1",
+        ARRAY_A
+    );
+    if ($existing) {
+        return array(
+            'created' => false,
+            'message' => array(
+                'id' => (int)$existing['id'],
+                'role' => (string)$existing['role'],
+                'content' => (string)$existing['content'],
+                'created_at' => (string)$existing['created_at'],
+            ),
+        );
+    }
+
+    $text = chat_greeting_text($db, $uid);
+    $tokens = 0;
+
+    // Модель здоровается, только если это включено настройкой: по умолчанию
+    // шаблон — он предсказуем и бесплатен.
+    $cfg = ai_config();
+    if (!empty($cfg['greet_with_llm'])) {
+        $res = ai_chat(array(
+            array('role' => 'system', 'content' => ai_system_prompt() . "\n\n"
+                . 'Поздоровайтесь с собеседником первым: коротко представьтесь, объясните, '
+                . 'что помогаете дозаполнить анкету для шадхана, и задайте ОДИН вопрос, '
+                . 'с которого удобно начать. Без списков и без приветственных формул на '
+                . 'полстраницы.'),
+            array('role' => 'user', 'content' => 'Начните разговор.'),
+        ), array('kind' => 'greet', 'user_id' => $uid, 'max_tokens' => 250));
+
+        if (!empty($res['ok']) && trim((string)$res['content']) !== '') {
+            $text = trim((string)$res['content']);
+            $tokens = (int)$res['usage']['total_tokens'];
+        }
+        // сбой модели не должен лишать человека приветствия — остаётся шаблон
+    }
+
+    $saved = chat_insert_assistant($db, $uid, $thread, $text, $tokens);
+    return array(
+        'created' => true,
+        'message' => array(
+            'id' => $saved['id'],
+            'role' => 'assistant',
+            'content' => $text,
+            'created_at' => $saved['created_at'],
+        ),
+    );
+}
+
 /* ------------------------------------------------------------- конвейер --- */
 
 /*

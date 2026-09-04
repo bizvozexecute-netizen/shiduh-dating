@@ -284,6 +284,12 @@
    правила пишем через :where() — нулевая специфичность, поэтому страничные
    модификаторы перекрывают их без гонки.                                  */
 
+/* ВАЖНО о специфичности: :where() даёт нулевую специфичность, поэтому им
+   размечены только контейнеры. Компоненты, живущие на нативных элементах
+   (button, input, textarea, списки, img), пишутся обычным классом: сброс
+   бандла по тегу (button{...}) перебил бы :where() и оставил кнопку без
+   рамки и отступов — так и случилось с быстрыми ответами.                 */
+
 /* ------------------------------- кнопки -------------------------------- */
 /* Бандл: .button{background:#c8ae88;color:#fff} — 2.1:1, читать невозможно.
    Меняем цвет текста, а не фирменное золото. */
@@ -405,7 +411,7 @@
   letter-spacing: .01em;
 }
 
-:where(.sh-sec-title) {
+.sh-sec-title {
   font: 400 var(--sh-fs-h2) / var(--sh-lh-tight) var(--sh-font-display);
   color: var(--sh-ink);
   margin: 0;
@@ -448,7 +454,7 @@
 /* ------------------------------- полосы -------------------------------- */
 /* Один компонент на все шкалы: проценты подбора, языки любви, прогресс
    опроса. Раньше в каждом шаблоне была своя вёрстка полосы. */
-:where(.sh-bar) {
+.sh-bar {
   display: block;
   height: 8px;
   border-radius: var(--sh-r-pill);
@@ -544,7 +550,7 @@
   border-radius: var(--sh-r-l);
 }
 
-:where(.sh-empty__title) {
+.sh-empty__title {
   font: 400 var(--sh-fs-h3) / 1.3 var(--sh-font-display);
   color: var(--sh-ink);
   margin: 0;
@@ -571,7 +577,7 @@
   color: var(--sh-ink-2);
 }
 
-:where(.sh-field__input) {
+.sh-field__input {
   width: 100%;
   padding: 11px 14px;
   border: 1px solid var(--sh-line-2);
@@ -583,7 +589,7 @@
               box-shadow var(--sh-t-fast) var(--sh-ease-out);
 }
 
-:where(.sh-field__input):focus {
+.sh-field__input:focus {
   outline: none;
   border-color: var(--sh-gold);
   box-shadow: var(--sh-ring);
@@ -601,7 +607,7 @@
 }
 
 /* ------------------------------ шаги мастера ---------------------------- */
-:where(.sh-stepper) {
+.sh-stepper {
   display: flex;
   flex-wrap: wrap;
   gap: var(--sh-s-2);
@@ -610,7 +616,7 @@
   padding: 0;
 }
 
-:where(.sh-stepper__item) {
+.sh-stepper__item {
   display: inline-flex;
   align-items: center;
   gap: var(--sh-s-2);
@@ -630,7 +636,7 @@
   color: var(--sh-paper);
 }
 
-:where(.sh-progress) { height: 4px; border-radius: var(--sh-r-pill); background: var(--sh-sand); }
+.sh-progress { height: 4px; border-radius: var(--sh-r-pill); background: var(--sh-sand); }
 :where(.sh-progress > i) { display: block; height: 100%; border-radius: inherit; background: var(--sh-gold-deep); }
 
 /* Атрибут hidden обязан скрывать. В бандле .button задаёт display:inline-flex,
@@ -705,7 +711,7 @@
   font-size: var(--sh-fs-sm);
 }
 
-:where(.sh-chat__more) {
+.sh-chat__more {
   align-self: center;
   margin-bottom: var(--sh-s-3);
   padding: 6px 14px;
@@ -717,7 +723,7 @@
   cursor: pointer;
 }
 
-:where(.sh-chat__more):hover { border-color: var(--sh-gold); color: var(--sh-ink); }
+.sh-chat__more:hover { border-color: var(--sh-gold); color: var(--sh-ink); }
 
 :where(.sh-chat__scroll) {
   flex: 1 1 auto;
@@ -899,7 +905,7 @@
   background: var(--sh-paper);
 }
 
-:where(.sh-composer__input) {
+.sh-composer__input {
   flex: 1 1 auto;
   min-height: 44px;
   max-height: 40vh;
@@ -912,13 +918,13 @@
   resize: none;
 }
 
-:where(.sh-composer__input):focus {
+.sh-composer__input:focus {
   outline: none;
   border-color: var(--sh-gold);
   box-shadow: var(--sh-ring);
 }
 
-:where(.sh-composer__count) {
+.sh-composer__count {
   align-self: center;
   font-size: var(--sh-fs-xs);
   color: var(--sh-ink-2);
@@ -934,7 +940,7 @@
   padding: 0 var(--sh-s-4) var(--sh-s-3);
 }
 
-:where(.sh-chip) {
+.sh-chip {
   padding: 7px 14px;
   border: 1px solid var(--sh-line);
   border-radius: var(--sh-r-pill);
@@ -946,8 +952,8 @@
               background-color var(--sh-t-fast) var(--sh-ease-out);
 }
 
-:where(.sh-chip):hover { border-color: var(--sh-gold); background: var(--sh-cream-2); }
-:where(.sh-chip):disabled { opacity: .5; cursor: default; }
+.sh-chip:hover { border-color: var(--sh-gold); background: var(--sh-cream-2); }
+.sh-chip:disabled { opacity: .5; cursor: default; }
 
 @media (max-width: 767.98px) {
   :where(.sh-chat__scroll) { max-height: none; }
@@ -971,7 +977,7 @@
 
 /* Соотношение сторон задаётся заранее — иначе при подгрузке фото страница
    «прыгает» (сдвиг макета). */
-:where(.sh-avatar) {
+.sh-avatar {
   aspect-ratio: 1;
   width: 56px;
   flex: none;

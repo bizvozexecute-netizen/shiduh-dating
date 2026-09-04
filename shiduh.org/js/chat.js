@@ -697,4 +697,25 @@
   autosize();
   updateCount();
   toBottom(true);
+  renderChips(cfg.chips);
+
+  /* Пустой чат — консультант здоровается первым. Запрос идёт отсюда, а не из
+     рендера страницы: страница отвечает на GET и не должна ни писать в базу,
+     ни (с живым ключом) тратить деньги при каждом обновлении вкладки. */
+  if (cfg.needsGreeting) {
+    typing(true, 'здоровается…');
+    fetch(cfg.greet || '/api/ai_greet.php', { method: 'POST', credentials: 'same-origin' })
+      .then(function (r) { return r.json(); })
+      .then(function (js) {
+        typing(false);
+        if (!js || !js.message) { return; }
+        var hello = log.querySelector('.sh-chat__hello');
+        if (hello) { hello.remove(); }
+        bubble('assistant', js.message.content,
+               { id: js.message.id, created: js.message.created_at });
+        renderChips(js.chips);
+        toBottom(true);
+      })
+      .catch(function () { typing(false); });   // молча: приветствие не критично
+  }
 })();

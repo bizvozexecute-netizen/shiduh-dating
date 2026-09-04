@@ -260,7 +260,8 @@ if ($nc_mine_anketa) {
 <section class="sh-chat" id="shChat"
          data-thread="<?= (int)$nc_thread ?>"
          data-has-more="<?= $nc_has_more ? '1' : '0' ?>"
-         data-max-len="4000">
+         data-max-len="4000"
+         data-needs-greeting="<?= empty($nc_history) ? '1' : '0' ?>">
   <header class="sh-chat__head">
     <div class="sh-chat__ava" aria-hidden="true">✡</div>
     <div>
@@ -274,8 +275,8 @@ if ($nc_mine_anketa) {
      постфактум. Формулировка без запугивания: что именно и зачем. */ ?>
   <p class="sh-chat__notice">
     Переписку видите только вы. Если консультант заметит, что вам тяжело или
-    разговор идёт резко, он может отметить это вашему шадхану — без текста
-    переписки, только пометку «стоит поговорить».
+    разговор идёт резко, он может подсказать вашему шадхану обратить внимание —
+    без текста переписки, только пометку «стоит поговорить».
   </p>
 
   <div class="sh-chat__scroll" id="shScroll">
@@ -329,6 +330,9 @@ if ($nc_mine_anketa) {
   window.SH_CHAT = {
     thread: <?= (int)$nc_thread ?>,
     hasMore: <?= $nc_has_more ? 'true' : 'false' ?>,
+    needsGreeting: <?= empty($nc_history) ? 'true' : 'false' ?>,
+    chips: <?= json_encode(chat_chips($nc_core->db, $nc_uid), JSON_UNESCAPED_UNICODE) ?>,
+    greet: '/api/ai_greet.php',
     maxLen: 4000,
     endpoint: '/api/ai_chat.php',
     history: '/api/ai_history.php'
