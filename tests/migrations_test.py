@@ -17,6 +17,7 @@ teardown возвращает её обратно. Если в это же вр�
     python -m pytest tests/migrations_test.py -q
 """
 import os
+import re
 import subprocess
 import sys
 
@@ -124,6 +125,21 @@ class TestUp:
     def test_new_tables_created(self):
         for t in NEW_TABLES:
             assert table_exists(t), "нет таблицы " + t
+
+    def test_photo_fields_have_limits(self):
+        """C5: у файловых полей анкеты есть предел размера и типа (024)."""
+        for fid, prefix in ((507, "8388608:image/*:"), (547, "8388608:image/*:"),
+                            (508, "10485760:image/*"), (509, "10485760:image/*,application/pdf:"),
+                            (510, "10485760:image/*,application/pdf:")):
+            fmt = dbq("SELECT Format FROM `Field` WHERE Field_ID=%d" % fid)
+            assert fmt.startswith(prefix), "поле %d без лимита: %s" % (fid, fmt[:60])
+            assert fmt.count(prefix) == 1, "префикс продублирован у поля %d" % fid
+            # голова до первого ';' должна разбираться как size:type — иначе
+            # склейка съела бы разделитель и сломала бы разбор формата
+            head = fmt.split(";")[0]
+            size = head.split(":")[0]
+            assert size.isdigit() and int(size) == int(prefix.split(":")[0]),                 "размер не считывается из формата поля %d: %s" % (fid, head)
+            assert "image" in head, "тип не считывается из формата поля %d: %s" % (fid, head)
 
     def test_dictionaries_created_and_registered(self):
         for t in NEW_DICTS:

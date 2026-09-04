@@ -1,0 +1,54 @@
+# netcat_files — загруженные пользователями файлы: фото анкет, свидетельства,
+# документы. Здесь НИЧЕГО не должно исполняться и ничего не должно
+# трактоваться браузером как страница (C5).
+#
+# Штатный файл NetCat выключал движок только для mod_php4/5/7.c: на PHP 8+
+# модуль называется mod_php.c, и ограничение молча переставало действовать.
+# Поэтому — три защиты, чтобы не зависеть от способа подключения PHP:
+#   1) engine off для всех вариантов mod_php;
+#   2) SetHandler default-handler — всё отдаётся как статика, даже при
+#      AddHandler/FPM, где php_flag не действует;
+#   3) отказ по исполняемым расширениям (в т.ч. двойным вида x.php.png).
+
+<IfModule mod_php4.c>
+ php_flag engine off
+</IfModule>
+<IfModule mod_php5.c>
+ php_flag engine off
+</IfModule>
+<IfModule mod_php7.c>
+ php_flag engine off
+</IfModule>
+<IfModule mod_php.c>
+ php_flag engine off
+</IfModule>
+
+# Ничего в этом каталоге не обрабатывается обработчиками — только отдаётся.
+<IfModule mod_mime.c>
+  RemoveHandler .php .phtml .phar .phps .pht .pl .py .cgi .sh .php3 .php4 .php5 .php7 .php8
+  RemoveType .php .phtml .phar .phps .pht .pl .py .cgi .sh
+</IfModule>
+SetHandler default-handler
+
+# Исполняемые расширения не отдаём вовсе, где бы в имени они ни стояли.
+<FilesMatch "(?i)\.(ph(p[0-9]?|tml|ar|ps|t)|pl|py|cgi|sh)(\.|$)">
+  <IfModule mod_authz_core.c>
+    Require all denied
+  </IfModule>
+  <IfModule !mod_authz_core.c>
+    Order allow,deny
+    Deny from all
+  </IfModule>
+</FilesMatch>
+
+<IfModule mod_headers.c>
+  # Браузер не должен «угадывать» тип: картинка с HTML внутри не станет страницей.
+  Header set X-Content-Type-Options "nosniff"
+  # А html/svg/xml, если такой файл сюда попал, — только скачивание, не показ.
+  <FilesMatch "(?i)\.(x?html?|xml|svg|shtml)$">
+    Header set Content-Disposition "attachment"
+  </FilesMatch>
+</IfModule>
+
+# Uncomment this under Russian Apache:
+# CharsetDisable On

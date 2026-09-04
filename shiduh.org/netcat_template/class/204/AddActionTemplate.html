@@ -7,6 +7,13 @@
    Правило и текст — в одном месте: api/consent_lib.php. */
 require_once $nc_core->DOCUMENT_ROOT . '/api/consent_lib.php';
 consent_apply($nc_core->db, (int)$message, !empty($_POST['f_Consent_sensitive']));
+/* C5. Ядро проверило только заявленный клиентом MIME; здесь — реальные байты:
+   фото обязано быть картинкой, документ — картинкой или PDF. Иначе файл
+   удаляется, поле обнуляется. */
+require_once $nc_core->DOCUMENT_ROOT . '/api/upload_guard_lib.php';
+// $msgID — id только что вставленной анкеты; $message может прийти из POST
+// (эмуляция register_globals) и указывать на чужую строку
+upload_guard_check($nc_core->db, isset($msgID) && $msgID ? (int)$msgID : (int)$message);
 ?>
 <?
 if($f_Checked) {

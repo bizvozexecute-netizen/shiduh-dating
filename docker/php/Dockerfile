@@ -35,8 +35,10 @@ RUN docker-php-ext-configure gd --with-freetype --with-jpeg \
         opcache
 
 # --- Apache ----------------------------------------------------------------
-# rewrite нужен для .htaccess проекта (все 404 уходят в netcat/require/e404.php).
-RUN a2enmod rewrite \
+# rewrite нужен для .htaccess проекта (все 404 уходят в netcat/require/e404.php);
+# headers — для nosniff на загруженных файлах (netcat_files/.htaccess, C5),
+# как на проде.
+RUN a2enmod rewrite headers \
     && echo "ServerName localhost" > /etc/apache2/conf-available/servername.conf \
     && a2enconf servername
 
