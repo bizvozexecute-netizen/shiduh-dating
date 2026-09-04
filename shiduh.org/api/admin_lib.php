@@ -155,8 +155,12 @@ function shiduh_setting($module, $key, $default = '') {
     return (!is_scalar($v) || $v === false || $v === '') ? $default : $v;
 }
 
+// Список суперадминистраторов по умолчанию — один на всех: спецификацию
+// настроек (ai_settings_lib) и проверку прав.
+define('SHIDUH_SUPERADMIN_DEFAULT', '1,119,43');
+
 function shiduh_is_superadmin($uid) {
-    $ids = (string)shiduh_setting('security', 'superadmin_ids', '1,119,43');
+    $ids = (string)shiduh_setting('security', 'superadmin_ids', SHIDUH_SUPERADMIN_DEFAULT);
     return in_array((int)$uid, array_map('intval', explode(',', $ids)), true);
 }
 

@@ -37,8 +37,9 @@ tar czf webroot_$(date +%F_%H%M).tar.gz /path/to/webroot   # без netcat_files
 **PHP-логика (новые файлы, копировать целиком):**
 - `shiduh.org/api/` — все `*.php` (клиент LLM, инструменты, скоринг, подбор пар, RAG-клиент, рассылка, приглашения, резюме, кейсы, `template_lib.php` — помощники шаблонов: безопасная ссылка «Назад»…)
 - `shiduh.org/js/csrf.js` — обёртка fetch/XHR, подставляет `X-CSRF-Token` (C3)
+- `shiduh.org/js/chat.js`, `js/consultant.js` — поведение чата и страницы консультанта (B2–B8, A6); `js/admin.js`, `css/one-admin.css` — общие помощники и стили админ-консоли (C8)
 - `shiduh.org/css/one.css`, `shiduh.org/js/one.js` — дизайн-слой (A0). Грузятся ПОСЛЕ бандла; версия в URL считается по `filemtime`, руками бампать не нужно
-- `shiduh.org/admin-cases.php`, `admin-mailing.php`, `admin-ai-prompt.php`
+- `shiduh.org/admin-cases.php`, `admin-mailing.php`, `admin-ai-prompt.php`, `admin-ai.php` (ключ провайдера вводится здесь, C9) — все на общем каркасе `api/admin_layout.php`
 - **`shiduh.org/vars.inc.php`** — НЕ в git (секреты). На сервере правится руками:
   сверьте с `vars.inc.php.example` значение `$ADMIN_AUTHTIME` (30 суток вместо года, B-4)
 - `shiduh.org/migrations/` — раннер и наборы (применяются отдельно, §6)
@@ -73,8 +74,9 @@ tar czf webroot_$(date +%F_%H%M).tar.gz /path/to/webroot   # без netcat_files
 # рекомендуемый способ — одним rsync, атомарно с точки зрения пользователя
 rsync -a --delete-after \
   shiduh.org/api/ shiduh@prod:/path/webroot/api/
-rsync -a shiduh.org/admin-cases.php shiduh.org/admin-mailing.php \
-  shiduh.org/admin-ai-prompt.php shiduh@prod:/path/webroot/
+rsync -a shiduh.org/admin-cases.php shiduh.org/admin-mailing.php \n  shiduh.org/admin-ai-prompt.php shiduh.org/admin-ai.php shiduh@prod:/path/webroot/
+rsync -a shiduh.org/js/ shiduh@prod:/path/webroot/js/
+rsync -a shiduh.org/css/one.css shiduh.org/css/one-admin.css shiduh@prod:/path/webroot/css/
 rsync -a shiduh.org/netcat_template/ shiduh@prod:/path/webroot/netcat_template/
 rsync -a shiduh.org/migrations/ shiduh@prod:/path/webroot/migrations/
 ```

@@ -42,6 +42,8 @@ ENDPOINTS = [
     ("/api/assessment_answer.php", CANDIDATE, {"case_id": "0", "answer": ""}),
     ("/api/cases_save.php", ADMIN, {"action": ""}),
     ("/api/prompt_save.php", ADMIN, {"action": ""}),
+    ("/api/ai_settings_save.php", ADMIN, {"temperature": "9"}),  # 400: вне границ, ничего не пишет
+    ("/api/ai_ping.php", ADMIN, {"target": "x"}),              # 400: неизвестная цель
     ("/api/summary_generate.php", SHADHAN, {"anketa_id": "0"}),
     ("/api/match_list.php", SHADHAN, {"anketa_id": "0"}),
     ("/api/match_feedback.php", SHADHAN, {"anketa_id": "0"}),

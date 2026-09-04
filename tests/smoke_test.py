@@ -157,6 +157,8 @@ API_ENDPOINTS = [
     "/api/ai_rate.php",
     "/api/ai_thread_new.php",
     "/api/match_mine.php",
+    "/api/ai_settings_save.php",
+    "/api/ai_ping.php",
     "/api/invite_create.php",
     "/api/invite_claim.php",
     "/api/invite_send_email.php",
@@ -202,7 +204,7 @@ def test_our_php_files_compile():
     for name in sorted(os.listdir(api_dir)):
         if name.endswith(".php") and not name.startswith("_"):
             targets.append("/var/www/html/api/" + name)
-    for name in ("admin-mailing.php", "admin-cases.php", "admin-ai-prompt.php"):
+    for name in ("admin-mailing.php", "admin-cases.php", "admin-ai-prompt.php", "admin-ai.php"):
         targets.append("/var/www/html/" + name)
     mig_dir = os.path.join(ROOT, "shiduh.org", "migrations")
     for name in sorted(os.listdir(mig_dir)):

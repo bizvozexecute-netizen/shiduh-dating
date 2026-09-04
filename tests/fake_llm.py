@@ -153,6 +153,32 @@ $mode = $s['mode'];
 if (!empty($s['delay_ms'])) {
     usleep(((int)$s['delay_ms']) * 1000);   // имитация медленной модели
 }
+
+/* C9. GET /models — проверка подключения из admin-ai.php: список моделей,
+   как у OpenAI-совместимых провайдеров. Режим always_500 действует и здесь. */
+if ($_SERVER['REQUEST_METHOD'] === 'GET' && strpos((string)$_SERVER['REQUEST_URI'], '/auth/key') !== false) {
+    /* как у OpenRouter: ключ уже проверен заслоном выше, отдаём его описание */
+    echo json_encode(array('data' => array('label' => 'test key', 'usage' => 0)));
+    exit;
+}
+if ($_SERVER['REQUEST_METHOD'] === 'GET' && strpos((string)$_SERVER['REQUEST_URI'], '/models') !== false) {
+    if ($mode === 'always_500') {
+        http_response_code(500);
+        echo json_encode(array('error' => array('message' => 'boom, key sk-test-fake leaked?')));
+        exit;
+    }
+    if ($mode === 'models_garbage') {
+        /* 200, но не список моделей: страница прокси или капчи */
+        header('Content-Type: text/html');
+        echo '<html><body>Access denied by proxy. key=sk-test-fake</body></html>';
+        exit;
+    }
+    echo json_encode(array('object' => 'list', 'data' => array(
+        array('id' => 'test/model', 'name' => 'Test Model'),
+        array('id' => 'test/other', 'name' => 'Other Model'),
+    )));
+    exit;
+}
 if ($mode === 'fail_then_ok' && $s['calls'] <= (int)$s['fail_first']) {
     http_response_code(500);
     echo json_encode(array('error' => array('message' => 'temporary')));

@@ -163,8 +163,21 @@ function ai_strip_4byte($text) {
     return (string)$clean;
 }
 
-function ai_usage_scrub($text) {
-    $text = preg_replace('/sk-[A-Za-z0-9_\-*]{4,}/', 'sk-***', (string)$text);
+/*
+ * Вымарывание секретов из строки для лога/журнала. Префикс sk- покрывает
+ * OpenAI/OpenRouter, но адрес API настраиваемый, и ключ может быть любого
+ * вида — поэтому $extra: сами значения, которые надо спрятать (ключ из
+ * настроек), независимо от формата.
+ */
+function ai_usage_scrub($text, array $extra = array()) {
+    $text = (string)$text;
+    foreach ($extra as $secret) {
+        $secret = (string)$secret;
+        if (mb_strlen($secret, 'UTF-8') >= 4) {
+            $text = str_replace($secret, '***', $text);
+        }
+    }
+    $text = preg_replace('/sk-[A-Za-z0-9_\-*]{4,}/', 'sk-***', $text);
     return mb_substr(trim((string)$text), 0, 200);
 }
 
@@ -241,6 +254,29 @@ function ai_http_post($url, $payload, $api_key, $timeout) {
             'Authorization: Bearer ' . $api_key,
         ),
         CURLOPT_POSTFIELDS => json_encode($payload, JSON_UNESCAPED_UNICODE),
+    ));
+    $body = curl_exec($ch);
+    $code = (int)curl_getinfo($ch, CURLINFO_HTTP_CODE);
+    $err  = curl_error($ch);
+    curl_close($ch);
+    return array($code, (string)$body, $err);
+}
+
+/* GET с Bearer (пустой ключ — без заголовка): проверка подключения (C9). */
+function ai_http_get($url, $api_key, $timeout) {
+    $ch = curl_init($url);
+    $headers = array('Accept: application/json');
+    if ((string)$api_key !== '') {
+        $headers[] = 'Authorization: Bearer ' . $api_key;
+    }
+    curl_setopt_array($ch, array(
+        CURLOPT_RETURNTRANSFER => true,
+        CURLOPT_TIMEOUT => $timeout,
+        CURLOPT_CONNECTTIMEOUT => min(5, $timeout),
+        CURLOPT_FOLLOWLOCATION => false,           // ключ не должен уехать на чужой хост
+        CURLOPT_PROTOCOLS => CURLPROTO_HTTP | CURLPROTO_HTTPS,
+        CURLOPT_MAXFILESIZE => 2 * 1024 * 1024,    // список моделей — сотни КБ; больше — не наш случай
+        CURLOPT_HTTPHEADER => $headers,
     ));
     $body = curl_exec($ch);
     $code = (int)curl_getinfo($ch, CURLINFO_HTTP_CODE);

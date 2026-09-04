@@ -180,7 +180,12 @@ h2 {
 .stat__n { font-size: 26px; line-height: 1.1; font-variant-numeric: tabular-nums; }
 .bars { display: flex; align-items: flex-end; gap: 3px; height: 90px; }
 .bars > i { flex: 1; min-width: 4px; background: var(--brand); border-radius: 3px 3px 0 0; }
-.bars > i.is-empty { background: var(--line); }
+.bars > i.is-empty { background: var(--line); height: 3px; }
+/* высота столбика классом с шагом 10%: CSP запрещает style= */
+.bars > i.h10 { height: 10%; } .bars > i.h20 { height: 20%; } .bars > i.h30 { height: 30%; }
+.bars > i.h40 { height: 40%; } .bars > i.h50 { height: 50%; } .bars > i.h60 { height: 60%; }
+.bars > i.h70 { height: 70%; } .bars > i.h80 { height: 80%; } .bars > i.h90 { height: 90%; }
+.bars > i.h100 { height: 100%; }
 
 .panel {
   background: var(--card);
