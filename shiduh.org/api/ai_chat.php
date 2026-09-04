@@ -134,6 +134,8 @@ if ($want_stream) {
         'thread' => $result['thread'],
         'stopped' => !empty($result['stopped']),
         'tool_events' => $collected['tool_events'],
+        // блок опроса на странице обновится без перезагрузки (B8)
+        'survey' => chat_survey_after($db, $uid, $collected['tool_events']),
     ));
     exit;
 }
@@ -162,4 +164,5 @@ shiduh_json(200, array(
     'created_at' => $result['created_at'],
     'thread' => $result['thread'],
     'tool_events' => $collected['tool_events'],
+    'survey' => chat_survey_after($db, $uid, $collected['tool_events']),
 ));

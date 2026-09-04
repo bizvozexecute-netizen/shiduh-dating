@@ -18,6 +18,7 @@ require_once $ROOT_FOLDER . 'connect_io.php';
 require_once dirname(__FILE__) . '/admin_lib.php';
 require_once dirname(__FILE__) . '/scoring_lib.php';
 require_once dirname(__FILE__) . '/cases_lib.php';
+require_once dirname(__FILE__) . '/chat_lib.php';   // chat_chips(): подсказки чата после ответа
 
 $nc_core = nc_core::get_object();
 $nc_core->user->attempt_to_authorize();
@@ -69,6 +70,36 @@ if (!$case_row) {
     shiduh_json(404, array('error' => 'Кейс не найден'));
 }
 
+/*
+ * Уже отвеченный в текущей версии кейс — либо осознанный повтор («Пройти
+ * заново», клиент шлёт restart=1), либо УСТАРЕВШАЯ ВКЛАДКА: человек ответил
+ * на этот сценарий в чате в другом окне, а здесь всё ещё висит старый
+ * вопрос. Без различения второе тихо заводило новую версию из одного
+ * ответа, и шадхан видел вырожденный профиль. Устаревшей вкладке отдаём
+ * актуальное состояние — она покажет правильный вопрос.
+ */
+$restart = (string)$nc_core->input->fetch_post('restart') === '1';
+$current_version = scoring_current_version($db, $uid);
+if (!$restart && $current_version > 0) {
+    $already = (int)$db->get_var(
+        "SELECT COUNT(*) FROM `assessment_answers` WHERE `user_id`=$uid "
+        . "AND `case_id`=$case_id AND `version`=$current_version"
+    );
+    if ($already) {
+        $state = cases_survey_state($db, $uid);
+        shiduh_json(409, array(
+            'error' => 'На этот сценарий вы уже ответили — вопрос обновлён.',
+            'code' => 'stale_case',
+            'next' => $state['next'],
+            'answered' => $state['answered'],
+            'total' => $state['total'],
+            'chips' => chat_chips($db, $uid, array(
+                'survey' => $state, 'thread' => chat_current_thread($db, $uid),
+            )),
+        ));
+    }
+}
+
 // Общий конвейер с путём диалога (Э2.2-c): классификация -> баллы ->
 // профиль КОДОМ -> психотип раз на версию -> фиксация в анкете.
 $result = scoring_record_answer($db, $uid, $case_row, $answer);
@@ -99,4 +130,11 @@ shiduh_json(200, array(
     'next' => $state['next'],
     'answered' => $state['answered'],
     'total' => $state['total'],
+    // Подсказки чата зависят от опроса («Ответить на вопрос консультанта»):
+    // отдаём их здесь же, чтобы блок чата обновился без второго запроса.
+    // Состояние опроса уже посчитано — передаём, а не считаем второй раз;
+    // диалог — текущий, иначе в подсказки попал бы вопрос из архивного.
+    'chips' => chat_chips($db, $uid, array(
+        'survey' => $state, 'thread' => chat_current_thread($db, $uid),
+    )),
 ));

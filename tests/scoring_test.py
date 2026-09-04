@@ -33,9 +33,13 @@ ANKETA = None
 CASES = {}
 
 
-def answer(sid, case_id, text, origin=None):
-    return post_json(ANSWER_URL, sid,
-                     {"case_id": case_id, "answer": text}, origin=origin)
+def answer(sid, case_id, text, origin=None, restart=False):
+    # restart — осознанный повтор опроса (B8): без него повторный ответ на
+    # уже отвеченный сценарий считается устаревшей вкладкой и отклоняется
+    fields = {"case_id": case_id, "answer": text}
+    if restart:
+        fields["restart"] = "1"
+    return post_json(ANSWER_URL, sid, fields, origin=origin)
 
 
 def profile():
@@ -195,7 +199,7 @@ def test_profile_is_deterministic():
     clear_all()
     sid = login(CANDIDATE)
     use_classifier({"words": 3})
-    answer(sid, CASES["love_language"][0], "ответ А")
+    answer(sid, CASES["love_language"][0], "ответ А", restart=True)
     use_classifier({"time": 2})
     answer(sid, CASES["love_language"][1], "ответ Б")
     first = profile()
@@ -221,7 +225,7 @@ def test_repeat_survey_creates_new_version():
     v1 = profile()["version"]
     # повторный ответ на тот же кейс — новая версия опроса
     use_classifier({"time": 5})
-    answer(sid, CASES["love_language"][0], "второй проход")
+    answer(sid, CASES["love_language"][0], "второй проход", restart=True)
     v2 = profile()["version"]
     assert v2 == v1 + 1, "повтор не создал новую версию: %s → %s" % (v1, v2)
     # прошлые ответы не переписаны
@@ -236,7 +240,7 @@ def test_profile_uses_only_current_version():
     use_classifier({"words": 5})
     answer(sid, CASES["love_language"][0], "старый проход")
     use_classifier({"time": 5})
-    answer(sid, CASES["love_language"][0], "новый проход")   # версия 2
+    answer(sid, CASES["love_language"][0], "новый проход", restart=True)   # версия 2
     p = profile()
     ll = p["love_languages"]
     assert ll.get("time") == 100, "профиль смешал версии: %s" % ll
@@ -282,7 +286,7 @@ def test_psychotype_text_regenerated_for_new_version():
     assert first, "нет текста в первой версии"
     # повтор кейса → новая версия → текст считается заново
     use_classifier({"touch": 5})
-    answer(sid, CASES["love_language"][0], "новый проход")
+    answer(sid, CASES["love_language"][0], "новый проход", restart=True)
     p = profile()
     assert p["version"] == 2, "новая версия не началась: %s" % p["version"]
 

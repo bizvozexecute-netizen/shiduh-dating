@@ -275,9 +275,11 @@ def clear_answers(uid):
     dbq("DELETE FROM `assessment_answers` WHERE user_id=%d" % uid)
 
 
-def answer_case(sid, case_id, text):
-    return post_json("/api/assessment_answer.php", sid,
-                     {"case_id": case_id, "answer": text})
+def answer_case(sid, case_id, text, restart=False):
+    fields = {"case_id": case_id, "answer": text}
+    if restart:
+        fields["restart"] = "1"   # осознанный повтор опроса (B8)
+    return post_json("/api/assessment_answer.php", sid, fields)
 
 
 def active_cases():
@@ -372,8 +374,12 @@ def test_retake_warns_about_new_version():
     for cid in active_cases():
         answer_case(sid, cid, "ответ")
     _, html = get_page(CONSULTANT, sid)
-    assert "confirm(" in html, "повтор не переспрашивает"
-    assert "заново" in html and "новый профиль" in html,         "предупреждение не объясняет последствия повтора"
+    # B8: скрипт опроса вынесен из шаблона в js/consultant.js — предупреждение
+    # живёт там, а страница обязана его подключать
+    assert "/js/consultant.js" in html, "скрипт опроса не подключён"
+    _, js = get_page("/js/consultant.js", sid)
+    assert "confirm(" in js, "повтор не переспрашивает"
+    assert "заново" in js and "новый профиль" in js,         "предупреждение не объясняет последствия повтора"
     clear_answers(CAND_UID)
     set_profile(CAND_UID, None)
 
@@ -399,7 +405,7 @@ def test_retake_actually_restarts_survey():
     assert "Отвечено 0 из %d" % len(cases) in again, "прогресс не обнулился при повторе"
 
     # ответ в новом проходе создаёт версию 2
-    answer_case(sid, cases[0], "ответ нового прохода")
+    answer_case(sid, cases[0], "ответ нового прохода", restart=True)
     version = dbq("SELECT MAX(version) FROM `assessment_answers` WHERE user_id=%d" % CAND_UID)
     assert version == "2", "новый проход не создал версию 2: " + version
     clear_answers(CAND_UID)

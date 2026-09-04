@@ -156,6 +156,7 @@ API_ENDPOINTS = [
     "/api/ai_greet.php",
     "/api/ai_rate.php",
     "/api/ai_thread_new.php",
+    "/api/match_mine.php",
     "/api/invite_create.php",
     "/api/invite_claim.php",
     "/api/invite_send_email.php",
@@ -181,7 +182,8 @@ def test_api_get_is_rejected_not_crashed():
 def test_api_post_without_auth_is_rejected():
     for path in API_ENDPOINTS:
         code, body = fetch(path, GUEST, method="POST", data={"x": "1"})
-        assert code in (400, 403, 404), \
+        # 405 — у эндпоинтов только для чтения (match_mine.php): POST им чужд
+        assert code in (400, 403, 404, 405), \
             "%s без авторизации ответил %d" % (path, code)
         assert_no_php_errors(path, body)
 

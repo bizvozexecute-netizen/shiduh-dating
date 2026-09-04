@@ -301,6 +301,9 @@
       if (js.user_message_id) { failedNode.dataset.id = js.user_message_id; }
     }
     renderChips(js.chips);
+    // Ответ на сценарий записан из диалога — блок опроса на странице должен
+    // это увидеть, иначе он показывает уже отвеченный вопрос (B8).
+    if (js.survey && window.shSurvey) { window.shSurvey.apply(js.survey); }
     toBottom(true);
   }
 
@@ -856,6 +859,10 @@
   updateCount();
   toBottom(true);
   renderChips(cfg.chips);
+
+  // Блок опроса на той же странице после ответа обновляет подсказки чата:
+  // «Ответить на вопрос консультанта» не должно висеть, когда вопрос закрыт.
+  window.shChat = { setChips: renderChips };
 
   /* Пустой чат — консультант здоровается первым. Запрос идёт отсюда, а не из
      рендера страницы: страница отвечает на GET и не должна ни писать в базу,

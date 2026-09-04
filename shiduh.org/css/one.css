@@ -664,6 +664,150 @@
   display: none;
 }
 
+/* --------------------------- опрос и мои пары --------------------------- */
+/* Панели страницы консультанта. Раньше жили инлайновыми <style> в шаблоне
+   с зашитыми цветами; теперь — на токенах, как и всё остальное. */
+:where(.ai-survey, .lk-mine) {
+  max-width: 760px;
+  margin: 0 auto var(--sh-s-4);
+  padding: var(--sh-s-5);
+  background: var(--sh-paper);
+  border: 1px solid var(--sh-line);
+  border-radius: var(--sh-r-l);
+}
+
+:where(.ai-survey__h, .lk-mine__h) {
+  margin: 0 0 4px;
+  font: 500 var(--sh-fs-body) / 1.3 var(--sh-font-body);
+  color: var(--sh-ink);
+}
+
+:where(.ai-survey__sub, .lk-mine__sub) {
+  margin: 0 0 var(--sh-s-3);
+  font-size: var(--sh-fs-sm);
+  color: var(--sh-ink-2);
+}
+
+:where(.ai-survey__progress) {
+  height: 6px;
+  margin-bottom: var(--sh-s-4);
+  border-radius: var(--sh-r-pill);
+  background: var(--sh-sand);
+  overflow: hidden;
+}
+
+:where(.ai-survey__progress) > i {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: var(--sh-gold);
+  transition: width var(--sh-t-base) var(--sh-ease-out);
+}
+
+:where(.ai-survey__q) {
+  margin: 0 0 var(--sh-s-3);
+  font-size: var(--sh-fs-body);
+  line-height: 1.55;
+  color: var(--sh-ink);
+}
+
+.ai-survey__input {
+  width: 100%;
+  min-height: 88px;
+  padding: 11px 13px;
+  border: 1px solid var(--sh-line);
+  border-radius: var(--sh-r-m);
+  background: var(--sh-cream);
+  color: var(--sh-ink);
+  font: inherit;
+  font-size: var(--sh-fs-sm);
+  resize: vertical;
+}
+
+.ai-survey__input:focus { outline: 2px solid var(--sh-gold); outline-offset: 1px; }
+
+.ai-survey__btn {
+  margin-top: var(--sh-s-3);
+  padding: 10px 18px;
+  border: 0;
+  border-radius: var(--sh-r-pill);
+  background: var(--sh-gold);
+  color: var(--sh-navy);
+  font: inherit;
+  font-size: var(--sh-fs-body);
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.ai-survey__btn:hover { background: var(--sh-gold-hover); }
+.ai-survey__btn[disabled] { opacity: .45; cursor: not-allowed; }
+.ai-survey__btn--ghost { background: transparent; border: 1px solid var(--sh-line); color: var(--sh-ink); }
+.ai-survey__btn--ghost:hover { background: var(--sh-cream-2); border-color: var(--sh-gold); }
+
+:where(.ai-survey__msg) { margin-top: var(--sh-s-2); font-size: var(--sh-fs-sm); color: var(--sh-ink-2); }
+
+:where(.ai-survey__bars) {
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+  margin: var(--sh-s-3) 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+:where(.ai-survey__bar) {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 3px 10px;
+  font-size: var(--sh-fs-sm);
+}
+
+:where(.ai-survey__bar) em { font-style: normal; color: var(--sh-gold-ink); font-weight: 700; }
+
+:where(.ai-survey__track) {
+  grid-column: 1 / -1;
+  height: 7px;
+  border-radius: var(--sh-r-pill);
+  background: var(--sh-sand);
+  overflow: hidden;
+}
+
+:where(.ai-survey__track) > i { display: block; height: 100%; border-radius: inherit; background: var(--sh-gold); }
+
+/* Строка пары: возраст и город слева, совпадение справа. Список грузится
+   лениво; до загрузки видны две «полосы»-заглушки той же высоты. */
+:where(.lk-mine__rec) {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--sh-s-3);
+  margin-top: 9px;
+  padding: 11px 13px;
+  border: 1px solid var(--sh-line);
+  border-radius: var(--sh-r-m);
+}
+
+:where(.lk-mine__who) { font-size: var(--sh-fs-sm); color: var(--sh-ink); }
+:where(.lk-mine__who) span { display: block; font-size: var(--sh-fs-xs); color: var(--sh-ink-2); }
+
+:where(.lk-mine__score) { margin-left: auto; text-align: right; }
+:where(.lk-mine__score) b { font-size: 17px; color: var(--sh-gold-ink); font-variant-numeric: tabular-nums; }
+
+:where(.lk-mine__bar) {
+  width: 110px;
+  height: 6px;
+  margin-top: 4px;
+  border-radius: var(--sh-r-pill);
+  background: var(--sh-sand);
+  overflow: hidden;
+}
+
+:where(.lk-mine__bar) > i { display: block; height: 100%; background: var(--sh-gold-deep); }
+
+:where(.lk-mine__score--none) { font-size: var(--sh-fs-xs); line-height: 1.4; color: var(--sh-ink-3); text-align: right; }
+
+:where(.lk-mine__skel) { height: 58px; margin-top: 9px; border-radius: var(--sh-r-m); }
+
 /* -------------------------------- чат ---------------------------------- */
 :where(.sh-chat) {
   display: flex;

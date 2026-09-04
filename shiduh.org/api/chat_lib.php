@@ -123,6 +123,30 @@ function chat_current_thread($db, $uid) {
     return max(1, (int)$db->get_var("SELECT IFNULL(MAX(`thread`),1) FROM `ai_chat_messages` WHERE `user_id`=$uid"));
 }
 
+/*
+ * Состояние опроса после ответа чата — только если в этом обмене модель
+ * записала ответ на сценарий (B8). Блок опроса на странице иначе показывал
+ * бы вопрос, на который человек уже ответил в диалоге, и «Отвечено 2 из 8»
+ * при фактических трёх. Когда ничего не записано — null и ни одного
+ * лишнего запроса.
+ */
+function chat_survey_after($db, $uid, array $tool_events) {
+    foreach ($tool_events as $ev) {
+        if (isset($ev['name']) && $ev['name'] === 'record_case_answer' && !empty($ev['recorded'])) {
+            $state = cases_survey_state($db, $uid);
+            return array(
+                'answered' => (int)$state['answered'],
+                'total' => (int)$state['total'],
+                'next' => !empty($state['next']) ? array(
+                    'id' => (int)$state['next']['id'],
+                    'scenario_text' => (string)$state['next']['scenario_text'],
+                ) : null,
+            );
+        }
+    }
+    return null;
+}
+
 /* Список диалогов — для переключателя «прошлые разговоры», свежие сверху. */
 function chat_thread_list($db, $uid) {
     $uid = (int)$uid;
