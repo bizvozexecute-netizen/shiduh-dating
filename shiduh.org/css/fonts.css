@@ -1,0 +1,13 @@
+/* fonts.css — только @font-face фирменных гарнитур (CeraPro, Kudryashev),
+   вынесены из бандла для автономных страниц без макета (межстраница
+   приглашения, C4). Пути к файлам те же, что в бандле. Файл собран из
+   styles-62.css скриптом; при смене шрифтов пересобрать. */
+@font-face{font-display:swap;font-family:cerapro;font-style:normal;font-weight:300;src:url(../fonts/ceraPro/CeraPro-Light.woff2) format("woff2"),url(../fonts/ceraPro/CeraPro-Light.woff) format("woff")}
+@font-face{font-display:swap;font-family:cerapro;font-style:italic;font-weight:300;src:url(../fonts/ceraPro/CeraPro-LightItalic.woff2) format("woff2"),url(../fonts/ceraPro/CeraPro-LightItalic.woff) format("woff")}
+@font-face{font-display:swap;font-family:cerapro;font-style:normal;font-weight:400;src:url(../fonts/ceraPro/CeraPro-Regular.woff2) format("woff2"),url(../fonts/ceraPro/CeraPro-Regular.woff) format("woff")}
+@font-face{font-display:swap;font-family:cerapro;font-style:italic;font-weight:400;src:url(../fonts/ceraPro/CeraPro-RegularItalic.woff2) format("woff2"),url(../fonts/ceraPro/CeraPro-RegularItalic.woff) format("woff")}
+@font-face{font-display:swap;font-family:cerapro;font-style:normal;font-weight:500;src:url(../fonts/ceraPro/CeraPro-Medium.woff2) format("woff2"),url(../fonts/ceraPro/CeraPro-Medium.woff) format("woff")}
+@font-face{font-display:swap;font-family:cerapro;font-style:italic;font-weight:500;src:url(../fonts/ceraPro/CeraPro-MediumItalic.woff2) format("woff2"),url(../fonts/ceraPro/CeraPro-MediumItalic.woff) format("woff")}
+@font-face{font-display:swap;font-family:cerapro;font-style:normal;font-weight:600;src:url(../fonts/ceraPro/CeraPro-Bold.woff2) format("woff2"),url(../fonts/ceraPro/CeraPro-Bold.woff) format("woff")}
+@font-face{font-display:swap;font-family:cerapro;font-style:italic;font-weight:600;src:url(../fonts/ceraPro/CeraPro-BoldItalic.woff2) format("woff2"),url(../fonts/ceraPro/CeraPro-BoldItalic.woff) format("woff")}
+@font-face{font-display:swap;font-family:kudryashev;font-style:normal;font-weight:400;src:url(../fonts/kudryashevDisplay/KudryashevDisplay.woff2) format("woff2"),url(../fonts/kudryashevDisplay/KudryashevDisplay.woff) format("woff")}

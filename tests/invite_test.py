@@ -259,8 +259,31 @@ def make_invite():
 
 
 def redeem(token, sid=None):
-    """GET /api/invite.php?t=... без следования редиректу. → (code, headers, body)."""
+    """GET /api/invite.php?t=... без следования редиректу. → (code, headers, body).
+    С C4 GET только показывает межстраницу: cookie не ставит, used_at не пишет."""
     req = urllib.request.Request(REDEEM_URL + "?t=" + urllib.parse.quote(token))
+    if sid:
+        req.add_header("Cookie", "PHP_AUTH_SID=%s; PHP_AUTH_LANG=Russian" % sid)
+    opener = urllib.request.build_opener(NoRedirect)
+    try:
+        r = opener.open(req, timeout=60)
+        return r.status, r.headers, r.read().decode("utf-8", "replace")
+    except urllib.error.HTTPError as e:
+        return e.code, e.headers, e.read().decode("utf-8", "replace")
+
+
+def redeem_post(token, origin=None, referer=None, sid=None):
+    """POST с кнопки межстраницы: вход и редирект.
+    origin=None — свой Origin, False — без Origin, строка — как есть (в т.ч. "null");
+    referer — заголовок Referer как есть; sid — уже существующая сессия в браузере."""
+    body = urllib.parse.urlencode({"t": token}).encode()
+    req = urllib.request.Request(REDEEM_URL, data=body, method="POST")
+    if origin is None:
+        req.add_header("Origin", BASE)
+    elif origin:
+        req.add_header("Origin", origin)
+    if referer:
+        req.add_header("Referer", referer)
     if sid:
         req.add_header("Cookie", "PHP_AUTH_SID=%s; PHP_AUTH_LANG=Russian" % sid)
     opener = urllib.request.build_opener(NoRedirect)
@@ -290,21 +313,60 @@ def get_with_sid(path, sid):
         return e.code, e.read().decode("utf-8", "replace")
 
 
+def test_redeem_page_does_not_log_in():
+    """GET — только межстраница: превью ссылки в мессенджере или сканер
+    антивируса не должны входить в аккаунт и помечать приглашение."""
+    reset_state()
+    token, cand = make_invite()
+    code, headers, body = redeem(token)
+    assert code == 200, "GET по ссылке должен показывать страницу: %s" % code
+    assert headers.get("Location") is None, "GET редиректит — значит логинит"
+    assert sid_from_headers(headers) is None, "GET поставил cookie сессии"
+    assert 'name="t" value="%s"' % token in body, "форма несёт не тот токен"
+    assert "Войти как приглашённый кандидат" in body, "нет кнопки входа"
+    assert "<script" not in body, "на межстранице не должно быть скриптов"
+    assert dbq("SELECT used_at IS NULL FROM invite_tokens WHERE token='%s'" % token) == "1", \
+        "GET пометил приглашение использованным"
+    # токен живёт в адресе: он не должен уходить в Referer и оседать в кэше
+    # same-origin: чужим сайтам адрес не уходит, а собственному POST Referer нужен
+    assert headers.get("Referrer-Policy") == "same-origin", headers.get("Referrer-Policy")
+    assert "no-store" in headers.get("Cache-Control", ""), headers.get("Cache-Control")
+    assert "noindex" in body
+
+
 def test_redeem_logs_in_candidate():
     reset_state()
     token, cand = make_invite()
-    code, headers, _ = redeem(token)
-    assert code in (301, 302), "нет редиректа после входа: %s" % code
+    code, headers, _ = redeem_post(token)
+    assert code == 303, "нет редиректа после входа: %s" % code
     assert headers.get("Location") == "/my/ai-consultant/", \
         "редирект не на консультанта: %s" % headers.get("Location")
     new_sid = sid_from_headers(headers)
-    assert new_sid, "не выдана cookie сессии PHP_AUTH_SID"
-    # новая сессия авторизована как кандидат: консультант открывается (200)
-    scode, body = get_with_sid("/my/ai-consultant/", new_sid)
-    assert scode == 200, "сессия кандидата не авторизована: %s" % scode
-    assert ("sh-chat" in body) or ("консультант" in body.lower())
+    assert new_sid, "нет cookie сессии после входа"
+    # сессия действительно принадлежит заготовке
+    code, html = get_with_sid("/my/ai-consultant/", new_sid)
+    assert code == 200, "консультант не открылся по новой сессии: %d" % code
     # used_at проставлен
     assert dbq("SELECT used_at IS NOT NULL FROM invite_tokens WHERE token='%s'" % token) == "1"
+
+
+def test_redeem_post_requires_own_origin():
+    """Кнопку не нажмёт чужая страница: без Origin/Referer или с чужим — отказ."""
+    reset_state()
+    token, _ = make_invite()
+    for origin in (False, "https://evil.example"):
+        code, headers, _ = redeem_post(token, origin=origin)
+        assert code == 403, "вход с источником %r: %s" % (origin, code)
+        assert sid_from_headers(headers) is None, "cookie поставлена при отказе"
+    assert dbq("SELECT used_at IS NULL FROM invite_tokens WHERE token='%s'" % token) == "1"
+
+
+def test_redeem_post_claimed_token():
+    reset_state()
+    token, _ = make_invite()
+    dbq("UPDATE invite_tokens SET claimed_at=NOW() WHERE token='%s'" % token)
+    code, headers, _ = redeem_post(token)
+    assert code == 410 and sid_from_headers(headers) is None
 
 
 def test_redeem_invalid_token():
@@ -377,7 +439,7 @@ def post_claim(sid, email, password, origin=None):
 def redeem_to_sid():
     """Создать приглашение, войти по ссылке, вернуть (sid заготовки, candidate_uid, token)."""
     token, cand = make_invite()
-    _, headers, _ = redeem(token)
+    _, headers, _ = redeem_post(token)
     return sid_from_headers(headers), cand, token
 
 
@@ -516,3 +578,79 @@ def test_consultant_shows_claim_form_only_for_placeholder():
     ccode, cbody = get_with_sid("/my/ai-consultant/", csid)
     assert ccode == 200
     assert "aiClaimForm" not in cbody, "обычный кандидат видит форму закрепления"
+
+
+def test_redeem_post_origin_null_rejected():
+    """«Origin: null» — это sandboxed-iframe, кросс-origin 307 или no-referrer:
+    не наш пользователь. Именно так браузер слал бы запрос при
+    Referrer-Policy: no-referrer — поэтому на межстранице same-origin."""
+    reset_state()
+    token, _ = make_invite()
+    code, headers, body = redeem_post(token, origin="null")
+    assert code == 403, code
+    assert sid_from_headers(headers) is None
+    assert "Не удалось подтвердить источник" in body, "отказ не человеческой страницей"
+
+
+def test_redeem_post_referer_fallback():
+    """Старый браузер без Origin: свой Referer пускает, чужой — нет."""
+    reset_state()
+    token, _ = make_invite()
+    code, headers, _ = redeem_post(token, origin=False, referer="https://evil.example/")
+    assert code == 403 and sid_from_headers(headers) is None
+    code, headers, _ = redeem_post(token, origin=False, referer=BASE + "/api/invite.php?t=" + token)
+    assert code == 303, "свой Referer без Origin не пустил: %s" % code
+    assert sid_from_headers(headers)
+
+
+def test_redeem_post_bad_token_changes_nothing():
+    reset_state()
+    token, _ = make_invite()
+    for bad in ("not-a-token", "deadbeef" * 8):
+        code, headers, _ = redeem_post(bad)
+        assert code == 404, "%s → %s" % (bad, code)
+        assert sid_from_headers(headers) is None
+    assert dbq("SELECT used_at IS NULL FROM invite_tokens WHERE token='%s'" % token) == "1"
+
+
+def test_link_still_opens_after_login_until_claim():
+    """Ссылка многоразовая до закрепления: повторный GET после входа —
+    снова страница с кнопкой, а не отказ."""
+    reset_state()
+    token, _ = make_invite()
+    redeem_post(token)
+    code, headers, body = redeem(token)
+    assert code == 200 and 'name="t"' in body
+
+
+def test_error_pages_carry_same_headers():
+    reset_state()
+    token, _ = make_invite()
+    dbq("UPDATE invite_tokens SET claimed_at=NOW() WHERE token='%s'" % token)
+    for tok, expected in (("deadbeef" * 8, 404), (token, 410)):
+        code, headers, body = redeem(tok)
+        assert code == expected
+        assert "no-store" in headers.get("Cache-Control", ""), tok
+        assert headers.get("X-Frame-Options") == "DENY", tok
+        assert "script-src 'none'" in headers.get("Content-Security-Policy", ""), tok
+        assert tok not in body, "токен напечатан на странице ошибки"
+
+
+def test_get_warns_about_foreign_session():
+    """Шадхан открыл ссылку кандидата «проверить»: нажатие кнопки выйдет из
+    его аккаунта — страница обязана сказать об этом заранее."""
+    reset_state()
+    token, _ = make_invite()
+    code, headers, body = redeem(token, sid=login(SHADHAN))
+    assert code == 200
+    assert "нажатие кнопки выйдет из этого аккаунта" in body, "нет предупреждения о чужой сессии"
+    assert sid_from_headers(headers) is None, "GET с чужой сессией поставил cookie"
+    # без чужой сессии предупреждения нет
+    code, headers, body = redeem(token)
+    assert "выйдет из этого аккаунта" not in body
+
+
+def test_invite_email_mentions_button():
+    src = open(os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "shiduh.org", "api",
+                            "invite_send_email.php"), encoding="utf-8").read()
+    assert "Войти как приглашённый кандидат" in src, "письмо не говорит про кнопку на межстранице"

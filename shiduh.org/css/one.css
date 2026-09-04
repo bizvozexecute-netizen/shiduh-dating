@@ -664,6 +664,45 @@
   display: none;
 }
 
+/* -------------------------- автономные страницы ------------------------- */
+/* Межстраница входа по приглашению и подобные: без макета сайта, без
+   скриптов (CSP script-src 'none'), одна карточка по центру. */
+:where(.sh-standalone) {
+  display: grid;
+  place-items: center;
+  box-sizing: border-box;            /* иначе 100vh + отступы дают лишнюю прокрутку */
+  min-height: 100vh;
+  margin: 0;
+  padding: var(--sh-s-5);
+  background: var(--sh-cream);
+  color: var(--sh-ink);
+  font: 400 var(--sh-fs-body) / var(--sh-lh-body) var(--sh-font-body);
+}
+
+/* Бандла на автономной странице нет — кнопке нужен полный вид, а не только
+   переопределения поверх .button бандла. */
+.sh-standalone .button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 48px;
+  padding: 12px 26px;
+  border: 0;
+  border-radius: var(--sh-r-pill);
+  background: var(--sh-gold);
+  color: var(--sh-navy);
+  font: 500 var(--sh-fs-body) / 1 var(--sh-font-body);
+  letter-spacing: .02em;
+  cursor: pointer;
+}
+
+:where(.sh-standalone__card) { max-width: 440px; padding: var(--sh-s-6) var(--sh-s-5); text-align: center; }
+:where(.sh-standalone__title) { margin: 0 0 var(--sh-s-3); font: 400 var(--sh-fs-h2) / var(--sh-lh-tight) var(--sh-font-display); }
+:where(.sh-standalone__text) { margin: 0 0 var(--sh-s-4); color: var(--sh-ink-2); }
+:where(.sh-standalone__form) { margin: 0 0 var(--sh-s-3); }
+:where(.sh-standalone__note) { margin: 0; font-size: var(--sh-fs-xs); color: var(--sh-ink-3); }
+:where(.sh-standalone__link) { color: var(--sh-gold-ink); text-decoration: underline; text-underline-offset: 2px; }
+
 /* ------------------------- страница консультанта ------------------------ */
 /* Контейнер ЛК — сетка «сайдбар + контент», каждая секция верхнего уровня
    занимала бы свою ячейку. Одна обёртка — одна ячейка; min-width:0 — иначе
