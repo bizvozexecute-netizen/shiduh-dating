@@ -15,8 +15,10 @@
      - многострочный ввод: Enter отправляет, Shift+Enter переносит строку;
      - «показать ранее» подгружает историю постранично.
 
-   Потоковая выдача добавляется следующим инкрементом; здесь ответ приходит
-   одним JSON.
+     - ответ приходит потоком и печатается по мере генерации, с откатом на
+       обычный запрос там, где поток недоступен;
+     - разметка модели (списки, выделения, ссылки) разбирается своей узкой
+       грамматикой — близнецом api/markdown_lite.php.
    ========================================================================= */
 (function () {
   'use strict';
@@ -79,8 +81,11 @@
         return '<a href="' + url + '"' + LINK_ATTRS + '>' + label + '</a>';
       });
 
-      // голая ссылка; хвостовая пунктуация в адрес не входит
-      s = s.replace(/(?<!href=")(?<!>)(https?:\/\/[^\s<>"']+)/gu, function (m, url) {
+      // голая ссылка; хвостовая пунктуация в адрес не входит. Адрес
+      // обрывается и на экранированных последовательностях: к моменту разбора
+      // кавычка и угловая скобка уже стали &quot; и &lt;
+      s = s.replace(/(?<!href=")(?<!>)(https?:\/\/(?:(?!&quot;|&lt;|&gt;|&#0?39;)[^\s<>"'])+)/gu,
+                    function (m, url) {
         var tail = '';
         while (url && '.,;:!?)»'.indexOf(url.slice(-1)) !== -1) {
           tail = url.slice(-1) + tail;
@@ -191,7 +196,11 @@
 
     var body = document.createElement('div');
     body.className = 'sh-msg__body';
-    body.textContent = text;
+    if (role === 'user') {
+      body.textContent = text;         // своё сообщение показываем как набрано
+    } else {
+      mdlite.render(body, text);       // ответ модели: списки и выделения
+    }
     el.appendChild(body);
 
     if (opts.created) {
@@ -358,6 +367,9 @@
         gotDelta = true;
         ensureBubble();
         acc += data.text;
+        // Пока ответ пишется, показываем как есть: разметка может быть
+        // недописанной («**важ…»), и перерисовывать её на каждом куске значит
+        // мигать оформлением. Финал придёт целиком и будет отрисован.
         streamBody.textContent = acc;
         toBottom();
         return;
@@ -375,7 +387,7 @@
         streamNode.classList.remove('sh-msg--streaming');
         var cur = streamNode.querySelector('.sh-cursor');
         if (cur) { cur.remove(); }
-        streamBody.textContent = data.reply;      // итог — источник истины
+        mdlite.render(streamBody, data.reply);    // итог — источник истины
         streamNode.dataset.id = data.message_id;
         if (data.created_at) { streamNode.dataset.created = data.created_at; }
         if (data.stopped) { streamNode.dataset.stopped = '1'; }
@@ -574,7 +586,7 @@
             if (attempt < delays.length) { setTimeout(ask, delays[attempt++]); }
             return;
           }
-          node.querySelector('.sh-msg__body').textContent = answer.content;
+          mdlite.render(node.querySelector('.sh-msg__body'), answer.content);
           node.dataset.id = answer.id;
           if (answer.created_at) { node.dataset.created = answer.created_at; }
           if (!answer.stopped) {

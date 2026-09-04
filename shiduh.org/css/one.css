@@ -734,18 +734,23 @@
   gap: var(--sh-s-3);
 }
 
-/* Реплика. pre-wrap сохраняет переносы модели, а перенос слов не даёт
-   длинной ссылке растянуть страницу по горизонтали. */
+/* Реплика. Перенос слов не даёт длинной ссылке растянуть страницу.
+   pre-wrap на самом пузыре стоять НЕ должен: отступы шаблона (переносы строк
+   с пробелами между тегами) стали бы видимыми пустыми строками. Он нужен
+   только собственному сообщению, которое показывается как набрано. */
 :where(.sh-msg) {
   max-width: 82%;
   padding: var(--sh-s-3) var(--sh-s-4);
   border-radius: var(--sh-r-l);
   font-size: var(--sh-fs-body);
   line-height: var(--sh-lh-body);
-  white-space: pre-wrap;
   overflow-wrap: anywhere;
   word-break: break-word;
 }
+
+/* Ответ модели приходит разметкой: переносы делают теги. Своё сообщение —
+   обычный текст, и его переносы надо сохранить. */
+:where(.sh-msg--me) .sh-msg__body { white-space: pre-wrap; }
 
 :where(.sh-msg--ai) {
   align-self: flex-start;
@@ -771,6 +776,40 @@
 }
 
 :where(.sh-msg[data-state="failed"]) { opacity: .6; }
+
+/* Разметка внутри ответа модели. Бандл сбрасывает списки (list-style:none),
+   поэтому маркеры возвращаем здесь — иначе перечисление читается сплошным
+   текстом. Отступы скромные: реплика в чате, а не статья. */
+:where(.sh-msg__body) > :first-child { margin-top: 0; }
+:where(.sh-msg__body) > :last-child { margin-bottom: 0; }
+
+:where(.sh-msg__body) p { margin: 0 0 var(--sh-s-2); }
+
+:where(.sh-msg__body) ul,
+:where(.sh-msg__body) ol {
+  margin: 0 0 var(--sh-s-2);
+  padding-left: 1.35em;
+}
+
+:where(.sh-msg__body) ul { list-style: disc; }
+:where(.sh-msg__body) ol { list-style: decimal; }
+:where(.sh-msg__body) li { margin: 2px 0; }
+
+:where(.sh-msg__body) code {
+  padding: 1px 5px;
+  border-radius: 4px;
+  background: rgba(38, 40, 57, .07);
+  font-size: .92em;
+}
+
+:where(.sh-msg__body) a {
+  color: var(--sh-gold-ink);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+:where(.sh-msg--me) .sh-msg__body a { color: var(--sh-navy); }
+:where(.sh-msg--me) .sh-msg__body code { background: rgba(38, 40, 57, .12); }
 
 :where(.sh-msg__meta) {
   display: flex;

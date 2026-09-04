@@ -1,0 +1,162 @@
+[
+  {
+    "why": "обычный абзац",
+    "in": "Здравствуйте!",
+    "html": "<p>Здравствуйте!</p>"
+  },
+  {
+    "why": "два абзаца через пустую строку",
+    "in": "Первый.\n\nВторой.",
+    "html": "<p>Первый.</p><p>Второй.</p>"
+  },
+  {
+    "why": "одиночный перенос внутри абзаца",
+    "in": "Строка один\nстрока два",
+    "html": "<p>Строка один<br>строка два</p>"
+  },
+  {
+    "why": "жирный",
+    "in": "Это **важно** знать",
+    "html": "<p>Это <strong>важно</strong> знать</p>"
+  },
+  {
+    "why": "курсив звёздочкой",
+    "in": "Это *мягко* сказано",
+    "html": "<p>Это <em>мягко</em> сказано</p>"
+  },
+  {
+    "why": "курсив подчёркиванием",
+    "in": "Слово _выделено_ тут",
+    "html": "<p>Слово <em>выделено</em> тут</p>"
+  },
+  {
+    "why": "подчёркивание внутри слова не курсив",
+    "in": "имя_поля_анкеты",
+    "html": "<p>имя_поля_анкеты</p>"
+  },
+  {
+    "why": "код",
+    "in": "Поле `City` в анкете",
+    "html": "<p>Поле <code>City</code> в анкете</p>"
+  },
+  {
+    "why": "маркированный список",
+    "in": "- кашрут\n- шаббат",
+    "html": "<ul><li>кашрут</li><li>шаббат</li></ul>"
+  },
+  {
+    "why": "список звёздочкой",
+    "in": "* первый\n* второй",
+    "html": "<ul><li>первый</li><li>второй</li></ul>"
+  },
+  {
+    "why": "нумерованный список",
+    "in": "1. познакомиться\n2. поговорить",
+    "html": "<ol><li>познакомиться</li><li>поговорить</li></ol>"
+  },
+  {
+    "why": "список после абзаца",
+    "in": "Важно:\n\n- время\n- слова",
+    "html": "<p>Важно:</p><ul><li>время</li><li>слова</li></ul>"
+  },
+  {
+    "why": "разметка внутри пункта списка",
+    "in": "- это **важно**",
+    "html": "<ul><li>это <strong>важно</strong></li></ul>"
+  },
+  {
+    "why": "ссылка с текстом",
+    "in": "См. [правила](https://shiduh.org/rules)",
+    "html": "<p>См. <a href=\"https://shiduh.org/rules\" rel=\"noopener noreferrer\" target=\"_blank\">правила</a></p>"
+  },
+  {
+    "why": "голая ссылка",
+    "in": "Подробнее: https://shiduh.org/faq",
+    "html": "<p>Подробнее: <a href=\"https://shiduh.org/faq\" rel=\"noopener noreferrer\" target=\"_blank\">https://shiduh.org/faq</a></p>"
+  },
+  {
+    "why": "точка после ссылки не входит в неё",
+    "in": "Читайте https://shiduh.org/faq.",
+    "html": "<p>Читайте <a href=\"https://shiduh.org/faq\" rel=\"noopener noreferrer\" target=\"_blank\">https://shiduh.org/faq</a>.</p>"
+  },
+  {
+    "why": "XSS: тег в тексте экранируется",
+    "in": "<script>alert(1)</script>",
+    "html": "<p>&lt;script&gt;alert(1)&lt;/script&gt;</p>"
+  },
+  {
+    "why": "XSS: картинка с обработчиком",
+    "in": "<img src=x onerror=alert(1)>",
+    "html": "<p>&lt;img src=x onerror=alert(1)&gt;</p>"
+  },
+  {
+    "why": "XSS: javascript в ссылке остаётся текстом",
+    "in": "[клик](javascript:alert(1))",
+    "html": "<p>[клик](javascript:alert(1))</p>"
+  },
+  {
+    "why": "XSS: data-схема остаётся текстом",
+    "in": "[клик](data:text/html,<script>)",
+    "html": "<p>[клик](data:text/html,&lt;script&gt;)</p>"
+  },
+  {
+    "why": "XSS: кавычка обрывает адрес, разметка ссылки не срабатывает",
+    "in": "[к](https://a.b\" onclick=\"x)",
+    "html": "<p>[к](<a href=\"https://a.b\" rel=\"noopener noreferrer\" target=\"_blank\">https://a.b</a>&quot; onclick=&quot;x)</p>"
+  },
+  {
+    "why": "XSS: амперсанд экранируется один раз",
+    "in": "&lt;",
+    "html": "<p>&amp;lt;</p>"
+  },
+  {
+    "why": "XSS: тег внутри жирного",
+    "in": "**<b>ж</b>**",
+    "html": "<p><strong>&lt;b&gt;ж&lt;/b&gt;</strong></p>"
+  },
+  {
+    "why": "XSS: тег внутри кода",
+    "in": "`<i>к</i>`",
+    "html": "<p><code>&lt;i&gt;к&lt;/i&gt;</code></p>"
+  },
+  {
+    "why": "XSS: тег в адресе голой ссылки",
+    "in": "http://x.y/<script>",
+    "html": "<p><a href=\"http://x.y/\" rel=\"noopener noreferrer\" target=\"_blank\">http://x.y/</a>&lt;script&gt;</p>"
+  },
+  {
+    "why": "незакрытый жирный остаётся текстом",
+    "in": "это **не закрыто",
+    "html": "<p>это **не закрыто</p>"
+  },
+  {
+    "why": "пустой ввод",
+    "in": "",
+    "html": ""
+  },
+  {
+    "why": "только пробелы",
+    "in": "   \n  ",
+    "html": ""
+  },
+  {
+    "why": "лишние пустые строки схлопываются",
+    "in": "А.\n\n\n\nБ.",
+    "html": "<p>А.</p><p>Б.</p>"
+  },
+  {
+    "why": "CRLF как обычный перенос",
+    "in": "Первая\r\nвторая",
+    "html": "<p>Первая<br>вторая</p>"
+  },
+  {
+    "why": "звёздочка сама по себе",
+    "in": "5 * 3 = 15",
+    "html": "<p>5 * 3 = 15</p>"
+  },
+  {
+    "why": "дефис не в начале строки не список",
+    "in": "как-то так",
+    "html": "<p>как-то так</p>"
+  }
+]
