@@ -22,6 +22,7 @@ import urllib.request
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
 from fake_llm import BASE, NoRedirect, dbq, login
+from fake_llm import backup_row, restore_row  # noqa: E402
 
 CANDIDATE = "u091ff2b36c83@example.local"   # User 50 — посторонний кандидат
 SHADHAN = "u3f9bb8c20b01@example.local"     # User 57 — ведёт анкету X
@@ -68,19 +69,14 @@ def get_page(path, sid, lang="Russian"):
 def setup_module(module):
     # одно поле с разделителем 0x1f (не таб): mysql -B иначе рвал бы значения
     # с табами/переносами по колонкам и teardown записал бы их не в те поля
-    packed = dbq("SELECT CONCAT_WS(CHAR(31), %s) FROM `Message204` WHERE Message_ID=%d"
-                 % (", ".join("IFNULL(`%s`,'\\0')" % f for f in FIELDS), X))
-    BACKUP.update(dict(zip(FIELDS, packed.split("\x1f"))))
+    BACKUP.update(backup_row("Message204", X, FIELDS))
     set_fields(Open=1, Checked=1, Name=NAME_SENT, Jewish_name=JEWISH_SENT,
                Your_ravin_contact=RAVIN_SENT, Email=EMAIL_SENT, Phone=PHONE_SENT,
                Shadhan_1=57, Shadhan_2=None, Shadhan_3=None, Gender=1)
 
 
 def teardown_module(module):
-    parts = []
-    for k, v in BACKUP.items():
-        parts.append("`%s`=%s" % (k, "NULL" if v == "\0" else "'%s'" % sql_str(v)))
-    dbq("UPDATE `Message204` SET %s WHERE Message_ID=%d" % (", ".join(parts), X))
+    restore_row("Message204", X, BACKUP)
 
 
 def test_candidate_sees_open_without_identity():

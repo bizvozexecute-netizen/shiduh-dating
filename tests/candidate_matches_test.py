@@ -15,6 +15,7 @@ import sys
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
 from fake_llm import BASE, NoRedirect, dbq, login
+from fake_llm import backup_row, restore_row  # noqa: E402
 
 import json
 import urllib.request
@@ -66,9 +67,7 @@ def setup_module(module):
         "SELECT Message_ID FROM `Message204` WHERE Checked=1 AND Gender=2 "
         "AND Message_ID<>%d ORDER BY Message_ID DESC LIMIT 2" % A).split()]
     for aid in [A] + TARGETS:
-        row = dbq("SELECT %s FROM `Message204` WHERE Message_ID=%d"
-                  % (", ".join("IFNULL(`%s`,'\\0')" % f for f in FIELDS), aid)).split("\t")
-        BACKUP[aid] = dict(zip(FIELDS, row))
+        BACKUP[aid] = backup_row("Message204", aid, FIELDS)
     # Профили дают целям РАЗЛИЧИМЫЕ баллы (70% и 55%): строки блока
     # обезличены («Пара N», возраст, город), и только по проценту тест
     # может понять, какая пара показана. Заодно баллы поднимают цели в
@@ -92,10 +91,7 @@ def setup_module(module):
 def teardown_module(module):
     dbq("DELETE FROM `match_feedback` WHERE shadhan_id=57")
     for aid, fields in BACKUP.items():
-        parts = []
-        for k, v in fields.items():
-            parts.append("`%s`=%s" % (k, "NULL" if v == "\0" else "'%s'" % sql_str(v)))
-        dbq("UPDATE `Message204` SET %s WHERE Message_ID=%d" % (", ".join(parts), aid))
+        restore_row("Message204", aid, fields)
 
 
 # B8: страница печатает только КАРКАС блока — сам список приезжает из

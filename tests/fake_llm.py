@@ -45,6 +45,7 @@ FAKE_DIR = "/tmp/fakellm"
 FAKE_PORT = 8099
 FAKE_KEY = "sk-test-fake"
 FAKE_BASE = "http://127.0.0.1:%d" % FAKE_PORT
+BS = chr(92)   # обратный слэш без экранирования в исходнике
 
 FAKE_LLM = r"""<?php
 /* Фейковый LLM: роутер встроенного сервера PHP, принимает любой путь. */
@@ -544,6 +545,65 @@ def dbq(sql):
         cwd=ROOT, capture_output=True, text=True, encoding="utf-8", errors="replace", timeout=60,
     )
     return (r.stdout or "").strip()
+
+
+# --- бэкап/восстановление строк, которые правят тесты ------------------------
+# Наборы подбора и витрины переставляют поля РЕАЛЬНЫХ анкет и обязаны вернуть
+# их в teardown. Раньше каждый набор делал это сам через IFNULL(col,'\0'):
+# mysql -B печатает NUL как два символа «\0», сравнение с настоящим NUL не
+# срабатывало, в целочисленную колонку уходила строка '\0', strict-режим
+# отвергал весь UPDATE, а dbq молчал — сентинелы («Матчбург-Тест») оставались
+# в базе после зелёного прогона. Здесь: явный маркер NULL, распаковка
+# экранирования mysql -B (\n, \t, \\), поле-разделитель 0x1f вместо таба и
+# исключение при ошибке UPDATE.
+
+NULL_MARK = "__NULL__"
+
+
+def sql_str(s):
+    return str(s).replace(BS, BS + BS).replace("'", "''")
+
+
+def mysql_unescape(s):
+    """mysql -B экранирует переносы, табы, NUL и обратный слэш."""
+    out, i = [], 0
+    while i < len(s):
+        ch = s[i]
+        if ch == BS and i + 1 < len(s):
+            nxt = s[i + 1]
+            out.append({"n": chr(10), "t": chr(9), "0": chr(0), BS: BS}.get(nxt, BS + nxt))
+            i += 2
+            continue
+        out.append(ch)
+        i += 1
+    return "".join(out)
+
+
+def dbq_strict(sql):
+    """dbq, который не глотает ошибку сервера."""
+    r = subprocess.run(
+        [DOCKER, "compose", "exec", "-T", "db", "mysql", "-uroot", "-proot_local_dev",
+         "-N", "-B", "--default-character-set=utf8", "shiduh_org", "-e", sql],
+        cwd=ROOT, capture_output=True, text=True, encoding="utf-8", errors="replace", timeout=60,
+    )
+    err = [ln for ln in (r.stderr or "").splitlines() if ln.startswith("ERROR")]
+    if r.returncode != 0 or err:
+        raise RuntimeError("mysql: " + (" ".join(err) or r.stderr)[:300] + " :: " + sql[:200])
+    return (r.stdout or "").strip()
+
+
+def backup_row(table, row_id, fields, key="Message_ID"):
+    """Снимок полей одной строки: dict поле → значение (NULL_MARK для NULL)."""
+    packed = dbq_strict("SELECT CONCAT_WS(CHAR(31), %s) FROM `%s` WHERE `%s`=%d"
+                        % (", ".join("IFNULL(`%s`,'%s')" % (f, NULL_MARK) for f in fields), table, key, int(row_id)))
+    vals = [mysql_unescape(v) for v in packed.split(chr(31))]
+    assert len(vals) == len(fields), "снимок строки %s#%s: %d значений вместо %d" % (table, row_id, len(vals), len(fields))
+    return dict(zip(fields, vals))
+
+
+def restore_row(table, row_id, backup, key="Message_ID"):
+    parts = ["`%s`=%s" % (k, "NULL" if v == NULL_MARK else "'%s'" % sql_str(v)) for k, v in backup.items()]
+    dbq_strict("UPDATE `%s` SET %s WHERE `%s`=%d" % (table, ", ".join(parts), key, int(row_id)))
 
 
 def web(*args):

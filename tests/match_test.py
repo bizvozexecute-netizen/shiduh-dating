@@ -28,6 +28,7 @@ import sys
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
 from fake_llm import BASE, NoRedirect, dbq, login, post_json
+from fake_llm import backup_row, restore_row  # noqa: E402
 
 SHADHAN = "u3f9bb8c20b01@example.local"     # User 57 — ведёт анкету A
 CANDIDATE = "u091ff2b36c83@example.local"   # не шадхан
@@ -77,9 +78,7 @@ def setup_module(module):
         "AND Message_ID<>%d ORDER BY Message_ID DESC LIMIT 5" % A).split()]
     assert len(TARGETS) == 5, "не набрали анкет-целей"
     for aid in [A] + TARGETS:
-        row = dbq("SELECT %s FROM `Message204` WHERE Message_ID=%d"
-                  % (", ".join("IFNULL(`%s`,'\\0')" % f for f in FIELDS), aid)).split("\t")
-        BACKUP[aid] = dict(zip(FIELDS, row))
+        BACKUP[aid] = backup_row("Message204", aid, FIELDS)
 
     # Базовый сценарий.
     # A: мужчина 32 лет из Матчбурга, ищет 25–35, религия не указана.
@@ -111,10 +110,7 @@ def setup_module(module):
 
 def teardown_module(module):
     for aid, fields in BACKUP.items():
-        parts = []
-        for k, v in fields.items():
-            parts.append("`%s`=%s" % (k, "NULL" if v == "\0" else "'%s'" % sql_str(v)))
-        dbq("UPDATE `Message204` SET %s WHERE Message_ID=%d" % (", ".join(parts), aid))
+        restore_row("Message204", aid, fields)
 
 
 # --- доступ ------------------------------------------------------------------

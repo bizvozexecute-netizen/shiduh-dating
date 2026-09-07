@@ -22,6 +22,7 @@ import sys
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
 from fake_llm import dbq, login, post_json
+from fake_llm import backup_row, restore_row  # noqa: E402
 
 SHADHAN = "u3f9bb8c20b01@example.local"     # User 57
 CANDIDATE = "u091ff2b36c83@example.local"
@@ -69,9 +70,7 @@ def setup_module(module):
         "SELECT Message_ID FROM `Message204` WHERE Checked=1 AND Gender=2 "
         "AND Message_ID<>%d ORDER BY Message_ID DESC LIMIT 2" % A).split()]
     for aid in [A] + TARGETS:
-        row = dbq("SELECT %s FROM `Message204` WHERE Message_ID=%d"
-                  % (", ".join("IFNULL(`%s`,'\\0')" % f for f in FIELDS), aid)).split("\t")
-        BACKUP[aid] = dict(zip(FIELDS, row))
+        BACKUP[aid] = backup_row("Message204", aid, FIELDS)
     set_fields(A, Gender=1, Date_of_birth="1994-01-01", City=CITY,
                Are_you_ready_to_move=0, Search_age_start=None, Search_age_end=None,
                Kashrut_level=0, Shabbat_level=0, Psychological_profile=None, Checked=1)
@@ -85,10 +84,7 @@ def setup_module(module):
 def teardown_module(module):
     clear_feedback()
     for aid, fields in BACKUP.items():
-        parts = []
-        for k, v in fields.items():
-            parts.append("`%s`=%s" % (k, "NULL" if v == "\0" else "'%s'" % sql_str(v)))
-        dbq("UPDATE `Message204` SET %s WHERE Message_ID=%d" % (", ".join(parts), aid))
+        restore_row("Message204", aid, fields)
 
 
 # --- доступ ------------------------------------------------------------------
