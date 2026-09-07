@@ -1347,6 +1347,72 @@
   :where(.sh-msg) { max-width: 92%; }
 }
 
+/* --------------------------- регистрация и вход ------------------------- */
+/* Форма регистрации живёт на разметке бандла (.form__*), слой даёт ей
+   поля из каталога, ошибки у полей и правила пароля. */
+.sh-reg .form__item { margin-bottom: var(--sh-s-5); }
+.sh-reg .form__item-name { margin-bottom: var(--sh-s-2); text-transform: none; font-size: var(--sh-fs-sm); }
+.sh-reg .form__input { height: auto; min-height: 52px; }
+
+/* Нативное поле даты: у бандла нет для него стилей, а браузерный вид
+   контрола не совпадает с остальными полями. */
+.sh-reg input[type="date"].form__input {
+  -webkit-appearance: none;
+  appearance: none;
+  font-family: var(--sh-font-body);
+}
+
+/* Правила пароля: список требований, которые one.js отмечает по мере
+   ввода; без JS просто перечень. */
+.sh-pw-rules {
+  list-style: none;
+  margin: var(--sh-s-2) 0 0;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--sh-s-2) var(--sh-s-4);
+  font-size: var(--sh-fs-xs);
+  color: var(--sh-ink-2);
+}
+
+.sh-pw-rules li { display: inline-flex; align-items: center; gap: 6px; }
+
+.sh-pw-rules li::before {
+  content: "";
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  border: 1px solid var(--sh-line-2);
+  background: var(--sh-paper) center / 9px no-repeat;
+  transition: background-color var(--sh-t-fast) var(--sh-ease-out),
+              border-color var(--sh-t-fast) var(--sh-ease-out);
+}
+
+.sh-pw-rules li.is-ok { color: var(--sh-ok-ink); }
+
+.sh-pw-rules li.is-ok::before {
+  border-color: var(--sh-ok-ink);
+  background-color: var(--sh-ok-ink);
+  background-image: url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12'%3E%3Cpath d='M2.5 6.5l2.4 2.3L9.6 3.8' fill='none' stroke='%23fff' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+}
+
+/* Подвал формы: согласия над кнопкой, кнопка во всю ширину на узких. */
+/* Два класса: бандл задаёт .form--registration .form__footer (0,2,0). */
+.sh-reg .sh-reg__footer { display: flex; flex-direction: column; gap: var(--sh-s-5); align-items: flex-start; }
+.sh-reg__consents { display: flex; flex-direction: column; gap: var(--sh-s-3); }
+.sh-reg .form__personal-check { margin: 0; }
+.sh-reg .form__personal-check.is-invalid .checkbox__el { border-color: var(--sh-err-ink); }
+
+@media (max-width: 767.98px) {
+  .sh-reg .form__submit { width: 100%; }
+}
+
+/* Модалки входа и восстановления: подписи полей есть для диктора, визуально
+   их заменяет плейсхолдер — как и было задумано в макете. */
+.modal--lk .form__input,
+.modal--lk-reset-password .form__input { min-height: 52px; }
+.modal--lk .form__submit { width: 100%; }
+
 /* ------------------------- строки списков и аватары --------------------- */
 :where(.sh-row) {
   display: flex;

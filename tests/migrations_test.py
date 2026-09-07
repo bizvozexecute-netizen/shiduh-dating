@@ -271,6 +271,14 @@ class TestUp:
         fmt = dbq("SELECT Format FROM Field WHERE Field_ID=648")
         assert fmt.startswith("10485760:image/*"), "формат поля фото без лимита: " + fmt[:40]
 
+    def test_auth_password_rules(self):
+        # миграция 026 (A2): минимум пароля 8 в обоих каталогах, согласие обязательно
+        rows = dbq("SELECT Catalogue_ID, Value FROM `Settings` WHERE Module='auth' AND `Key`='pass_min' ORDER BY 1")
+        assert rows, "нет настройки pass_min"
+        assert all(int(ln.split("	")[1]) >= 8 for ln in rows.splitlines()), "pass_min < 8: " + rows
+        agreed = dbq("SELECT Value FROM `Settings` WHERE Module='auth' AND `Key`='agreed' AND Catalogue_ID=1")
+        assert agreed == "1"
+
     def test_composite_index_for_matching(self):
         assert index_exists("Message204", "idx_match"), "нет составного индекса подбора"
 
@@ -364,6 +372,11 @@ class TestDown:
         # 009 down: префикс лимита снят, формат вернулся к «без ограничений»
         fmt = dbq("SELECT Format FROM Field WHERE Field_ID=648")
         assert not fmt.startswith("10485760:image/*"), "лимит формата не снят: " + fmt[:40]
+
+    def test_auth_password_rules_reverted(self):
+        # 026 down: минимум пароля снят, как было
+        rows = dbq("SELECT Value FROM `Settings` WHERE Module='auth' AND `Key`='pass_min'")
+        assert rows and all(v == "0" for v in rows.splitlines()), "pass_min не откатился: " + rows
 
     def test_schema_back_to_baseline(self):
         assert message204_cols() == BASELINE_COLS, "число колонок Message204 не вернулось к 131"

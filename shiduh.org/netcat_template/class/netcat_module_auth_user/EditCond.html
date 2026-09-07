@@ -1,0 +1,27 @@
+<?php
+/*
+ * Проверки правки профиля (A2). Порог 18 лет при регистрации ничего не
+ * стоит, если дату рождения можно поменять на 2015 год в профиле — форма
+ * правки шлёт её частями f_Date_of_birth_* из календаря бандла. Подшаблоны
+ * (208, 232, …) подключают этот файл, чтобы правило было одно.
+ */
+require_once $nc_core->DOCUMENT_ROOT . '/api/auth_rules_lib.php';
+
+$nc_sh_y = (int)$nc_core->input->fetch_post('f_Date_of_birth_year');
+$nc_sh_m = (int)$nc_core->input->fetch_post('f_Date_of_birth_month');
+$nc_sh_d = (int)$nc_core->input->fetch_post('f_Date_of_birth_day');
+if ($nc_sh_y || $nc_sh_m || $nc_sh_d) {
+    if (!checkdate($nc_sh_m, $nc_sh_d, $nc_sh_y)) {
+        $posting = 0;
+        $warnText = 'Дата рождения указана неверно.';
+    } else {
+        $nc_sh_age = auth_age_years(array($nc_sh_y, $nc_sh_m, $nc_sh_d));
+        if ($nc_sh_age < AUTH_MIN_AGE || $nc_sh_age > AUTH_MAX_AGE) {
+            $posting = 0;
+            $warnText = $nc_sh_age < AUTH_MIN_AGE
+                ? 'Регистрация — с ' . AUTH_MIN_AGE . ' лет: дата рождения не сохранена.'
+                : 'Проверьте год рождения: дата не сохранена.';
+        }
+    }
+}
+?>

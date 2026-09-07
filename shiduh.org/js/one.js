@@ -188,11 +188,61 @@
     return el;
   }
 
+  /* ------------------------------------------------------ правила пароля --
+     Список требований у поля отмечается по мере ввода. Источник числа —
+     настройка pass_min (печатает PHP в data-sh-min); проверка на сервере
+     всё равно своя, здесь только подсказка. */
+  function passwordRules() {
+    document.querySelectorAll('[data-sh-pw]').forEach(function (list) {
+      var pw = document.getElementById(list.dataset.shPw);
+      var pw2 = list.dataset.shPw2 ? document.getElementById(list.dataset.shPw2) : null;
+      if (!pw) { return; }
+      var rules = list.querySelectorAll('[data-sh-rule]');
+      function check() {
+        Array.prototype.forEach.call(rules, function (li) {
+          var ok = false;
+          if (li.dataset.shRule === 'len') {
+            ok = pw.value.length >= (parseInt(li.dataset.shMin, 10) || 8);
+          } else if (li.dataset.shRule === 'mix') {
+            // то же правило, что у валидатора бандла (scripts-63.js): три
+            // признака из пяти, иначе он держит кнопку отправки серой
+            var v = pw.value;
+            ok = [/[a-z]/.test(v), /[A-Z]/.test(v), /\d/.test(v), /[^\w\d]/.test(v), v.length >= 12]
+              .filter(Boolean).length >= 3;
+          } else if (li.dataset.shRule === 'match') {
+            ok = !!pw2 && pw.value !== '' && pw.value === pw2.value;
+          }
+          li.classList.toggle('is-ok', ok);
+        });
+      }
+      pw.addEventListener('input', check);
+      if (pw2) { pw2.addEventListener('input', check); }
+      check();
+    });
+  }
+
+  /* --------------------------------------------------- честная отправка --
+     Бандл перехватывает submit любой form.form, шлёт её fetch-ом и, не читая
+     ответ, показывает «Регистрация успешна» — и при занятом e-mail, и при
+     отказе сервера. Формы с data-sh-native отправляются как обычно: ответ
+     сервера с ошибками у полей человек увидит. Слушатель на window в фазе
+     захвата срабатывает раньше любого слушателя бандла. */
+  function nativeSubmit() {
+    window.addEventListener('submit', function (e) {
+      var form = e.target;
+      if (form && form.hasAttribute && form.hasAttribute('data-sh-native')) {
+        e.stopPropagation();
+      }
+    }, true);
+  }
+
   function init() {
     reveal();
     lineMask();
     counters();
     stickyHeader();
+    passwordRules();
+    nativeSubmit();
   }
 
   if (document.readyState === 'loading') {

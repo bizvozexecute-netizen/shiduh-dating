@@ -153,6 +153,14 @@ def test_addcond_forms_call_guard():
         src = open(os.path.join(ADDCOND, rel), encoding="utf-8").read()
         assert "captcha_guard_addcond" in src, rel + ": нет серверной проверки капчи"
         assert "captcha_lib.php" in src, rel + ": не подключён captcha_lib"
+    # подшаблоны компонента User (208, 232, …) — свой AddCond был обходом:
+    # POST с cc такого инфоблока шёл мимо капчи и порога 18+
+    import glob
+    subs = glob.glob(os.path.join(ADDCOND, "netcat_module_auth_user", "[0-9]*", "AddCond.html"))
+    assert len(subs) >= 10, "подшаблоны регистрации не найдены"
+    for path in subs:
+        src = open(path, encoding="utf-8").read()
+        assert "require dirname(__DIR__) . '/AddCond.html'" in src, path + ": свой AddCond без заслона"
 
 
 def test_validate_url_allowlist():

@@ -126,9 +126,7 @@
             <svg class="button__icon">
               <use xlink:href="/images/sprite.svg#user"></use>
             </svg> Кабинет </a>
-          <a class="header__button header__button--registration button" href='/netcat/modules/auth/?logoff=1
-              &REQUESTED_FROM=<?= $REQUEST_URI?>
-              &REQUESTED_BY=<?= $REQUEST_METHOD?>'>
+          <a class="header__button header__button--registration button" href='/netcat/modules/auth/?logoff=1&REQUESTED_FROM=<?= htmlspecialchars(rawurlencode($_SERVER['REQUEST_URI']), ENT_QUOTES) ?>&REQUESTED_BY=<?= htmlspecialchars($_SERVER['REQUEST_METHOD'], ENT_QUOTES) ?>'>
               Выйти
           </a>  
           <? endif; ?>
@@ -325,9 +323,7 @@
                     <svg class="button__icon">
                       <use xlink:href="/images/sprite.svg#user"></use>
                     </svg> Кабинет </a>
-                  <a class="header__button header__button--registration button" href='/netcat/modules/auth/?logoff=1
-                      &REQUESTED_FROM=<?= $REQUEST_URI?>
-                      &REQUESTED_BY=<?= $REQUEST_METHOD?>'>
+                  <a class="header__button header__button--registration button" href='/netcat/modules/auth/?logoff=1&REQUESTED_FROM=<?= htmlspecialchars(rawurlencode($_SERVER['REQUEST_URI']), ENT_QUOTES) ?>&REQUESTED_BY=<?= htmlspecialchars($_SERVER['REQUEST_METHOD'], ENT_QUOTES) ?>'>
                       Выйти</a>
                   <? endif; ?>
                 </div>
@@ -342,9 +338,7 @@
                   <a href="/my/registration/" class="modal__button modal__button--registration button">Регистрация</a>
                   <? else: ?>
                   <a class="modal__button modal__button--login button button--ghost"  href="/my/">Кабинет</a>
-                  <a class="modal__button modal__button--registration button" href='/netcat/modules/auth/?logoff=1
-                      &REQUESTED_FROM=<?= $REQUEST_URI?>
-                      &REQUESTED_BY=<?= $REQUEST_METHOD?>'>
+                  <a class="modal__button modal__button--registration button" href='/netcat/modules/auth/?logoff=1&REQUESTED_FROM=<?= htmlspecialchars(rawurlencode($_SERVER['REQUEST_URI']), ENT_QUOTES) ?>&REQUESTED_BY=<?= htmlspecialchars($_SERVER['REQUEST_METHOD'], ENT_QUOTES) ?>'>
                       Выйти
                    </a>
                   <? endif; ?>
@@ -606,7 +600,7 @@
         </div>
       </div>
     </div>
-    <div class="modal modal--lk-reset-password hystmodal" aria-hidden="true" data-scroll-lock-scrollable>
+    <div class="modal modal--lk-reset-password hystmodal" aria-hidden="true" data-scroll-lock-scrollable role="dialog" aria-modal="true" aria-labelledby="modal-reset-title">
       <div class="hystmodal__wrap">
         <div class="modal__window hystmodal__window">
           <button class="modal__close" data-hystclose>
@@ -615,7 +609,7 @@
             </svg>
           </button>
           <div class="modal__body">
-            <div class="modal__title">Восстановление пароля</div>
+            <div class="modal__title" id="modal-reset-title">Восстановление пароля</div>
             <form class="form form--lk-reset-password" method="post" action="/netcat/modules/auth/password_recovery.php">
               <input type='hidden' name='catalogue' value='<?= $catalogue ?>' />
               <input type='hidden' name='sub' value='<?= $sub ?>' />
@@ -623,7 +617,8 @@
               <input type='hidden' name='post' value='1' />
               <div class="form__body">
                 <div class="form__item">
-                  <input class="form__input" type="email" placeholder="Ваш e-mail" name="Email" size="32" maxlength="32" value='<?= htmlspecialchars($Email, ENT_QUOTES) ?>' required>
+                  <label class="sh-visually-hidden" for="reset-email">E-mail</label>
+                  <input class="form__input" type="email" placeholder="Ваш e-mail" name="Email" id="reset-email" size="32" maxlength="32" autocomplete="email" value='<?= htmlspecialchars($Email, ENT_QUOTES) ?>' required>
                 </div>
               </div>
               <button class="form__submit button" type="submit">Отправить</button>
@@ -664,7 +659,7 @@
           </svg> Закрыть </button>
       </div>
     </div>
-    <div class="modal modal--lk hystmodal" aria-hidden="true" data-scroll-lock-scrollable>
+    <div class="modal modal--lk hystmodal" aria-hidden="true" data-scroll-lock-scrollable role="dialog" aria-modal="true" aria-labelledby="modal-lk-title">
       <div class="hystmodal__wrap">
         <div class="modal__window hystmodal__window">
           <button class="modal__close" data-hystclose>
@@ -673,7 +668,7 @@
             </svg>
           </button>
           <div class="modal__body">
-            <div class="modal__title">Личный кабинет</div>
+            <div class="modal__title" id="modal-lk-title">Личный кабинет</div>
             
        
             
@@ -694,12 +689,14 @@
                   </select>
                 </div>-->
                 <div class="form__item">
-                  <input value='<?= htmlspecialchars($AUTH_USER, ENT_QUOTES) ?>' name='AUTH_USER' class="form__input" type="email" placeholder="Ваш e-mail" required>
+                  <label class="sh-visually-hidden" for="lk-auth-user">E-mail</label>
+                  <input value='<?= htmlspecialchars($AUTH_USER, ENT_QUOTES) ?>' name='AUTH_USER' id="lk-auth-user" class="form__input" type="email" placeholder="Ваш e-mail" autocomplete="email" inputmode="email" required>
                 </div>
                 <div class="form__item">
-                  <div class="form__input-wrap form__input-wrap--password">  
-                    <input name='AUTH_PW' class="form__input" type="password" placeholder="Пароль" required>
-                    <button class="form__input-show" type="button">
+                  <label class="sh-visually-hidden" for="lk-auth-pw">Пароль</label>
+                  <div class="form__input-wrap form__input-wrap--password">
+                    <input name='AUTH_PW' id="lk-auth-pw" class="form__input" type="password" placeholder="Пароль" autocomplete="current-password" required>
+                    <button class="form__input-show" type="button" aria-label="Показать пароль">
                       <svg class="form__input-show-icon">
                         <use xlink:href="/images/sprite.svg#eye"></use>
                       </svg>
@@ -708,7 +705,7 @@
                   <button class="form__item-reset-password" type="button" data-hystmodal=".modal--lk-reset-password">Напомнить пароль</button>
                 </div>
               </div>
-              <div class="form__subscription" style="display: none;"></div>
+              <div class="form__subscription" hidden></div>
               <button class="form__submit button" type="submit">Войти</button>
               <a class="form__to-registration" href="/my/registration/" title="">Регистрация</a>
             </form>

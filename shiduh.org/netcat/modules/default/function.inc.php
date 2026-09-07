@@ -172,11 +172,13 @@ class ListenUser {
 
         //получаем информацию о включенном пользователе
         $user = $nc_core->user->get_by_id($user_id);
-        $userName = $user['Name'];
-        $userEmail = $user['Email'];
-        $userGender = $user['Gender_id'];
-        $userDate = $user['Date_of_birth_year'].'-'.$user['Date_of_birth_month'].'-'.$user['Date_of_birth_day'];
-        $userPhone = $user['Phone'];
+        // A2: значения уходят в SQL — экранируем; имя вида «x', 1, ...» иначе
+        // привязывало бы анкету к чужому User_ID
+        $userName = $nc_core->db->escape($user['Name']);
+        $userEmail = $nc_core->db->escape($user['Email']);
+        $userGender = (int)$user['Gender_id'];
+        $userDate = sprintf('%04d-%02d-%02d', (int)$user['Date_of_birth_year'], (int)$user['Date_of_birth_month'], (int)$user['Date_of_birth_day']);
+        $userPhone = $nc_core->db->escape($user['Phone']);
         $userType = $user['Type_id'];
         $userCreated = $user['Created'];
         $userKeyword = urlencode(translitToEng($userName));
@@ -185,7 +187,7 @@ class ListenUser {
         //если это кандидат
         if($userType === 1) {
     	    //проверяем на наличие такого же кандидата с таким же email
-    	    $nc_core->db->query("SELECT * FROM Message204 WHERE Email = '$userEmail'");
+    	    $nc_core->db->query("SELECT Message_ID FROM Message204 WHERE Email = '$userEmail'");
     			$arr = $nc_core->db->last_result;
 
     			if (empty($arr)) {

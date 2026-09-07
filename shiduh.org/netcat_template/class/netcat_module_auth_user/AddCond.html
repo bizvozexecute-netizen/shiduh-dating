@@ -1,9 +1,62 @@
 <?php
-  if ($db->get_var("SELECT User_ID FROM User WHERE Email = '$f_Email'")) {   // $f_Email уже addslashed эмуляцией
-    $warnText = "Пользователь с таким email адресом уже зарегистрирован!<br><br>";
+/*
+ * Проверки регистрации до записи (A2 + C7). Исполняется ядром из add.php
+ * ДО message_fields.php: контракт — $posting = 0 отменяет запись, $warnText
+ * печатается вверху формы, а $nc_sh_errors форма показывает у полей.
+ *
+ * Порядок: дешёвые проверки полей → занятость e-mail → капча (сетевой
+ * вызов — только если всё остальное в порядке).
+ */
+require_once $nc_core->DOCUMENT_ROOT . '/api/auth_rules_lib.php';
+require_once $nc_core->DOCUMENT_ROOT . '/api/captcha_lib.php';
+
+// fetch_post отдаёт сырые значения; глобалы $f_* — со слэшами (эмуляция
+// magic quotes), для проверок они не годятся.
+$nc_sh_in = array(
+    'name'      => (string)$nc_core->input->fetch_post('f_Name'),
+    'dob'       => (string)$nc_core->input->fetch_post('nc_dob'),
+    'phone'     => (string)$nc_core->input->fetch_post('f_Phone'),
+    'password1' => (string)$nc_core->input->fetch_post('Password1'),
+    'password2' => (string)$nc_core->input->fetch_post('Password2'),
+    'type'      => (string)$nc_core->input->fetch_post('f_Type'),
+    'age18'     => (bool)$nc_core->input->fetch_post('nc_age18'),
+    'agreed'    => (bool)$nc_core->input->fetch_post('nc_agreed'),
+);
+$nc_sh_errors = auth_register_validate($nc_sh_in, (int)$nc_core->get_settings('pass_min', 'auth'));
+
+/*
+ * Дата рождения — одно поле type="date" вместо трёх скрытых с «01.01.2024»
+ * по умолчанию. Ядро собирает DATETIME из глобалов $f_Date_of_birth_*
+ * (message_fields.php, case DATETIME) — заполняем их здесь, поэтому ни
+ * календарь бандла, ни JS для регистрации не нужны.
+ */
+$nc_sh_dob = auth_dob_parse($nc_sh_in['dob']);
+if ($nc_sh_dob) {
+    $f_Date_of_birth_year  = $nc_sh_dob[0];
+    $f_Date_of_birth_month = $nc_sh_dob[1];
+    $f_Date_of_birth_day   = $nc_sh_dob[2];
+    $f_Date_of_birth_hours = $f_Date_of_birth_minutes = $f_Date_of_birth_seconds = 0;
+    // message_put.php (формат event_date) записывает поле, только если все
+    // три части есть в $_REQUEST — иначе молча пропускает, и в базе остаётся
+    // 0000-00-00. Глобалов ему мало, поэтому дублируем в запрос.
+    foreach (array('day' => $nc_sh_dob[2], 'month' => $nc_sh_dob[1], 'year' => $nc_sh_dob[0]) as $nc_sh_k => $nc_sh_v) {
+        $_REQUEST['f_Date_of_birth_' . $nc_sh_k] = $_POST['f_Date_of_birth_' . $nc_sh_k] = (string)$nc_sh_v;
+    }
+}
+
+if ($nc_sh_errors) {
     $posting = 0;
-  }
-  // C7: серверная проверка капчи при регистрации (виджет .form__captcha)
-  require_once $nc_core->DOCUMENT_ROOT . '/api/captcha_lib.php';
-  captcha_guard_addcond($warnText, $posting);
+    // сами тексты печатаются у полей; вверху — только указание, куда смотреть
+    $warnText = 'Проверьте заполнение: ошибки отмечены у полей.';
+} elseif ($db->get_var("SELECT User_ID FROM User WHERE Email = '"
+        . $db->escape(trim((string)$nc_core->input->fetch_post('f_Email'))) . "'")) {
+    $nc_sh_errors['email'] = 'Пользователь с таким e-mail уже зарегистрирован.';
+    $warnText = $nc_sh_errors['email'];
+    $posting = 0;
+}
+
+// C7: серверная проверка капчи при регистрации (виджет .form__captcha)
+if ($posting) {
+    captcha_guard_addcond($warnText, $posting);
+}
 ?>

@@ -126,9 +126,7 @@
             <svg class="button__icon">
               <use xlink:href="/images/sprite.svg#user"></use>
             </svg> Кабинет </a>
-          <a class="header__button header__button--registration button" href='/netcat/modules/auth/?logoff=1
-              &REQUESTED_FROM=<?= $REQUEST_URI?>
-              &REQUESTED_BY=<?= $REQUEST_METHOD?>'>
+          <a class="header__button header__button--registration button" href='/netcat/modules/auth/?logoff=1&REQUESTED_FROM=<?= htmlspecialchars(rawurlencode($_SERVER['REQUEST_URI']), ENT_QUOTES) ?>&REQUESTED_BY=<?= htmlspecialchars($_SERVER['REQUEST_METHOD'], ENT_QUOTES) ?>'>
               Выйти
           </a>  
           <? endif; ?>
