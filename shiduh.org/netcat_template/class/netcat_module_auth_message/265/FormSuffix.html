@@ -1,4 +1,7 @@
-  
+
+<?php if (isset($recNum) && $totRows > $recNum): ?>
+   <p class="lk-messages__note sh-field__hint">Показаны собеседники из последних <?= (int)$recNum ?> писем.</p>
+<?php endif; ?>
    <div class="lk-messages__load-more">
                     <button class="lk-messages__load-more-btn" type="button">Показать ещё</button>
                   </div>
@@ -6,12 +9,6 @@
               </form>
             </div>
           </section>
-    
-  <script>
-[...document.querySelectorAll('.lk-messages__item-date')].forEach(el => {
-    var date = new Date(el.getAttribute('data-time').replace(/-/g, "/"));
-    el.innerHTML = `${("0" + date.getDate()).slice(-2)}.${("0" + (date.getMonth() + 1)).slice(-2)}.${date.getFullYear()} - ${("0" + date.getHours()).slice(-2)}:${("0" + date.getMinutes()).slice(-2)}`;
-    //el.innerHTML = date;
-});
 
-</script>
+  <!-- A3: даты в местное время переводит one.js (localDates) по data-time —
+       раньше здесь был инлайновый скрипт. -->

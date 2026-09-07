@@ -17,11 +17,21 @@ if (!$action) {
   
        $query_where = 'a.ToUser = "'.$current_user['User_ID'].'" AND a.User_ID = "'.$show_messages_by_id_user.'"';
    } else {
-        $query_where = 'a.ToUser = "'.$current_user['User_ID'].'"  OR a.User_ID = "'.$current_user['User_ID'].'" ';
+        // A3: скрытые собеседником письма отсекаем в SQL, а не в шаблоне —
+        // иначе $totRows считал их, а пустое состояние не показывалось
+        $nc_sh_me = (int)$current_user['User_ID'];
+        $query_where = '(a.ToUser = "'.$nc_sh_me.'" OR a.User_ID = "'.$nc_sh_me.'") '
+            . 'AND IFNULL(a.Hidden_message_1, 0) <> '.$nc_sh_me.' AND IFNULL(a.Hidden_message_2, 0) <> '.$nc_sh_me;
    }
 } else {
    $query_where = '(a.ToUser = "'.$current_user['User_ID'].'" OR a.User_ID = "'.$current_user['User_ID'].'")';
 }
+
+// A3: свежие сверху и не больше 1000 строк за раз — у администратора 34 тысячи
+// писем, без предела список исчерпывал память PHP (256 МБ) и падал в 500.
+// Строки дальше склеиваются по собеседнику в RecordTemplate.
+$query_order = 'a.Created DESC';
+$recNum = 1000;
 
 // запрет кэширования
 $cc_env['Cache_Access_ID'] = 2;

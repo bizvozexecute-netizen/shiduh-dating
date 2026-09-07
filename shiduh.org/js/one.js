@@ -261,6 +261,21 @@
     setTimeout(go, 4000);   // страховка: бандл не снял занавес — показываем
   }
 
+  /* ------------------------------------------------------ местное время --
+     Сервер кладёт в data-time момент письма в ISO 8601 со своим смещением;
+     здесь переводим в пояс браузера. Раньше инлайновый скрипт в шаблоне
+     брал местное время сервера с меткой GMT+0000 — москвич видел +3 часа. */
+  function localDates() {
+    // только даты писем: у календаря бандла свой data-time на ячейках дней
+    document.querySelectorAll('.lk-messages__item-date[data-time], .lk-messages-write__history-item-date[data-time]').forEach(function (el) {
+      var d = new Date(String(el.getAttribute('data-time')));   // ISO 8601 со смещением сервера
+      if (isNaN(d.getTime())) { return; }
+      function two(n) { return ('0' + n).slice(-2); }
+      el.textContent = two(d.getDate()) + '.' + two(d.getMonth() + 1) + '.' + d.getFullYear() +
+        ' - ' + two(d.getHours()) + ':' + two(d.getMinutes());
+    });
+  }
+
   function init() {
     stickyHeader();
     whenCurtainGone(function () {
@@ -270,6 +285,7 @@
     });
     passwordRules();
     nativeSubmit();
+    localDates();
   }
 
   if (document.readyState === 'loading') {

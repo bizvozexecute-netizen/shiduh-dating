@@ -1,11 +1,12 @@
 <!-- FormPrefix --><?
-//echo $f_AdminCommon;
-//echo $query_from;
+// A3: список сообщений. Панель «Входящие/Исходящие/Удалить» была выключена
+// инлайновым style ещё в макете — оставлена скрытой атрибутом (hidden).
 if (!$AUTH_USER_ID) {
     echo "Access error";
     exit;
 }
 $usersWriteTo = [];
+require_once nc_core::get_object()->DOCUMENT_ROOT . '/api/lk_lib.php';
 ?>
    <section class="lk-messages">
             <div class="lk-messages__wrapper">
@@ -13,7 +14,7 @@ $usersWriteTo = [];
                 <div class="lk-head lk-messages__head lk-messages__head--border">
                   <h1 class="lk-head__title">Сообщения</h1>
                 </div>
-                <div class="lk-messages__bar" style="display:none;">
+                <div class="lk-messages__bar" hidden>
                   <a class="lk-messages__bar-link lk-messages__bar-link--message <?=(isset($outbox) ? "" : "lk-messages__bar-link--active")?>" href="./" title="">
                     <svg class="lk-messages__bar-link-icon">
                       <use xlink:href="/images/sprite.svg#letter"></use>
@@ -22,78 +23,70 @@ $usersWriteTo = [];
                     <svg class="lk-messages__bar-link-icon">
                       <use xlink:href="/images/sprite.svg#send"></use>
                     </svg> Исходящие </a>
-                  <button class="lk-messages__bar-delete form__submit" style="display:none;" type="submit">
+                  <button class="lk-messages__bar-delete form__submit" hidden type="submit">
                     <svg class="lk-messages__bar-delete-icon">
                       <use xlink:href="/images/sprite.svg#delete"></use>
                     </svg> Удалить </button>
                 </div>
                 <div class="lk-messages__body">
 <?
-if ($totRows) {
-} else {
+if (!$totRows) {
 ?>
-Нет сообщений
+<div class="sh-empty lk-messages__empty">
+  <div class="sh-empty__title">Сообщений пока нет</div>
+  <p>Здесь появятся письма от шадханов и ответы администратора.</p>
+  <a class="button button--sm" href="/my/message/add_soobscheniya.html?uid=119">Написать админу</a>
+</div>
 <?
 }
 ?><!-- /FormPrefix -->
 
 <!-- RecordTemplate --><? if($current_user['User_ID'] !== $f_Hidden_message_1 && $current_user['User_ID'] !== $f_Hidden_message_2) { ?>
-
-<? if(!in_array($f_User_ID, $usersWriteTo) && $current_user['User_ID'] !== $f_User_ID) {
-$usersWriteTo[] = $f_User_ID;
-//$usersWriteTo[] = $f_ToUser;
-$idUserProfile = $f_User_ID === $current_user['User_ID'] ? $f_ToUser : $f_User_ID;
+<?php
+/*
+ * Одна строка на собеседника (A3). Раньше — две почти одинаковые ветки,
+ * четыре запроса get_by_id на строку, <div href> вместо ссылки и текст
+ * письма через htmlspecialchars_decode — то есть HTML из чужого письма
+ * исполнялся у получателя. Теперь текст печатается как текст.
+ */
+$nc_sh_show = false;
+$nc_sh_unread = false;
+if (!in_array($f_User_ID, $usersWriteTo) && $current_user['User_ID'] !== $f_User_ID) {
+    $usersWriteTo[] = $f_User_ID;
+    $idUserProfile = $f_User_ID === $current_user['User_ID'] ? $f_ToUser : $f_User_ID;
+    $nc_sh_show = true;
+    $nc_sh_unread = !$f_Status;
+} elseif (!in_array($f_ToUser, $usersWriteTo) && !in_array($f_User_ID, $usersWriteTo)) {
+    $usersWriteTo[] = $f_ToUser;
+    $idUserProfile = $f_ToUser;
+    $nc_sh_show = true;
+}
+if ($nc_sh_show):
+    $nc_sh_peer = lk_user_brief((int)$idUserProfile, 96);
+    $nc_sh_link = htmlspecialchars((string)$fullLink, ENT_QUOTES);
+    $nc_sh_text = lk_message_text($f_Message, true);
+    $nc_sh_when = lk_time_attr($f_Created_year, $f_Created_month, $f_Created_day, $f_Created_hours, $f_Created_minutes);
 ?>
-<div class="lk-messages__item <?=!$f_Status ? ' lk-messages__item--active': '';?>" href='<?= $fullLink; ?>'>
-  <a href='<?= $fullLink; ?>'  class="lk-messages__item-name">
-    <img class="lk-messages__item-name-img js-lazy" data-src="<?= $nc_core->user->get_by_id($idUserProfile, "Photo_avatar") ? $nc_core->user->get_by_id($idUserProfile, "Photo_avatar") : ($nc_core->user->get_by_id($idUserProfile, "Gender_id") == 1 ? '/images/avatar/man.png' : '/images/avatar/woman.png'); ?>" alt="">
-    <span class="lk-messages__item-name-text"><?= $nc_core->user->get_by_id($idUserProfile, 'Name'); ?></span>
-  </a>  
-
-  <div href='<?= $fullLink; ?>' class="lk-messages__item-theme" title="" style="
-  max-height: 200px;
-    margin: 0; /* Убираем внешний отступ */
-    -webkit-line-clamp: 2; /* Число отображаемых строк */
-    display: -webkit-box; /* Включаем флексбоксы */
-    -webkit-box-orient: vertical; /* Вертикальная ориентация */
-    overflow: hidden; /* Обрезаем всё за пределами блока */
-"> <?= htmlspecialchars_decode($f_Message); ?>  </div>
-  <a href='<?= $fullLink; ?>'  class="lk-messages__item-date" data-time="<?=$f_Created_year;?>-<?=$f_Created_month;?>-<?=$f_Created_day;?> <?=$f_Created_hours;?>:<?=$f_Created_minutes;?>:00 GMT+0000"> <?=$f_Created_day.".".$f_Created_month.".".$f_Created_year." - ".$f_Created_hours.":".$f_Created_minutes?> </a>
-  <a href="/my/delete-message/?ID=<?=$current_user['User_ID'];?>&ToUser=<?= $f_ToUser; ?>&User_ID=<?= $f_User_ID; ?>"  class="lk-messages__item-delete">
-  Delete
+<article class="lk-messages__item<?= $nc_sh_unread ? ' lk-messages__item--active' : '' ?>">
+  <a href="<?= $nc_sh_link ?>" class="lk-messages__item-name">
+    <img class="lk-messages__item-name-img js-lazy" data-src="<?= htmlspecialchars($nc_sh_peer['avatar'], ENT_QUOTES) ?>" width="45" height="45" alt="">
+    <span class="lk-messages__item-name-text"><?= lk_esc($nc_sh_peer['name']) ?></span>
   </a>
-</div>
-<?
-} elseif(!in_array($f_ToUser, $usersWriteTo) && !in_array($f_User_ID, $usersWriteTo)) {
-$usersWriteTo[] = $f_ToUser;
-$idUserProfile = $f_ToUser;
-?>
-<div class="lk-messages__item " href='<?= $fullLink; ?>'>
-  <a href='<?= $fullLink; ?>'  class="lk-messages__item-name">
-    <img class="lk-messages__item-name-img js-lazy" data-src="<?= $nc_core->user->get_by_id($idUserProfile, "Photo_avatar") ? $nc_core->user->get_by_id($idUserProfile, "Photo_avatar") : ($nc_core->user->get_by_id($idUserProfile, "Gender_id") == 1 ? '/images/avatar/man.png' : '/images/avatar/woman.png'); ?>" alt="">
-    <span class="lk-messages__item-name-text"><?= $nc_core->user->get_by_id($idUserProfile, 'Name'); ?></span>
-  </a>  
-
-  <div href='<?= $fullLink; ?>' class="lk-messages__item-theme" title="" style="
-  max-height: 200px;
-    margin: 0; /* Убираем внешний отступ */
-    -webkit-line-clamp: 2; /* Число отображаемых строк */
-    display: -webkit-box; /* Включаем флексбоксы */
-    -webkit-box-orient: vertical; /* Вертикальная ориентация */
-    overflow: hidden; /* Обрезаем всё за пределами блока */
-"> <?= htmlspecialchars_decode($f_Message); ?>  </div>
-  <a href='<?= $fullLink; ?>'  class="lk-messages__item-date" data-time="<?=$f_Created_year;?>-<?=$f_Created_month;?>-<?=$f_Created_day;?> <?=$f_Created_hours;?>:<?=$f_Created_minutes;?>:00 GMT+0000"> <?=$f_Created_day.".".$f_Created_month.".".$f_Created_year." - ".$f_Created_hours.":".$f_Created_minutes?> </a>
-  <a href="/my/delete-message/?ID=<?=$current_user['User_ID'];?>&ToUser=<?= $f_ToUser; ?>&User_ID=<?= $f_User_ID; ?>"  class="lk-messages__item-delete">
-  Удалить
+  <a href="<?= $nc_sh_link ?>" class="lk-messages__item-theme">
+    <?php if ($nc_sh_unread): ?><span class="sh-pill sh-pill--gold lk-messages__item-new">новое</span> <?php endif; ?>
+    <?= htmlspecialchars($nc_sh_text, ENT_QUOTES, 'UTF-8') ?>
   </a>
-</div>
-<?
-} 
-?>
+  <a href="<?= $nc_sh_link ?>" class="lk-messages__item-date" data-time="<?= $nc_sh_when ?>"><?= sprintf('%02d.%02d.%04d - %02d:%02d', $f_Created_day, $f_Created_month, $f_Created_year, $f_Created_hours, $f_Created_minutes) ?></a>
+  <a href="/my/delete-message/?ID=<?= (int)$current_user['User_ID'] ?>&ToUser=<?= (int)$f_ToUser ?>&User_ID=<?= (int)$f_User_ID ?>" class="lk-messages__item-delete">Удалить</a>
+</article>
+<?php endif; ?>
+<? } ?>
+<!-- /RecordTemplate -->
 
-<? } ?><!-- /RecordTemplate -->
-
-<!-- FormSuffix -->  
+<!-- FormSuffix -->
+<?php if (isset($recNum) && $totRows > $recNum): ?>
+   <p class="lk-messages__note sh-field__hint">Показаны собеседники из последних <?= (int)$recNum ?> писем.</p>
+<?php endif; ?>
    <div class="lk-messages__load-more">
                     <button class="lk-messages__load-more-btn" type="button">Показать ещё</button>
                   </div>
@@ -101,12 +94,6 @@ $idUserProfile = $f_ToUser;
               </form>
             </div>
           </section>
-    
-  <script>
-[...document.querySelectorAll('.lk-messages__item-date')].forEach(el => {
-    var date = new Date(el.getAttribute('data-time').replace(/-/g, "/"));
-    el.innerHTML = `${("0" + date.getDate()).slice(-2)}.${("0" + (date.getMonth() + 1)).slice(-2)}.${date.getFullYear()} - ${("0" + date.getHours()).slice(-2)}:${("0" + date.getMinutes()).slice(-2)}`;
-    //el.innerHTML = date;
-});
 
-</script><!-- /FormSuffix -->
+  <!-- A3: даты в местное время переводит one.js (localDates) по data-time —
+       раньше здесь был инлайновый скрипт. --><!-- /FormSuffix -->

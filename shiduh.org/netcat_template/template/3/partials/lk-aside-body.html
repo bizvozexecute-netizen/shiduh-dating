@@ -1,0 +1,285 @@
+<?php
+/*
+ * Содержимое бокового меню кабинета (A3). Один источник для сайдбара
+ * (aside_profile) и мобильного меню (lk-menu-mobile): раньше это были два
+ * списка по 25 пунктов, которые уже разошлись (пробелы в классах, порядок
+ * атрибутов, комментарии) и правились по отдельности. Параметр $head_ctpl —
+ * подшаблон шапки кандидата (207 в сайдбаре, 211 в меню).
+ */
+require_once nc_core::get_object()->DOCUMENT_ROOT . '/api/lk_lib.php';
+require_once nc_core::get_object()->DOCUMENT_ROOT . '/api/admin_layout.php';
+$head_ctpl = isset($head_ctpl) ? (int)$head_ctpl : 207;
+$nc_sh_uid = (int)$current_user['User_ID'];
+$nc_sh_type = (int)$current_user['Type_id'];
+$nc_sh_super = shiduh_is_superadmin($nc_sh_uid);     // 1, 119, 43 — из настроек, не наизусть
+$nc_sh_service = in_array($nc_sh_uid, array(1, 119), true);
+$nc_sh_unread = (int)nc_auth_messages_new();
+$userID = $nc_sh_uid;
+?>
+<?php if ($nc_sh_type === 1): ?>
+<?= nc_objects_list(23, 22, "&idUser=$nc_sh_uid&nc_ctpl=$head_ctpl"); ?>
+<?php else: ?>
+<div class="lk-aside__head">
+  <picture class="lk-aside__avatar">
+    <img class="lk-aside__avatar-img js-lazy" data-src="<?= htmlspecialchars(lk_avatar_url($current_user['Photo_avatar'], $current_user['Gender_id'], 290, $nc_sh_uid), ENT_QUOTES) ?>" width="145" height="145" alt="">
+  </picture>
+  <div class="lk-aside__name"><?= lk_esc($current_user['Name']) ?></div>
+  <div class="lk-aside__id">ID <?= $nc_sh_uid ?></div>
+  <a class="lk-aside__exit" href="<?= htmlspecialchars(lk_logoff_url(), ENT_QUOTES) ?>">Выйти</a>
+</div>
+<?php endif; ?>
+
+<nav class="lk-aside__nav" aria-label="Разделы кабинета">
+  <ul class="lk-aside__nav-list">
+    <li class="lk-aside__nav-item<?= $sub == 1 ? ' lk-aside__nav-item--active' : '' ?>">
+      <a class="lk-aside__nav-link" href="/my/"<?= $sub == 1 ? ' aria-current="page"' : '' ?>>
+        <div class="lk-aside__nav-link-icon-wrap">
+          <svg class="lk-aside__nav-link-icon lk-aside__nav-link-icon--lk-home"><use xlink:href="/images/sprite.svg#lk-home"></use></svg>
+        </div>
+        <span class="lk-aside__nav-link-text">Главная</span>
+      </a>
+    </li>
+    <li class="lk-aside__nav-item<?= $sub == 2 || $sub == 24 ? ' lk-aside__nav-item--active' : '' ?>">
+      <a class="lk-aside__nav-link" href="<?= lk_profile_url($nc_sh_type) ?>">
+        <div class="lk-aside__nav-link-icon-wrap">
+          <svg class="lk-aside__nav-link-icon lk-aside__nav-link-icon--lk-user"><use xlink:href="/images/sprite.svg#lk-user"></use></svg>
+        </div>
+        <span class="lk-aside__nav-link-text">Профиль</span>
+      </a>
+    </li>
+    <li class="lk-aside__nav-item lk-aside__nav-item--fill<?= $sub == 28 ? ' lk-aside__nav-item--active' : '' ?>">
+      <a class="lk-aside__nav-link" href="/my/message/">
+        <div class="lk-aside__nav-link-icon-wrap">
+          <svg class="lk-aside__nav-link-icon lk-aside__nav-link-icon--lk-chat"><use xlink:href="/images/sprite.svg#lk-chat"></use></svg>
+        </div>
+        <span class="lk-aside__nav-link-text">Сообщения</span>
+        <!-- счётчик только при непрочитанных: «0» в кружке — шум -->
+        <span class="lk-aside__nav-link-counter<?= $nc_sh_unread ? '' : ' lk-aside__nav-link-counter--hidden' ?>" aria-label="<?= $nc_sh_unread ?> непрочитанных"><?= $nc_sh_unread ?></span>
+      </a>
+    </li>
+    <?php if ($nc_sh_type === 1): ?>
+    <li class="lk-aside__nav-item<?= $sub == 89 ? ' lk-aside__nav-item--active' : '' ?>">
+      <a class="lk-aside__nav-link" href="/my/ai-consultant/">
+        <div class="lk-aside__nav-link-icon-wrap">
+          <svg class="lk-aside__nav-link-icon lk-aside__nav-link-icon--lk-chat"><use xlink:href="/images/sprite.svg#lk-chat"></use></svg>
+        </div>
+        <span class="lk-aside__nav-link-text">ИИ-консультант</span>
+      </a>
+    </li>
+    <?php endif; ?>
+    <li class="lk-aside__nav-item<?= $sub == 22 ? ' lk-aside__nav-item--active' : '' ?>">
+      <a class="lk-aside__nav-link" href="/my/shadhany/">
+        <div class="lk-aside__nav-link-icon-wrap">
+          <svg class="lk-aside__nav-link-icon lk-aside__nav-link-icon--lk-3user"><use xlink:href="/images/sprite.svg#lk-3user"></use></svg>
+        </div>
+        <span class="lk-aside__nav-link-text">Шадханы</span>
+      </a>
+    </li>
+    <?php if ($nc_sh_type === 1): ?>
+    <li class="lk-aside__nav-item<?= $sub == 70 ? ' lk-aside__nav-item--active' : '' ?>">
+      <a class="lk-aside__nav-link" href="/my/moi-shadhany/">
+        <div class="lk-aside__nav-link-icon-wrap">
+          <svg class="lk-aside__nav-link-icon lk-aside__nav-link-icon--lk-user-check"><use xlink:href="/images/sprite.svg#lk-user-check"></use></svg>
+        </div>
+        <span class="lk-aside__nav-link-text">Мои шадханы</span>
+      </a>
+    </li>
+    <?php endif; ?>
+    <?php if ($nc_sh_service): ?>
+    <li class="lk-aside__nav-item<?= $sub == 85 ? ' lk-aside__nav-item--active' : '' ?>">
+      <a class="lk-aside__nav-link" href="/my/aktivatsiya-shadhana/">
+        <div class="lk-aside__nav-link-icon-wrap">
+          <svg class="lk-aside__nav-link-icon lk-aside__nav-link-icon--lk-add-article"><use xlink:href="/images/sprite3.svg#activate-shadhan"></use></svg>
+        </div>
+        <span class="lk-aside__nav-link-text">Активация Шадхан</span>
+        <span class="lk-aside__nav-link-counter"><?= nc_objects_list(2, 2, "&nc_ctpl=318"); ?></span>
+      </a>
+    </li>
+    <?php endif; ?>
+    <?php if ($nc_sh_type === 1 || $nc_sh_type === 2): ?>
+    <li class="lk-aside__nav-item<?= $sub == 23 ? ' lk-aside__nav-item--active' : '' ?>">
+      <a class="lk-aside__nav-link" href="/my/candidate/">
+        <div class="lk-aside__nav-link-icon-wrap">
+          <svg class="lk-aside__nav-link-icon lk-aside__nav-link-icon--lk-category"><use xlink:href="/images/sprite.svg#lk-category"></use></svg>
+        </div>
+        <span class="lk-aside__nav-link-text">Поиск Кандидатов</span>
+      </a>
+    </li>
+    <?php endif; ?>
+    <?php if ($nc_sh_type === 2 && $nc_sh_uid !== 119): ?>
+    <li class="lk-aside__nav-item<?= $sub == 81 ? ' lk-aside__nav-item--active' : '' ?>">
+      <a class="lk-aside__nav-link" href="/my/poisk-shiduha/">
+        <div class="lk-aside__nav-link-icon-wrap">
+          <svg class="lk-aside__nav-link-icon lk-aside__nav-link-icon--lk-user-search"><use xlink:href="/images/sprite2.svg#lk-user-search"></use></svg>
+        </div>
+        <span class="lk-aside__nav-link-text">Поиск шидуха</span>
+      </a>
+    </li>
+    <li class="lk-aside__nav-item<?= $sub == 76 ? ' lk-aside__nav-item--active' : '' ?>">
+      <a class="lk-aside__nav-link" href="/my/sozdanie-shiduha/">
+        <div class="lk-aside__nav-link-icon-wrap">
+          <svg class="lk-aside__nav-link-icon lk-aside__nav-link-icon--lk-2hearts"><use xlink:href="/images/sprite1.svg#lk-2hearts"></use></svg>
+        </div>
+        <span class="lk-aside__nav-link-text">Создание шидуха</span>
+      </a>
+    </li>
+    <li class="lk-aside__nav-item<?= $sub == 77 ? ' lk-aside__nav-item--active' : '' ?>">
+      <a class="lk-aside__nav-link" href="/my/istoriya-shiduha/">
+        <div class="lk-aside__nav-link-icon-wrap">
+          <svg class="lk-aside__nav-link-icon lk-aside__nav-link-icon--lk-heart-paper"><use xlink:href="/images/sprite1.svg#lk-heart-paper"></use></svg>
+        </div>
+        <span class="lk-aside__nav-link-text">История Шидуха</span>
+      </a>
+    </li>
+    <?php endif; ?>
+    <?php if ($nc_sh_type === 1 || $nc_sh_type === 2): ?>
+    <li class="lk-aside__nav-item<?= $sub == 78 ? ' lk-aside__nav-item--active' : '' ?>">
+      <a class="lk-aside__nav-link" href="/my/predlozhennye-kandidaty/">
+        <div class="lk-aside__nav-link-icon-wrap">
+          <svg class="lk-aside__nav-link-icon lk-aside__nav-link-icon--lk-3user-2"><use xlink:href="/images/sprite1.svg#lk-3user-2"></use></svg>
+        </div>
+        <span class="lk-aside__nav-link-text">Предложенные кандидаты</span>
+        <span class="lk-aside__nav-link-counter"><?= nc_objects_list(77, 82, "&nc_ctpl=291"); ?></span>
+      </a>
+    </li>
+    <?php endif; ?>
+    <?php if ($nc_sh_type === 2 && $nc_sh_uid !== 119): ?>
+    <li class="lk-aside__nav-item<?= $sub == 63 ? ' lk-aside__nav-item--active' : '' ?>">
+      <a class="lk-aside__nav-link" href="/my/access-candidates/">
+        <div class="lk-aside__nav-link-icon-wrap">
+          <svg class="lk-aside__nav-link-icon lk-aside__nav-link-icon--lk-check"><use xlink:href="/images/sprite.svg#lk-check"></use></svg>
+        </div>
+        <span class="lk-aside__nav-link-text">Доступ к анкетам</span>
+        <span class="lk-aside__nav-link-counter"><?= nc_objects_list(23, 22, "&Shadhan=$nc_sh_uid&nc_ctpl=257"); ?></span>
+      </a>
+    </li>
+    <?php endif; ?>
+    <?php if ($nc_sh_type === 1 || $nc_sh_type === 2): ?>
+    <li class="lk-aside__nav-item<?= $sub == 72 ? ' lk-aside__nav-item--active' : '' ?>">
+      <a class="lk-aside__nav-link" href="/my/favourites/">
+        <div class="lk-aside__nav-link-icon-wrap">
+          <svg class="lk-aside__nav-link-icon lk-aside__nav-link-icon--lk-heart-2"><use xlink:href="/images/sprite.svg#lk-heart-2"></use></svg>
+        </div>
+        <span class="lk-aside__nav-link-text">Избранное</span>
+        <span class="lk-aside__nav-link-counter"><?= nc_objects_list(72, 74, "&nc_ctpl=277"); ?></span>
+      </a>
+    </li>
+    <?php if ($nc_sh_service): ?>
+    <!-- страница удаления (шаблон 320) пускает только 1 и 119 — меню совпадает с ней -->
+    <li class="lk-aside__nav-item<?= $sub == 86 ? ' lk-aside__nav-item--active' : '' ?>">
+      <a class="lk-aside__nav-link" href="/my/delete-account/">
+        <div class="lk-aside__nav-link-icon-wrap">
+          <svg class="lk-aside__nav-link-icon lk-aside__nav-link-icon--lk-heart-2"><use xlink:href="/images/sprite4.svg#lk-user-delete"></use></svg>
+        </div>
+        <span class="lk-aside__nav-link-text">Удаление аккаунтов</span>
+      </a>
+    </li>
+    <?php endif; ?>
+    <li class="lk-aside__nav-item lk-aside__nav-item--fill<?= $sub == 67 ? ' lk-aside__nav-item--active' : '' ?>">
+      <a class="lk-aside__nav-link" href="/my/ravviny/">
+        <div class="lk-aside__nav-link-icon-wrap">
+          <svg class="lk-aside__nav-link-icon lk-aside__nav-link-icon--lk-ravins"><use xlink:href="/images/sprite.svg#lk-ravins"></use></svg>
+        </div>
+        <span class="lk-aside__nav-link-text">Раввины</span>
+      </a>
+    </li>
+    <li class="lk-aside__nav-item<?= $sub == 66 ? ' lk-aside__nav-item--active' : '' ?>">
+      <a class="lk-aside__nav-link" href="/my/psihologi/">
+        <div class="lk-aside__nav-link-icon-wrap">
+          <svg class="lk-aside__nav-link-icon lk-aside__nav-link-icon--lk-psychology"><use xlink:href="/images/sprite.svg#lk-psychology"></use></svg>
+        </div>
+        <span class="lk-aside__nav-link-text">Психологи</span>
+      </a>
+    </li>
+    <?php endif; ?>
+    <li class="lk-aside__nav-item<?= $sub == 21 ? ' lk-aside__nav-item--active' : '' ?>">
+      <a class="lk-aside__nav-link" href="/my/blog/">
+        <div class="lk-aside__nav-link-icon-wrap">
+          <svg class="lk-aside__nav-link-icon lk-aside__nav-link-icon--lk-paper"><use xlink:href="/images/sprite.svg#lk-paper"></use></svg>
+        </div>
+        <span class="lk-aside__nav-link-text">WIKIJEW</span>
+      </a>
+    </li>
+    <li class="lk-aside__nav-item<?= $sub == 83 ? ' lk-aside__nav-item--active' : '' ?>">
+      <a class="lk-aside__nav-link" href="/my/events/">
+        <div class="lk-aside__nav-link-icon-wrap">
+          <svg class="lk-aside__nav-link-icon lk-aside__nav-link-icon--lk-paper"><use xlink:href="/images/sprite.svg#lk-paper"></use></svg>
+        </div>
+        <span class="lk-aside__nav-link-text">Мероприятия</span>
+      </a>
+    </li>
+    <li class="lk-aside__nav-item<?= $sub == 87 ? ' lk-aside__nav-item--active' : '' ?>">
+      <a class="lk-aside__nav-link" href="/my/hupot/">
+        <div class="lk-aside__nav-link-icon-wrap">
+          <svg class="lk-aside__nav-link-icon lk-aside__nav-link-icon--lk-paper"><use xlink:href="/images/sprite.svg#lk-paper"></use></svg>
+        </div>
+        <span class="lk-aside__nav-link-text">Хупот</span>
+      </a>
+    </li>
+    <li class="lk-aside__nav-item lk-aside__nav-item--fill">
+      <a class="lk-aside__nav-link" href="/about/">
+        <div class="lk-aside__nav-link-icon-wrap">
+          <svg class="lk-aside__nav-link-icon lk-aside__nav-link-icon--lk-info"><use xlink:href="/images/sprite.svg#lk-info"></use></svg>
+        </div>
+        <span class="lk-aside__nav-link-text">О нас</span>
+      </a>
+    </li>
+    <li class="lk-aside__nav-item lk-aside__nav-item--fill">
+      <a class="lk-aside__nav-link" href="/recomendation/">
+        <div class="lk-aside__nav-link-icon-wrap">
+          <svg class="lk-aside__nav-link-icon lk-aside__nav-link-icon--lk-star"><use xlink:href="/images/sprite.svg#lk-star"></use></svg>
+        </div>
+        <span class="lk-aside__nav-link-text">Нас рекомендуют</span>
+      </a>
+    </li>
+    <li class="lk-aside__nav-item<?= $sub == 20 ? ' lk-aside__nav-item--active' : '' ?>">
+      <a class="lk-aside__nav-link" href="/my/instruction/">
+        <div class="lk-aside__nav-link-icon-wrap">
+          <svg class="lk-aside__nav-link-icon lk-aside__nav-link-icon--lk-instruction"><use xlink:href="/images/sprite.svg#lk-instruction"></use></svg>
+        </div>
+        <span class="lk-aside__nav-link-text">Инструкция</span>
+      </a>
+    </li>
+    <li class="lk-aside__nav-item<?= $sub == 18 ? ' lk-aside__nav-item--active' : '' ?>">
+      <a class="lk-aside__nav-link" href="/my/rules/">
+        <div class="lk-aside__nav-link-icon-wrap">
+          <svg class="lk-aside__nav-link-icon lk-aside__nav-link-icon--lk-bookmark"><use xlink:href="/images/sprite.svg#lk-bookmark"></use></svg>
+        </div>
+        <span class="lk-aside__nav-link-text">Правила</span>
+      </a>
+    </li>
+    <?php if ($nc_sh_super): ?>
+    <li class="lk-aside__nav-item<?= $sub == 74 ? ' lk-aside__nav-item--active' : '' ?>">
+      <a class="lk-aside__nav-link" href="/my/add-article/">
+        <div class="lk-aside__nav-link-icon-wrap">
+          <svg class="lk-aside__nav-link-icon lk-aside__nav-link-icon--lk-add-article"><use xlink:href="/images/sprite.svg#lk-add-article"></use></svg>
+        </div>
+        <span class="lk-aside__nav-link-text">Добавление статьи</span>
+      </a>
+    </li>
+    <?php endif; ?>
+  </ul>
+</nav>
+<?php if ($nc_sh_type === 2 && !$nc_sh_service): ?>
+<a class="lk-aside__my-candidates" href="/my/my-candidates/">
+  Мои кандидаты <span class="lk-aside__my-candidates-counter"><?= nc_objects_list(23, 22, "&Shadhan=$nc_sh_uid&nc_ctpl=222"); ?></span>
+</a>
+<a class="lk-aside__to-candidate" href="/my/add_candidate/">
+  <svg class="lk-aside__to-candidate-icon"><use xlink:href="/images/sprite.svg#lk-paper2"></use></svg>
+  <span class="lk-aside__to-candidate-text">Добавить Кандидата</span>
+</a>
+<?php endif; ?>
+<div class="lk-aside__footer">
+  <div class="lk-aside__copyright">© One soul, <?= date('Y') ?> г.</div>
+  <a class="lk-aside__agreement" href="/policy/">Пользовательское соглашение</a>
+  <div class="lk-aside__footer-bottom">
+    <a class="lk-aside__footer-exit" href="<?= htmlspecialchars(lk_logoff_url(), ENT_QUOTES) ?>">Выход из системы</a>
+    <?php if ($nc_sh_uid !== 119): ?>
+    <a class="lk-aside__write" href="/my/message/add_soobscheniya.html?uid=119">Написать админу</a>
+    <?php endif; ?>
+    <?php /* C8: экраны администрирования — только администратору */
+    if (shiduh_is_admin(nc_core::get_object()->db, $nc_sh_uid)): ?>
+    <a class="lk-aside__write lk-aside__admin" href="<?= htmlspecialchars(admin_home_url(), ENT_QUOTES) ?>">Администрирование</a>
+    <?php endif; ?>
+  </div>
+</div>

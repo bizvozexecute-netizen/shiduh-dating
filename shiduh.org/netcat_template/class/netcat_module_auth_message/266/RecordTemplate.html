@@ -1,13 +1,13 @@
 <?/* Служебная часть */for ($f_RowNum = 0; $f_RowNum < $rowCount; $f_RowNum++) {    if($fetch_row[$f_RowNum] instanceof Iterator) {        extract($fetch_row[$f_RowNum]->to_array(), EXTR_PREFIX_ALL, "f");    } else {        extract($fetch_row[$f_RowNum], EXTR_PREFIX_ALL, "f");    }    foreach($iteration_RecordTemplate[$f_RowNum] as $value) {        extract($value);    }    eval($cc_env["convert2txt"]);    ob_start();/* Конец служебной части */?>
-<? if($f_RowNum == '0'): ?>
-<!--<div class="lk-messages-write__history-message">  <?= htmlspecialchars_decode($f_Message);?>  </div>-->
-<div style="display:flex;" class="lk-messages-write__history-item <?=($current_user['User_ID']==$f_UserID ? "nc_msg_text nc_msg_out" : "nc_msg_text")?>">
+<?php require_once nc_core::get_object()->DOCUMENT_ROOT . '/api/lk_lib.php'; ?>
+<? if($f_RowNum == '0'): ?>
+<div class="lk-messages-write__history-item lk-messages-write__history-item--first <?=((int)$current_user['User_ID'] === (int)$f_User_ID ? "nc_msg_text nc_msg_out" : "nc_msg_text")?>">
   <div class="lk-messages-write__history-item-head">
-    <a class="lk-messages-write__history-item-name" href="" title=""><?= $nc_core->user->get_by_id($f_UserID, 'Name') ?: $f_Author; ?></a>
-    <div class="lk-messages-write__history-item-date" data-time="<?=$f_Created_year;?>-<?=$f_Created_month;?>-<?=$f_Created_day;?> <?=$f_Created_hours;?>:<?=$f_Created_minutes;?>:00 GMT+0000"><?=$f_Created_day.".".$f_Created_month.".".$f_Created_year." - ".$f_Created_hours.":".$f_Created_minutes?></div>
+    <a class="lk-messages-write__history-item-name" href="" title=""><?= lk_esc(lk_user_brief((int)$f_User_ID)['name'] ?: $f_Author) ?></a>
+    <div class="lk-messages-write__history-item-date" data-time="<?= lk_time_attr($f_Created_year, $f_Created_month, $f_Created_day, $f_Created_hours, $f_Created_minutes) ?>"><?=$f_Created_day.".".$f_Created_month.".".$f_Created_year." - ".$f_Created_hours.":".$f_Created_minutes?></div>
   </div>
   <div class="lk-messages-write__history-item-text">
-  <?= htmlspecialchars_decode($f_Message);?> 
+  <?= lk_message_text($f_Message) ?> 
   <?= ($f_shiduchCandidate && !$f_shiduchCandidateFor) ? htmlspecialchars_decode('<br/><a href="/my/candidate/candidate_'.$f_shiduchCandidate.'.html">ID '.$f_shiduchCandidate.'</a>') : ''; ?>
   <?= ($f_shiduchCandidate && $f_shiduchCandidateFor) ? htmlspecialchars_decode('<br/><a href="/my/candidate/candidate_'.$f_shiduchCandidate.'.html">ID '.$f_shiduchCandidate.'</a> с <a href="/my/candidate/candidate_'.$f_shiduchCandidateFor.'.html">ID '.$f_shiduchCandidateFor.'</a>') : ''; ?>
   </div>
@@ -49,13 +49,13 @@
 <? if($f_RowNum == '1'): ?>
 <div class="lk-messages-write__history-list">
 <? endif; ?>
-<div class="lk-messages-write__history-item <?=($current_user['User_ID']==$f_UserID ? "nc_msg_text nc_msg_out" : "nc_msg_text")?>">
+<div class="lk-messages-write__history-item <?=((int)$current_user['User_ID'] === (int)$f_User_ID ? "nc_msg_text nc_msg_out" : "nc_msg_text")?>">
   <div class="lk-messages-write__history-item-head">
-    <a class="lk-messages-write__history-item-name" href="" title=""><?= $nc_core->user->get_by_id($f_UserID, 'Name') ?: $f_Author; ?></a>
-    <div class="lk-messages-write__history-item-date" data-time="<?=$f_Created_year;?>-<?=$f_Created_month;?>-<?=$f_Created_day;?> <?=$f_Created_hours;?>:<?=$f_Created_minutes;?>:00 GMT+0000"><?=$f_Created_day.".".$f_Created_month.".".$f_Created_year." - ".$f_Created_hours.":".$f_Created_minutes?></div>
+    <a class="lk-messages-write__history-item-name" href="" title=""><?= lk_esc(lk_user_brief((int)$f_User_ID)['name'] ?: $f_Author) ?></a>
+    <div class="lk-messages-write__history-item-date" data-time="<?= lk_time_attr($f_Created_year, $f_Created_month, $f_Created_day, $f_Created_hours, $f_Created_minutes) ?>"><?=$f_Created_day.".".$f_Created_month.".".$f_Created_year." - ".$f_Created_hours.":".$f_Created_minutes?></div>
   </div>
   <div class="lk-messages-write__history-item-text">
-  <?= htmlspecialchars_decode($f_Message);?> 
+  <?= lk_message_text($f_Message) ?> 
   <?= ($f_shiduchCandidate && !$f_shiduchCandidateFor) ? htmlspecialchars_decode('<br/><a href="/my/candidate/candidate_'.$f_shiduchCandidate.'.html">ID '.$f_shiduchCandidate.'</a>') : ''; ?>
   <?= ($f_shiduchCandidate && $f_shiduchCandidateFor) ? htmlspecialchars_decode('<br/><a href="/my/candidate/candidate_'.$f_shiduchCandidate.'.html">ID '.$f_shiduchCandidate.'</a> с <a href="/my/candidate/candidate_'.$f_shiduchCandidateFor.'.html">ID '.$f_shiduchCandidateFor.'</a>') : ''; ?>
   </div>
@@ -94,4 +94,5 @@
   <? endif;?>
 </div>
 <? endif; ?>
+
 <?/* Служебная часть */    echo nc_finishing_RecordTemplate(ob_get_clean(), $inside_admin, $classID, $f_RowID, $parent_message, $cc, $cc_env["Class_Name"], $no_cache_marks);}/* Конец служебной части */?>

@@ -12,7 +12,7 @@
    Правило: базовые стили новых компонентов пишем через :where(), чтобы
    страничные модификаторы перекрывали их без гонки специфичностей.
 
-   Разделы: §tokens · §base · §motion · §legacy · §components · §public
+   Разделы: §tokens · §base · §motion · §legacy · §components · §lk · §public
    ========================================================================= */
 
 
@@ -1468,6 +1468,94 @@
   }
 
   :where(.sh-msg__meta) { opacity: 1; transition: none; }
+}
+
+/* ================================ §lk ===================================
+   Оболочка кабинета (A3): боковое меню, мобильная шапка, сообщения. Разметка
+   бандла остаётся, слой правит то, что мешало: скролл на телефоне, «0» в
+   кружке счётчика, невидимую активность пункта, строки писем.            */
+
+/* Бандл давал мобильной шапке width:100vw — с полосой прокрутки это на
+   15px шире экрана, и страница ездила вбок. */
+.lk-header-mobile { width: 100%; }
+.lk-header-mobile__user-avatar-img,
+.lk-aside__avatar-img { object-fit: cover; aspect-ratio: 1; }
+
+/* Липкое меню чуть ниже липкой шапки не нужно (в кабинете шапки нет), но
+   отступ сверху — по ритму слоя. */
+.lk-aside__container { top: var(--sh-s-4); }
+
+/* Пункты: плавный фон, у активного — золотая полоса слева, чтобы активность
+   читалась и на тёмном пункте, и в мобильном меню. */
+.lk-aside__nav-link {
+  position: relative;
+  transition: background-color var(--sh-t-base) var(--sh-ease-out), transform var(--sh-t-fast) var(--sh-ease-out);
+}
+
+@media (hover: hover) {
+  .lk-aside__nav-link:hover { transform: translateX(2px); }   /* на тапе сдвиг «залипал» бы */
+}
+
+.lk-aside__nav-item--active .lk-aside__nav-link { box-shadow: inset 4px 0 0 var(--sh-gold); }
+
+/* Счётчик: белым по золоту было 3.9:1 — тёмный текст на золоте читается. */
+.lk-aside__nav-link-counter,
+.lk-aside__my-candidates-counter {
+  background-color: var(--sh-gold);
+  color: var(--sh-navy);
+  font-variant-numeric: tabular-nums;
+}
+
+.lk-aside__nav-item--active .lk-aside__nav-link-counter { background-color: var(--sh-paper); }
+
+/* ----------------------------- сообщения ------------------------------- */
+/* Строки писем: карточка вместо линии, непрочитанное — золотая рамка и
+   метка; текст письма обрезается двумя строками (раньше — инлайновый
+   стиль в шаблоне). */
+.lk-messages__item {
+  padding: 16px;
+  margin-bottom: 8px;
+  border: 1px solid var(--sh-line);
+  border-radius: var(--sh-r-m);
+  background: var(--sh-paper);
+  transition: border-color var(--sh-t-base) var(--sh-ease-out),
+              background-color var(--sh-t-base) var(--sh-ease-out),
+              opacity .8s, transform .8s;
+}
+
+/* у бандла .lk-messages__item:first-child{border:none} (0,2,0) — повторяем рамку той же специфичностью */
+.lk-messages__item:first-child { border: 1px solid var(--sh-line); }
+.lk-messages__item:hover { background: var(--sh-cream-2); border-color: var(--sh-gold); }
+.lk-messages__item.lk-messages__item--active { border-color: var(--sh-gold); }
+.lk-messages__item--active .lk-messages__item-theme::before { display: none; }   /* точку бандла заменяет метка */
+.lk-messages__item-new { margin-right: 6px; vertical-align: 1px; }
+
+.lk-messages__item-theme {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  max-height: 200px;
+  margin: 0;
+  color: var(--sh-ink);
+}
+
+.lk-messages__item-name-img { aspect-ratio: 1; object-fit: cover; }
+.lk-messages__item-delete { color: var(--sh-ink-2); }
+.lk-messages__item-delete:hover { color: var(--sh-err-ink); }
+
+.lk-messages__empty { margin: var(--sh-s-4) 0; }
+.lk-messages__note { margin: 0 0 var(--sh-s-3); }
+
+.lk-messages-write__head-id { font-size: var(--sh-fs-sm); font-weight: 400; color: var(--sh-ink-2); margin-left: 8px; }
+.lk-messages-write__history-item--first { display: flex; }
+.lk-messages-write__history-button { display: inline-block; }
+
+@media (max-width: 767.98px) {
+  .lk-messages__item { flex-wrap: wrap; gap: 8px; }
+  .lk-messages__item-name,
+  .lk-messages__item-theme,
+  .lk-messages__item-date { flex: 1 1 100%; }
 }
 
 /* ============================== §public =================================

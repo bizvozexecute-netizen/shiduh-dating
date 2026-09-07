@@ -1,90 +1,82 @@
-<? $idUserProfile = $f_User_ID === $current_user['User_ID'] ? $f_ToUser : $f_User_ID; ?>
-<?
-                        $urlProfile = '';
-                        $headTitle = '';
-                        if($idUserProfile == 119 || $idUserProfile == 1) { 
-                        
-                        } elseif($nc_core->user->get_by_id($idUserProfile, "Type_id" ) == '2') {
-                            $urlProfile = '/my/shadhany/shadhan_'.$idUserProfile.'.html';
-                            $headTitle = 'Сообщение от шадхана';
-                        } elseif($nc_core->user->get_by_id($idUserProfile, "Type_id" ) == '3') {
-                            $urlProfile = '/my/ravviny/ravvin_'.$idUserProfile.'.html';
-                            $headTitle = 'Сообщение от раввина';
-                        } elseif($nc_core->user->get_by_id($idUserProfile, "Type_id" ) == '4') {
-                            $urlProfile = '/my/psihologi/psiholog_'.$idUserProfile.'.html';
-                            $headTitle = 'Сообщение от психолога';
-                        } else {
-                          $nc_core->db->query("SELECT * FROM Message204 WHERE User_ID =  $idUserProfile", ARRAY_A );
-                          $arr = $nc_core->db->last_result;
-
-                          if (!empty($arr)) {
-                              foreach ($arr as $row) {
-                                  // выводятся значения из 11 столбца
-
-                                  $urlProfile = $row["Keyword"] ? '/my/candidate/'.$row["Keyword"].'.html' : '/my/candidate/candidate_'.$row["Message_ID"].'.html';
-                                  $headTitle = 'Сообщение от кандидата';
-                              }
-                          }
-                        }
-                        
-                        ?>
+<?php
+/*
+ * Письмо (A3). Что поправлено: заголовок печатал «ID: N» через «<?» без
+ * «=» — то есть никогда; собеседник выбирался четырьмя get_by_id; отметка
+ * «прочитано» шла в SQL с сырыми значениями; кнопки — с инлайновым style.
+ */
+require_once nc_core::get_object()->DOCUMENT_ROOT . '/api/lk_lib.php';
+$idUserProfile = (int)($f_User_ID === $current_user['User_ID'] ? $f_ToUser : $f_User_ID);
+$nc_sh_peer = lk_user_brief($idUserProfile, 96);
+$urlProfile = '';
+$headTitle = '';
+if ($idUserProfile == 119 || $idUserProfile == 1) {
+    // служебные аккаунты — без ссылки на профиль
+} elseif ($nc_sh_peer['type'] === 2) {
+    $urlProfile = '/my/shadhany/shadhan_' . $idUserProfile . '.html';
+    $headTitle = 'Сообщение от шадхана';
+} elseif ($nc_sh_peer['type'] === 3) {
+    $urlProfile = '/my/ravviny/ravvin_' . $idUserProfile . '.html';
+    $headTitle = 'Сообщение от раввина';
+} elseif ($nc_sh_peer['type'] === 4) {
+    $urlProfile = '/my/psihologi/psiholog_' . $idUserProfile . '.html';
+    $headTitle = 'Сообщение от психолога';
+} else {
+    $nc_sh_row = $nc_core->db->get_row("SELECT Message_ID, Keyword FROM Message204 WHERE User_ID = $idUserProfile LIMIT 1", ARRAY_A);
+    if ($nc_sh_row) {
+        $urlProfile = $nc_sh_row['Keyword'] ? '/my/candidate/' . rawurlencode($nc_sh_row['Keyword']) . '.html'
+            : '/my/candidate/candidate_' . (int)$nc_sh_row['Message_ID'] . '.html';
+        $headTitle = 'Сообщение от кандидата';
+    }
+}
+$nc_sh_service = ($idUserProfile == 119 || $idUserProfile == 1);
+?>
 <section class="lk-messages-write lk-messages-write--theme">
             <div class="lk-messages-write__wrapper">
               <div class="lk-head lk-messages-write__head">
-                <h1 class="lk-head__title"> <? $f_User_ID == 119 ? 'One Soul' : 'ID: '.$idUserProfile; ?> <?= $f_User_ID == 119 ? 'One Soul' : $headTitle;?> </h1>
-                <a class="lk-messages-write__head-back" href="/my/message/" title="">Назад</a>
+                <h1 class="lk-head__title"><?= $nc_sh_service ? 'One Soul' : htmlspecialchars($headTitle ?: 'Сообщение', ENT_QUOTES, 'UTF-8') . ' <span class="lk-messages-write__head-id">ID ' . $idUserProfile . '</span>' ?></h1>
+                <a class="lk-messages-write__head-back" href="/my/message/">Назад</a>
               </div>
               <div class="lk-messages-write__body">
                 <div class="lk-messages-write__history ">
                   <div class="lk-messages-write__history-head">
                     <div class="lk-messages-write__history-avatar">
-                      <img class="lk-messages-write__history-avatar-img js-lazy" data-src="<?= $nc_core->user->get_by_id($idUserProfile, "Photo_avatar") ? $nc_core->user->get_by_id($idUserProfile, "Photo_avatar") : ($nc_core->user->get_by_id($idUserProfile, "Gender_id") == 1 ? '/images/avatar/man.png' : '/images/avatar/woman.png'); ?>" alt="">
+                      <img class="lk-messages-write__history-avatar-img js-lazy" data-src="<?= htmlspecialchars($nc_sh_peer['avatar'], ENT_QUOTES) ?>" width="48" height="48" alt="">
                       <div class="lk-messages-write__history-avatar-wrap">
-                        
-                        <a class="lk-messages-write__history-avatar-name" href="<?= $urlProfile; ?>" title=""><?= $nc_core->user->get_by_id($idUserProfile, "Name" ); ?> </a>
-                        <!--<div class="lk-messages-write__history-avatar-date"><?=$f_Created_day.".".$f_Created_month.".".$f_Created_year." - ".$f_Created_hours.":".$f_Created_minutes?></div>-->
+                        <?php if ($urlProfile): ?>
+                        <a class="lk-messages-write__history-avatar-name" href="<?= htmlspecialchars($urlProfile, ENT_QUOTES) ?>"><?= lk_esc($nc_sh_peer['name']) ?></a>
+                        <?php else: ?>
+                        <span class="lk-messages-write__history-avatar-name"><?= $nc_sh_service ? 'One Soul' : lk_esc($nc_sh_peer['name']) ?></span>
+                        <?php endif; ?>
                       </div>
                     </div>
                   </div>
                   <? if($f_name || $f_email): ?>
                   <div class="lk-messages-write__history-message">
-                      <?= $f_name ? 'ФИО: '.$f_name : '';?><br> <?= $f_email ? 'Email: '.$f_email : '';?>
+                      <?= $f_name ? 'ФИО: ' . htmlspecialchars((string)$f_name, ENT_QUOTES, 'UTF-8') : '' ?><br> <?= $f_email ? 'Email: ' . htmlspecialchars((string)$f_email, ENT_QUOTES, 'UTF-8') : '' ?>
                   </div>
                   <? endif; ?>
-                  
-                  
+
 <?
-$userID = $current_user['User_ID'];
-$db->query("UPDATE Message$classID SET Status=1 WHERE ToUser = $userID AND User_ID = $f_User_ID or ToUser = $userID AND User_ID = $f_ToUser"); 
-if ($f_RowID && $f_UserID !== $current_user['User_ID']) {
+$userID = (int)$current_user['User_ID'];
+// отметка «прочитано»: обе стороны переписки с этим собеседником
+$db->query("UPDATE Message$classID SET Status=1 WHERE ToUser = $userID AND User_ID = " . (int)$f_User_ID
+    . " OR ToUser = $userID AND User_ID = " . (int)$f_ToUser);
+// Переписка — с собеседником, кем бы ни было открытое письмо. Раньше
+// ветвление шло по $f_UserID, которого нет (колонка — User_ID): исходящее
+// письмо открывало пустую переписку.
+echo nc_objects_list($sub, $cc, "&show_messages_by_id_user=" . $idUserProfile . "&nc_ctpl=266&disable_message=" . (int)$f_Message_ID);
 
-    //if($current_user['User_ID'] == $f_ToUser) { 
-    //    $db->query("UPDATE Message$classID SET Status=1 WHERE ToUser = $f_ToUser AND User_ID = $f_User_ID"); 
-    //}
-    //echo s_list_class($sub, $cc, "&show_all=1&m_link=$fullLink&full_msg_id=$f_RowID&curPos=$curPos&group_id=".($f_Parent_Message_ID ? $f_Parent_Message_ID : $f_RowID), 1);
-    echo nc_objects_list($sub, $cc, "&show_messages_by_id_user=$f_User_ID&nc_ctpl=266&disable_message=$f_Message_ID"  );
-} else {
-    
-    //echo s_list_class($sub, $cc, "&show_all=1&m_link=$fullLink&full_msg_id=$f_RowID&curPos=$curPos&group_id=".($f_Parent_Message_ID ? $f_Parent_Message_ID : $f_RowID), 1);
-    echo nc_objects_list($sub, $cc, "&show_messages_by_id_user=$f_ToUser&nc_ctpl=266&disable_message=$f_Message_ID"  );
-}
-
-$uid = $f_UserID;
+$uid = $idUserProfile;
 $f_Parent_Message_ID = ($f_Parent_Message_ID ? $f_Parent_Message_ID : $f_RowID);
 
-
 if (isset($show_all)) {
-        ?><button class="lk-messages-write__history-button" style="display:inline-block;">Спрятать остальные сообщения по данной теме</button></div><?
+        ?><button class="lk-messages-write__history-button" type="button">Спрятать остальные сообщения по данной теме</button></div><?
 } else {
-        ?><button class="lk-messages-write__history-button" style="display:inline-block;">Показать все сообщения по данной теме</button></div><?
+        ?><button class="lk-messages-write__history-button" type="button">Показать все сообщения по данной теме</button></div><?
 }
-         
+
 echo $addForm;
-//echo ( $f_ToUser ? $addForm : "");
 ?>
-
-
-                  
                 </div>
             </div>
           </section>

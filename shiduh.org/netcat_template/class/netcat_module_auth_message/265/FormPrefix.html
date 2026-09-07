@@ -1,11 +1,12 @@
 <?
-//echo $f_AdminCommon;
-//echo $query_from;
+// A3: список сообщений. Панель «Входящие/Исходящие/Удалить» была выключена
+// инлайновым style ещё в макете — оставлена скрытой атрибутом (hidden).
 if (!$AUTH_USER_ID) {
     echo "Access error";
     exit;
 }
 $usersWriteTo = [];
+require_once nc_core::get_object()->DOCUMENT_ROOT . '/api/lk_lib.php';
 ?>
    <section class="lk-messages">
             <div class="lk-messages__wrapper">
@@ -13,7 +14,7 @@ $usersWriteTo = [];
                 <div class="lk-head lk-messages__head lk-messages__head--border">
                   <h1 class="lk-head__title">Сообщения</h1>
                 </div>
-                <div class="lk-messages__bar" style="display:none;">
+                <div class="lk-messages__bar" hidden>
                   <a class="lk-messages__bar-link lk-messages__bar-link--message <?=(isset($outbox) ? "" : "lk-messages__bar-link--active")?>" href="./" title="">
                     <svg class="lk-messages__bar-link-icon">
                       <use xlink:href="/images/sprite.svg#letter"></use>
@@ -22,17 +23,20 @@ $usersWriteTo = [];
                     <svg class="lk-messages__bar-link-icon">
                       <use xlink:href="/images/sprite.svg#send"></use>
                     </svg> Исходящие </a>
-                  <button class="lk-messages__bar-delete form__submit" style="display:none;" type="submit">
+                  <button class="lk-messages__bar-delete form__submit" hidden type="submit">
                     <svg class="lk-messages__bar-delete-icon">
                       <use xlink:href="/images/sprite.svg#delete"></use>
                     </svg> Удалить </button>
                 </div>
                 <div class="lk-messages__body">
 <?
-if ($totRows) {
-} else {
+if (!$totRows) {
 ?>
-Нет сообщений
+<div class="sh-empty lk-messages__empty">
+  <div class="sh-empty__title">Сообщений пока нет</div>
+  <p>Здесь появятся письма от шадханов и ответы администратора.</p>
+  <a class="button button--sm" href="/my/message/add_soobscheniya.html?uid=119">Написать админу</a>
+</div>
 <?
 }
 ?>
