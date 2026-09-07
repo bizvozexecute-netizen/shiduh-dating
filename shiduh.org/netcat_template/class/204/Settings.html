@@ -12,6 +12,10 @@ $arfloor['suffix']  = '';
  * к (int) перед implode, чтобы IN(...) принимал только числа.
  */
 $db = $nc_core->db;
+// A4: страницы, возраст в SQL и владелец через JOIN — см. api/showcase_lib.php.
+// Все условия ниже — с префиксом a.: после JOIN с User имена Name/Gender/
+// City/Country есть в обеих таблицах.
+require_once $nc_core->DOCUMENT_ROOT . '/api/showcase_lib.php';
 $nc_int_list = function($v) {
   // '1) OR (1=1' и любой мусор превращается в целые; пустой список -> '0'
   $ids = array_filter(array_map('intval', (array)$v), function($x){ return $x !== 0; });
@@ -30,9 +34,9 @@ if($current_user['Type_id'] === 1) {
 if($_GET["id_candidate"]) {
   $id_candidate1 = (int)$_GET["id_candidate"];
   if($query_where) {
-      $query_where .= " AND Message_ID = $id_candidate1";
+      $query_where .= " AND a.Message_ID = $id_candidate1";
   } else {
-      $query_where = " Message_ID = $id_candidate1";
+      $query_where = " a.Message_ID = $id_candidate1";
   }
 }
 
@@ -42,27 +46,27 @@ if($_GET["id_candidate"]) {
 if($_GET["name"] && (int)$current_user['Type_id'] === 2) {
   $name = $db->prepare($_GET["name"]);
   if($query_where) {
-      $query_where .= " AND Name LIKE '%$name%'";
+      $query_where .= " AND a.Name LIKE '%$name%'";
   } else {
-      $query_where = "  Name LIKE '%$name%'";
+      $query_where = "  a.Name LIKE '%$name%'";
   }
 }
 
 if($_GET["gender"]) {
   $gender = (int)$_GET["gender"];
   if($query_where) {
-      $query_where .= " AND Gender = $gender";
+      $query_where .= " AND a.Gender = $gender";
   } else {
-      $query_where = "  Gender = $gender";
+      $query_where = "  a.Gender = $gender";
   }
 }
 
 if($_GET["city"]) {
   $city = $db->prepare($_GET["city"]);
   if($query_where) {
-      $query_where .= " AND City = '$city'";
+      $query_where .= " AND a.City = '$city'";
   } else {
-      $query_where = "  City = '$city'";
+      $query_where = "  a.City = '$city'";
   }
 }
 
@@ -70,52 +74,52 @@ if (isset($_GET["height_min"], $_GET["height_max"])
     && is_numeric($_GET["height_min"]) && is_numeric($_GET["height_max"])) {
     $height_min = (float)$_GET["height_min"];
     $height_max = (float)$_GET["height_max"];
-    $condition = " height BETWEEN $height_min AND $height_max ";
+    $condition = " a.Height BETWEEN $height_min AND $height_max ";
     $query_where .= ($query_where ? " AND " : "") . $condition;
 }
 
 if($_GET["country"]) {
   $ids = $nc_int_list($_GET["country"]);
   if($query_where) {
-      $query_where .= " AND Country IN (".$ids.") ";
+      $query_where .= " AND a.Country IN (".$ids.") ";
   } else {
-      $query_where = " Country IN (".$ids.") ";
+      $query_where = " a.Country IN (".$ids.") ";
   }
 }
 
 if($_GET["Jewishness"]) {
   $ids = $nc_int_list($_GET["Jewishness"]);
   if($query_where) {
-      $query_where .= " AND Jewishness IN (".$ids.") ";
+      $query_where .= " AND a.Jewishness IN (".$ids.") ";
   } else {
-      $query_where = " Jewishness IN (".$ids.") ";
+      $query_where = " a.Jewishness IN (".$ids.") ";
   }
 }
 
 if($_GET["Origin"]) {
   $ids = $nc_int_list($_GET["Origin"]);
   if($query_where) {
-      $query_where .= " AND Origin IN (".$ids.") ";
+      $query_where .= " AND a.Origin IN (".$ids.") ";
   } else {
-      $query_where = " Origin IN (".$ids.") ";
+      $query_where = " a.Origin IN (".$ids.") ";
   }
 }
 
 if($_GET["Mother_Origin"]) {
   $ids = $nc_int_list($_GET["Mother_Origin"]);
   if($query_where) {
-      $query_where .= " AND Mother_Origin IN (".$ids.") ";
+      $query_where .= " AND a.Mother_Origin IN (".$ids.") ";
   } else {
-      $query_where = " Mother_Origin IN (".$ids.") ";
+      $query_where = " a.Mother_Origin IN (".$ids.") ";
   }
 }
 
 if($_GET["Father_Origin"]) {
   $ids = $nc_int_list($_GET["Father_Origin"]);
   if($query_where) {
-      $query_where .= " AND Father_Origin IN (".$ids.") ";
+      $query_where .= " AND a.Father_Origin IN (".$ids.") ";
   } else {
-      $query_where = " Father_Origin IN (".$ids.") ";
+      $query_where = " a.Father_Origin IN (".$ids.") ";
   }
 }
 
@@ -123,46 +127,64 @@ if($_GET["Father_Origin"]) {
 if($_GET["Course_of_compliance"]) {
   $ids = $nc_int_list($_GET["Course_of_compliance"]);
   if($query_where) {
-      $query_where .= " AND Course_of_compliance IN (".$ids.") ";
+      $query_where .= " AND a.Course_of_compliance IN (".$ids.") ";
   } else {
-      $query_where = " Course_of_compliance IN (".$ids.") ";
+      $query_where = " a.Course_of_compliance IN (".$ids.") ";
   }
 }
 
 if($_GET["Education"]) {
   $ids = $nc_int_list($_GET["Education"]);
   if($query_where) {
-      $query_where .= " AND Education IN (".$ids.") ";
+      $query_where .= " AND a.Education IN (".$ids.") ";
   } else {
-      $query_where = " Education IN (".$ids.") ";
+      $query_where = " a.Education IN (".$ids.") ";
   }
 }
 
 if($_GET["Marital_status"]) {
   $ids = $nc_int_list($_GET["Marital_status"]);
   if($query_where) {
-      $query_where .= " AND Marital_status IN (".$ids.") ";
+      $query_where .= " AND a.Marital_status IN (".$ids.") ";
   } else {
-      $query_where = " Marital_status IN (".$ids.") ";
+      $query_where = " a.Marital_status IN (".$ids.") ";
   }
 }
 
 if($_GET["Number_of_children"]) {
   $ids = $nc_int_list($_GET["Number_of_children"]);
   if($query_where) {
-      $query_where .= " AND Number_of_children IN (".$ids.") ";
+      $query_where .= " AND a.Number_of_children IN (".$ids.") ";
   } else {
-      $query_where = " Number_of_children IN (".$ids.") ";
+      $query_where = " a.Number_of_children IN (".$ids.") ";
   }
 }
 
 if($action !== 'full') {
   if($query_where) {
-      $query_where .= " AND (   Height != ''     AND Phone != '')";
+      $query_where .= " AND (a.Height != '' AND a.Phone != '')";
   } else {
-      $query_where = "  Height != ''    AND Phone != ''";
+      $query_where = "  a.Height != '' AND a.Phone != ''";
   }
 }
+
+/*
+ * A4. Возраст — в SQL (раньше отсеивался в PHP после выборки, и страниц
+ * быть не могло): нижняя граница не ниже совершеннолетия, анкеты с датой
+ * «по умолчанию» на витрину не попадают. Владелец проверен — JOIN вместо
+ * get_by_id на каждой строке; тип владельца — из того же JOIN.
+ * Свежие сверху, 24 анкеты на страницу; пейджер печатает FormSuffix.
+ */
+if (!$ignore_all && $action !== 'full') {
+  list($nc_age_from, $nc_age_to) = showcase_age_bounds(isset($_GET['age']) ? $_GET['age'] : null, true);
+  $query_where .= ($query_where ? " AND " : "") . showcase_age_sql('a', $nc_age_from, $nc_age_to);
+  $query_join = showcase_owner_join();
+  $query_select = 'u.`Type` AS UType';
+  $query_order = 'a.Created DESC, a.Message_ID DESC';
+  $recNum = SHOWCASE_PER_PAGE;
+}
+
+
 
 
 ?>

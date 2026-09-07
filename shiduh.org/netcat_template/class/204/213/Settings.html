@@ -4,6 +4,7 @@ $arfloor['divider'] = ', ';
 $arfloor['suffix']  = '';
 
 $idUser = (int)$current_user['User_ID'];
+require_once $nc_core->DOCUMENT_ROOT . '/api/showcase_lib.php';   // A4
 
 if($_GET["search"]) {
    $ignore_all = 1;
@@ -17,19 +18,34 @@ if($action !== 'full') {
 
 if($_GET["id_candidate"]) {
   $id_candidate = (int)$_GET["id_candidate"]; 
-  $query_where .= " AND Message_ID = $id_candidate";
+  $query_where .= " AND a.Message_ID = $id_candidate";
 }
 
 if($_GET["name"]) {
   $name = $nc_core->db->prepare($_GET["name"]); 
-  $query_where .= " AND Name LIKE '%$name%'";
+  $query_where .= " AND a.Name LIKE '%$name%'";
 }
 
 if($_GET["country"]) {
   $ids = implode(',', array_map('intval', (array)$_GET["country"])) ?: '0'; 
-  $query_where .= " AND Country IN (".$ids.") ";
+  $query_where .= " AND a.Country IN (".$ids.") ";
 }
 
+/*
+ * A4. Владелец проверен — JOIN вместо get_by_id на строке; возраст — в SQL,
+ * но только если задан в форме: шадхан должен видеть и анкеты с битой
+ * датой, чтобы их починить. 24 анкеты на страницу, свежие сверху.
+ */
+// $action в области списка не определён (его ставит только full.php) — проверка держится на null !== 'full'
+if (!$ignore_all && $action !== 'full') {
+  $nc_age = showcase_age_bounds(isset($_GET['age']) ? $_GET['age'] : null, false);
+  if ($nc_age) {
+    $query_where .= " AND " . showcase_age_sql('a', $nc_age[0], $nc_age[1]);
+  }
+  $query_join = showcase_owner_join();
+  $query_order = 'a.Created DESC, a.Message_ID DESC';
+  $recNum = SHOWCASE_PER_PAGE;
+}
 //$ignore_user = 1;
 
 //$query_where .= "a.Shadhan_1 = $idUser or a.Shadhan_2 = $idUser or a.Shadhan_3 = $idUser";

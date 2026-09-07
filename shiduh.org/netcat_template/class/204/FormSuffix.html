@@ -1,9 +1,13 @@
 <? if(count($_GET["srchPat"])): ?>
 
         </div>
+        <?php /* A4: страницы считает ядро; кнопка «Показать ещё» остаётся в
+                 разметке — скрипт бандла разыменовывает её до проверки на
+                 null и без неё падает вместе со следующим блоком. */ ?>
         <div class="lk-search-candidate-result__table-load-more">
-            <button class="lk-search-candidate-result__table-load-more-btn">Показать ещё</button>
+            <button class="lk-search-candidate-result__table-load-more-btn" type="button">Показать ещё</button>
           </div>
+        <?= showcase_pager($totRows, $begRow, $endRow, $recNum, $prevLink, $nextLink) ?>
       </div>
     </div>
   </div>

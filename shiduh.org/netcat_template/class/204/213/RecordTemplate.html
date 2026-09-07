@@ -1,65 +1,69 @@
 <?/* Служебная часть */for ($f_RowNum = 0; $f_RowNum < $rowCount; $f_RowNum++) {    if($fetch_row[$f_RowNum] instanceof Iterator) {        extract($fetch_row[$f_RowNum]->to_array(), EXTR_PREFIX_ALL, "f");    } else {        extract($fetch_row[$f_RowNum], EXTR_PREFIX_ALL, "f");    }    foreach($iteration_RecordTemplate[$f_RowNum] as $value) {        extract($value);    }    eval($cc_env["convert2txt"]);    ob_start();/* Конец служебной части */?>
-<?
-if($nc_core->user->get_by_id($f_User_ID, 'Checked')):
-  $now = time(); // текущее время (метка времени)
-  $your_date = strtotime($f_Created_year.'-'.$f_Created_month.'-'.$f_Created_day); // какая-то дата в строке (1 января 2017 года)
-  $datediff = $now - $your_date; // получим разность дат (в секундах)
-
-  $daysSumm = floor($datediff / (60 * 60 * 24));
-
-  
-  if( get_age($f_Date_of_birth) >= $_GET["age"][0]  && get_age($f_Date_of_birth) <= $_GET["age"][1]   && $f_Checked):
+<?php
+/*
+ * Строка «Моих кандидатов» (A4). Проверка владельца и возраст — в SQL
+ * (Settings.html), аватар — миниатюра ядра, инлайновые стили ушли в слой,
+ * мёртвый закомментированный дубль удалён. Классы lk-sort-item/--show
+ * держит скрипт бандла (сортировка и показ).
+ */
+$nc_l_days = showcase_days_since($f_Created_year, $f_Created_month, $f_Created_day);
+$nc_l_avatar = $f_Photo_avatar ? (string)$f_Photo_avatar->resize(96, 96)
+    : ((int)$f_Gender_id === 1 ? '/images/avatar/man.png' : '/images/avatar/woman.png');
+$nc_l_link = htmlspecialchars((string)$fullLink, ENT_QUOTES);
+$nc_l_age = showcase_age_text($f_Date_of_birth);
+$nc_l_search = '/my/poisk-shiduha/?ID=' . (int)$f_Message_ID . '&gender=' . (int)$f_Search_gender_id
+    . '&' . ($f_Search_education_id[0] === '1' ? '' : http_build_query(['Education' => $f_Search_education_id], '', '&'))
+    . '&' . http_build_query(['Number_of_children' => $f_Search_number_of_children], '', '&')
+    . '&' . http_build_query(['Marital_status' => $Marital_status], '', '&')
+    . '&' . http_build_query(['Belonging_denomination' => $f_Search_belonging_denomination_id], '', '&')
+    . '&age[0]=' . ($f_Search_age_start ? (int)$f_Search_age_start - 5 : 0)
+    . '&age[1]=' . ($f_Search_age_end ? (int)$f_Search_age_end + 5 : 300);
+$nc_l_search = htmlspecialchars($nc_l_search, ENT_QUOTES);
 ?>
-
-<div class="lk-candidates__item lk-sort-item <?= $daysSumm <= 30 ? 'lk-candidates__item--new': '';?>" data-name="<?= $f_Name;?> " data-new="<?= $daysSumm <= 30 ? 'true': 'false';?>">
+<div class="lk-candidates__item lk-sort-item <?= $nc_l_days <= 30 ? 'lk-candidates__item--new' : '' ?>" data-name="<?= lk_esc($f_Name) ?> " data-new="<?= $nc_l_days <= 30 ? 'true' : 'false' ?>">
   <div class="lk-candidates__item-avatar">
-   <? if($daysSumm <= 5): ?>   
-   <div class="lk-candidates__item-avatar-new">New</div>
+   <? if($nc_l_days <= 5): ?>
+   <div class="lk-candidates__item-avatar-new sh-pill sh-pill--gold">новая</div>
    <? endif; ?>
-   
     <picture class="lk-candidates__item-avatar-picture">
-      <img class="lk-candidates__item-avatar-img js-lazy" data-src="<?= $f_Photo_avatar ? $f_Photo_avatar : ($f_Gender_id == 1 ? '/images/avatar/man.png' : '/images/avatar/woman.png'); ?>" alt="">
+      <img class="lk-candidates__item-avatar-img js-lazy" data-src="<?= htmlspecialchars($nc_l_avatar, ENT_QUOTES) ?>" width="60" height="60" alt="">
     </picture>
-    
   </div>
   <div class="lk-candidates__item-info">
-    <div class="lk-candidates__item-key">ФИО  </div>
-    <div class="lk-candidates__item-info-name"><?= $f_Name;?> </div>
-
-    <div style="display:flex; align-items: center;flex-wrap: wrap;gap: 10px;">
-      <a class="lk-candidates__item-info-link js-scroll-link" href="<?=$fullLink?>" title="">Подробнее</a>
-
-      <a  class="lk-candidates__item-info-link" href="<?= '/my/poisk-shiduha/' ?>?ID=<?= $f_Message_ID; ?>&gender=<?= $f_Search_gender_id;?>&<?= $f_Search_education_id[0] === '1'  ? '' : http_build_query(['Education' => $f_Search_education_id]); ?>&<?= http_build_query(['Number_of_children' => $f_Search_number_of_children]); ?>&<?= http_build_query(['Marital_status' => $Marital_status]); ?>&<?= http_build_query(['Belonging_denomination' => $f_Search_belonging_denomination_id]); ?>&age[0]=<?= $f_Search_age_start ? $f_Search_age_start -5 : 0; ?>&age[1]=<?= $f_Search_age_end ? $f_Search_age_end + 5 :  300; ?>" title="">
-        <svg class="lk-sort__search-icon" style="stroke: #C7AD88;margin-left:0; margin-right:5px;">
+    <div class="lk-candidates__item-key">ФИО</div>
+    <div class="lk-candidates__item-info-name"><?= lk_esc($f_Name) ?></div>
+    <div class="lk-candidates__item-info-links">
+      <a class="lk-candidates__item-info-link js-scroll-link" href="<?= $nc_l_link ?>">Подробнее</a>
+      <a class="lk-candidates__item-info-link" href="<?= $nc_l_search ?>">
+        <svg class="lk-sort__search-icon lk-sort__search-icon--gold">
           <use xlink:href="/images/sprite.svg#search"></use>
         </svg>
-        <span class="">Поиск шидуха</span>
+        <span>Поиск шидуха</span>
       </a>
     </div>
-    
   </div>
   <div class="lk-candidates__item-id">
     <div class="lk-candidates__item-key">ID</div>
-    <div class="lk-candidates__item-id-value"><?=$f_Message_ID;?></div>
-  </div>  
+    <div class="lk-candidates__item-id-value"><?= (int)$f_Message_ID ?></div>
+  </div>
   <div class="lk-candidates__item-address">
     <div class="lk-candidates__item-key">Страна</div>
-    <div class="lk-candidates__item-address-value"><?= $f_Country;?></div>
+    <div class="lk-candidates__item-address-value"><?= lk_esc($f_Country) ?></div>
   </div>
   <div class="lk-candidates__item-age">
     <div class="lk-candidates__item-key">Возраст</div>
-    <div class="lk-candidates__item-age-value"><?= $f_Date_of_birth_year < 2024 && $f_Date_of_birth_year !== '0000' ? get_age($f_Date_of_birth) : ''; ?> <?= num2word(get_age($f_Date_of_birth), array('год', 'года', 'лет'));?></div>
+    <div class="lk-candidates__item-age-value"><?= $nc_l_age !== '' ? $nc_l_age . ' ' . num2word((int)$nc_l_age, array('год', 'года', 'лет')) : '<span class="sh-pill sh-pill--warn">дата не указана</span>' ?></div>
   </div>
   <div class="lk-candidates__item-manage">
-    <a class="lk-candidates__more button js-scroll-link" style="padding:0;" href="<?= '/my/poisk-shiduha/' ?>?ID=<?= $f_Message_ID; ?>&gender=<?= $f_Search_gender_id;?>&<?= $f_Search_education_id[0] === '1'  ? '' : http_build_query(['Education' => $f_Search_education_id]); ?>&<?= http_build_query(['Number_of_children' => $f_Search_number_of_children]); ?>&<?= http_build_query(['Marital_status' => $Marital_status]); ?>&<?= http_build_query(['Belonging_denomination' => $f_Search_belonging_denomination_id]); ?>&age[0]=<?= $f_Search_age_start ? $f_Search_age_start -5 : 0; ?>&age[1]=<?= $f_Search_age_end ? $f_Search_age_end + 5 :  300; ?>" title="">
-        <svg class="lk-sort__search-icon" style="margin-left:0; margin-right:5px;">
+    <a class="lk-candidates__more lk-candidates__more--flat button js-scroll-link" href="<?= $nc_l_search ?>">
+        <svg class="lk-sort__search-icon lk-sort__search-icon--tight">
           <use xlink:href="/images/sprite.svg#search"></use>
         </svg>
-        <span class="">Поиск шидуха</span>
+        <span>Поиск шидуха</span>
     </a>
-    <a class="lk-candidates__more button js-scroll-link" href="<?=$fullLink?>" title="">Подробнее</a>
-    <? if($daysSumm <= 5): ?>   
-    <div class="lk-candidates__item-manage-new">New</div>
+    <a class="lk-candidates__more button js-scroll-link" href="<?= $nc_l_link ?>">Подробнее</a>
+    <? if($nc_l_days <= 5): ?>
+    <div class="lk-candidates__item-manage-new sh-pill sh-pill--gold">новая</div>
     <? endif; ?>
     <? if($f_User_ID !== $current_user['User_ID']): ?>
     <a href="<?= nc_auth_messages_url($f_User_ID); ?>" class="lk-candidates__item-manage-write button button--write">
@@ -70,7 +74,7 @@ if($nc_core->user->get_by_id($f_User_ID, 'Checked')):
     </a>
     <? endif; ?>
     <? if($f_User_ID === $current_user['User_ID']): ?>
-    <a href="/my/edit-anket/?object=<?= $f_Message_ID;?>" class="lk-candidates__item-manage-write-short button button--write-short">
+    <a href="/my/edit-anket/?object=<?= (int)$f_Message_ID ?>" class="lk-candidates__item-manage-write-short button button--write-short" aria-label="Редактировать анкету">
       <svg class="button__icon">
         <use xlink:href="/images/sprite.svg#write"></use>
       </svg>
@@ -78,55 +82,5 @@ if($nc_core->user->get_by_id($f_User_ID, 'Checked')):
     <? endif; ?>
   </div>
 </div>
-  <? endif; ?> 
-  <?  if(!$_GET["age"][0] && !$_GET["age"][1] && $f_Date_of_birth_year !== '2024'):
-?>
-<!--<div class="lk-candidates__item <?= $daysSumm <= 30 ? 'lk-candidates__item--new': '';?>">
-  <a href="<?=$fullLink?>" class="lk-candidates__item-avatar">
-   <? if($daysSumm <= 30): ?>   
-   <div class="lk-candidates__item-avatar-new">New</div>
-   <? endif; ?>
-   <? if($f_Photo_avatar):?>
-    <picture class="lk-candidates__item-avatar-picture">
-      <img class="lk-candidates__item-avatar-img js-lazy" data-src="<?= $f_Photo_avatar;?>" alt="">
-    </picture>
-    <? endif;?>
-  </a>
-  <div class="lk-candidates__item-info">
-    <div class="lk-candidates__item-key">ФИО </div>
-    <div class="lk-candidates__item-info-name"><?= $f_Name;?> </div>
-    <a class="lk-candidates__item-info-link" href="<?=$fullLink?>" title="">Подробнее</a>
-  </div>
-  <div class="lk-candidates__item-address">
-    <div class="lk-candidates__item-key">Страна</div>
-    <div class="lk-candidates__item-address-value"><?= $f_Country;?></div>
-  </div>
-  <div class="lk-candidates__item-age">
-    <div class="lk-candidates__item-key">Возраст</div>
-    <div class="lk-candidates__item-age-value"><?= $f_Date_of_birth_year < 2024 && $f_Date_of_birth_year !== '0000' ? get_age($f_Date_of_birth) : ''; ?> <?= num2word(get_age($f_Date_of_birth), array('год', 'года', 'лет'));?></div>
-  </div>
-  <div class="lk-candidates__item-manage">
-    <a class="lk-candidates__more button" href="<?=$fullLink?>" title="">Подробнее</a>
-    <? if($daysSumm <= 30): ?>   
-    <div class="lk-candidates__item-manage-new">New</div>
-    <? endif; ?>
-    <? if($f_User_ID !== $current_user['User_ID']): ?>
-    <a href="<?= nc_auth_messages_url($f_User_ID); ?>" class="lk-candidates__item-manage-write button button--write">
-      <svg class="button__icon">
-        <use xlink:href="/images/sprite.svg#letter"></use>
-      </svg>
-      <span class="button__text">Написать</span>
-    </a>
-    <? endif; ?>
-    <? if($f_User_ID === $current_user['User_ID']): ?>
-    <a href="/my/edit-anket/?object=<?= $f_Message_ID;?>" class="lk-candidates__item-manage-write-short button button--write-short">
-      <svg class="button__icon">
-        <use xlink:href="/images/sprite.svg#write"></use>
-      </svg>
-    </a>
-    <? endif; ?>
-  </div>
-</div>-->
-  <? endif; ?> 
-<? endif;?>
+
 <?/* Служебная часть */    echo nc_finishing_RecordTemplate(ob_get_clean(), $inside_admin, $classID, $f_RowID, $parent_message, $cc, $cc_env["Class_Name"], $no_cache_marks);}/* Конец служебной части */?>

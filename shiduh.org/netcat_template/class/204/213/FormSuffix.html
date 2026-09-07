@@ -1,8 +1,10 @@
           <? if(!$_GET["search"]): ?>
           </div>
+<?php /* A4: страницы считает ядро; кнопка остаётся — скрипт бандла разыменовывает её до проверки на null */ ?>
 <div class="lk-load-more">
-  <button class="lk-load-more__btn">Показать еще</button>
-</div>  
+  <button class="lk-load-more__btn" type="button">Показать еще</button>
+</div>
+<?= showcase_pager($totRows, $begRow, $endRow, $recNum, $prevLink, $nextLink) ?>
 </div>
             </div>
           </section>

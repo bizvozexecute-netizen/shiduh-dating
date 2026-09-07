@@ -36,9 +36,9 @@
               <div class="form__item tpl-field">
                 <label class="form__item-name" for="search_age_start">Возраст</label>
                 <div class="form__item-range">
-                  <input class="form__input tpl-field-input" name="age[0]" min="0" step="any" max="200" maxlength="12" size="12" type="number" id="search_age_start" value="0" placeholder="ОТ" required>
+                  <input class="form__input tpl-field-input" name="age[0]" min="0" step="any" max="200" maxlength="12" size="12" type="number" id="search_age_start" value="" placeholder="ОТ">
                   <span class="form__item-range-separator">—</span>
-                  <input class="form__input tpl-field-input" name="age[1]" min="1" step="any" max="200" maxlength="12" size="12" type="number" id="search_age_end" value="100" placeholder="ДО" required>
+                  <input class="form__input tpl-field-input" name="age[1]" min="1" step="any" max="200" maxlength="12" size="12" type="number" id="search_age_end" value="" placeholder="ДО">
                 </div>
               </div>
               <div class="form__item tpl-field">
@@ -137,14 +137,7 @@
   </div>
 </section>
 <? else: ?>
-<? 
-if(!$_GET["age"][0]) {
-    $_GET["age"][0] = 0;
-} 
-if(!$_GET["age"][1]) {
-    $_GET["age"][1] = 3000;
-} 
-?>
+<?php /* A4: возраст фильтруется в SQL (Settings.html), дефолты не нужны */ ?>
 <section class="lk-candidates">
             <div class="lk-candidates__wrapper">
               <div class="lk-head lk-candidates__head">

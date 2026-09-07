@@ -1558,6 +1558,57 @@
   .lk-messages__item-date { flex: 1 1 100%; }
 }
 
+/* ------------------------------ витрина -------------------------------- */
+/* Строки витрины и «Моих кандидатов» — карточки: у бандла это линии на
+   40px отступов и «прыгающая» opacity. Классы бандла остаются — его скрипт
+   снимает opacity:0 по --show и сортирует по data-new/data-name. */
+.lk-search-candidate-result__table-row,
+.lk-candidates__item {
+  padding: 16px;
+  margin: 0 0 8px;   /* у бандла на планшете margin:0 -30px — карточка вылезала бы за контейнер */
+  border: 1px solid var(--sh-line);
+  border-radius: var(--sh-r-m);
+  background: var(--sh-paper);
+  transition: border-color var(--sh-t-base) var(--sh-ease-out),
+              background-color var(--sh-t-base) var(--sh-ease-out),
+              transform .8s, opacity .8s;
+}
+
+.lk-search-candidate-result__table-row:hover,
+.lk-candidates__item:hover { background: var(--sh-cream-2); border-color: var(--sh-gold); }
+
+.lk-search-candidate-result__table-row[data-new="true"],
+.lk-candidates__item--new { border-color: var(--sh-gold); }
+
+.lk-search-candidate-result__table-cell-picture-img,
+.lk-search-candidate-result__table-shadhan-img,
+.lk-candidates__item-avatar-img { aspect-ratio: 1; object-fit: cover; border-radius: 50%; }
+
+.lk-search-candidate-result__table-new-val,
+.lk-candidates__item-avatar-new,
+.lk-candidates__item-manage-new { position: static; transform: none; }
+
+/* На планшете бандл кладёт аватар абсолютно (left:30px) и оставляет под него
+   157px отступа — в карточке аватар просто идёт первым в потоке. */
+@media (max-width: 1279.98px) {
+  .lk-candidates__item-avatar { position: static; margin-right: 16px; }
+}
+
+/* Инлайновые стили из шаблона 213 — классами. */
+.lk-candidates__item-info-links { display: flex; align-items: center; flex-wrap: wrap; gap: 10px; }
+.lk-sort__search-icon--gold { stroke: var(--sh-gold); margin-left: 0; margin-right: 5px; }
+.lk-sort__search-icon--tight { margin-left: 0; margin-right: 5px; }
+.lk-candidates__more--flat { padding: 0; }
+.lk-candidates__item-key { color: var(--sh-ink-2); }
+
+/* Кнопка «Показать ещё» бандла: страницы теперь считает сервер. Элемент
+   остаётся в разметке — скрипт бандла падает без него. */
+.lk-search-candidate-result__table-load-more,
+.lk-candidates .lk-load-more { display: none; }   /* у списка шадханов .lk-load-more настоящий — не трогаем */
+
+.sh-pager__state { min-width: 8em; text-align: center; font-variant-numeric: tabular-nums; }
+.sh-pager__link.is-disabled { opacity: .45; pointer-events: none; }
+
 /* ============================== §public =================================
    Публичные экраны (A2.2): шапка, лендинг, меню, подвал. Всё поверх
    бандла тем же селектором; движение — только transform/opacity.        */
