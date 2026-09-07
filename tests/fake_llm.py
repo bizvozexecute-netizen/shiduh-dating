@@ -139,6 +139,24 @@ if (!is_array($s)) { $s = array('mode' => 'ok', 'calls' => 0, 'fail_first' => 0)
 $s['calls']++;
 @file_put_contents($state, json_encode($s));
 
+/* C7. Проверка SmartCaptcha — до Bearer-заслона: у Яндекса своя авторизация
+   секретом в теле, не заголовком. Записываем, что пришло, для проверок. */
+if (strpos((string)$_SERVER['REQUEST_URI'], '/validate') !== false && $_SERVER['REQUEST_METHOD'] === 'POST') {
+    $token = isset($_POST['token']) ? (string)$_POST['token'] : '';
+    @file_put_contents(sys_get_temp_dir() . '/fake_captcha.json', json_encode(array(
+        'secret' => isset($_POST['secret']) ? (string)$_POST['secret'] : '',
+        'token' => $token,
+        'ip' => isset($_POST['ip']) ? (string)$_POST['ip'] : '',
+    )));
+    if ($token === 'slow') { usleep(5000000); }          // дольше клиентского таймаута — тот оборвёт раньше
+    if ($token === 'good-token' || $token === 'slow') {
+        echo json_encode(array('status' => 'ok', 'message' => 'ok'));
+    } else {
+        echo json_encode(array('status' => 'failed', 'message' => 'robot'));
+    }
+    exit;
+}
+
 $auth = '';
 foreach ($_SERVER as $k => $v) {
     if ($k === 'HTTP_AUTHORIZATION' || $k === 'REDIRECT_HTTP_AUTHORIZATION') { $auth = $v; }

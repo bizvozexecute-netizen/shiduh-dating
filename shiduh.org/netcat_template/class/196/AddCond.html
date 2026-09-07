@@ -1,0 +1,5 @@
+<?php
+/* C7: серверная проверка капчи в форме обратной связи (виджет .form__captcha). */
+require_once $nc_core->DOCUMENT_ROOT . '/api/captcha_lib.php';
+captcha_guard_addcond($warnText, $posting);
+?>
