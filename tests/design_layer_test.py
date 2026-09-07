@@ -29,8 +29,12 @@ from fake_llm import BASE, ROOT, web  # noqa: E402
 WEBROOT = os.path.join(ROOT, "shiduh.org")
 TPL = os.path.join(WEBROOT, "netcat_template", "template", "3")
 
-CSS_BUDGET_KB = 60
-JS_BUDGET_KB = 15
+# Бюджет пересмотрен в A2.2: 60 КБ слой выбрал на компонентах, чате и
+# публичных экранах (комментарии «почему» — часть слоя, их не режем);
+# впереди ЛК, витрина, карточки и мастер анкеты. 90 КБ — всё ещё меньше
+# трети бандла (316 КБ), и это потолок: дальше — только за счёт бандла.
+CSS_BUDGET_KB = 90
+JS_BUDGET_KB = 20
 
 
 def read(path):

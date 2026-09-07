@@ -43,6 +43,7 @@ tar czf webroot_$(date +%F_%H%M).tar.gz /path/to/webroot   # без netcat_files
 - **`shiduh.org/vars.inc.php`** — НЕ в git (секреты). На сервере правится руками:
   сверьте с `vars.inc.php.example` значение `$ADMIN_AUTHTIME` (30 суток вместо года, B-4)
 - `shiduh.org/netcat_files/.htaccess` — запрет исполнения в каталоге загрузок (C5). Требует `AllowOverride All` для каталога и модули `mod_authz_core`, `mod_headers` (nosniff); без `mod_headers` блок с заголовком просто пропускается
+- `shiduh.org/api/landing_lib.php` — числа и города для главной (A2.2); его подключает `template/3/4/Template.html`
 - `shiduh.org/api/auth_rules_lib.php` — правила регистрации (A2.1): порог 18 лет, пароль, телефон, тип; его подключают `class/netcat_module_auth_user/{AddCond,EditCond}.html`
 - `shiduh.org/migrations/` — раннер и наборы (применяются отдельно, §6)
 
@@ -54,6 +55,7 @@ tar czf webroot_$(date +%F_%H%M).tar.gz /path/to/webroot   # без netcat_files
 - `class/netcat_module_auth_message/{265,259,320}/AddTemplate.html` и `class/183/275/AddTemplate.html` — формы сообщения и статьи с виджетом фото. **Хэш настроек виджета считается от `SecretKey`**, поэтому эти три файла выкатываются в том же окне, что и миграция `019` (§8.5): старый прод-шаблон с константой после ротации ключа ответит «Settings integrity error» на любое сообщение
 - `template/{3,28}/{Template,Header,Footer}.html` — метатег `csrf-token`, подключение `/js/csrf.js`, безопасное поле `REQUESTED_FROM` формы входа (C2/C3). **Править комплектом: `Template.html` — это склейка `Header.html`+`Footer.html`**
 - `template/3/{Template,Footer}.html`, `template/3/partials/{aside_profile,lk-menu-mobile}.html` (пункт меню «ИИ-консультант»)
+- `template/3/4/{Template,Header}.html` — лендинг (A2.2): счётчики из базы, лента городов, вход героя на слое. **Копировать оба файла**: `Header.html` — это секция Header из `Template.html`, ядро сверяет md5
 - **`class/netcat_module_auth_user/` — копировать целиком** (A2.1): корневые `AddTemplate.html` (форма регистрации), `AddCond.html`, `EditCond.html` и во ВСЕХ подшаблонах `208, 232, 237, 261–264, 268, 269, 313, 318` файлы `AddCond.html`/`EditCond.html` теперь подключают корневые — без этого POST с `cc` подшаблона обходит порог 18+ и капчу
 
 **Настройки БД** (§ниже) и, опционально, **RAG-сервис** (§8).

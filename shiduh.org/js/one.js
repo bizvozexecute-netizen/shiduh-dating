@@ -236,11 +236,38 @@
     }, true);
   }
 
+  /* ---------------------------------------------------------- занавес --
+     На первом заходе бандл держит прелоадер ~1 с поверх страницы: вход
+     героя, запущенный под ним, никто не увидит. Ждём класс preloader--hide
+     (его ставит бандл), на повторных заходах занавеса нет — сразу. */
+  function whenCurtainGone(cb) {
+    var curtain = document.querySelector('.preloader');
+    if (!curtain || root.classList.contains('sh-nopreload') ||
+        curtain.classList.contains('preloader--hide') || !('MutationObserver' in window)) {
+      cb();
+      return;
+    }
+    var done = false;
+    function go() {
+      if (done) { return; }
+      done = true;
+      mo.disconnect();
+      cb();
+    }
+    var mo = new MutationObserver(function () {
+      if (curtain.classList.contains('preloader--hide')) { go(); }
+    });
+    mo.observe(curtain, { attributes: true, attributeFilter: ['class'] });
+    setTimeout(go, 4000);   // страховка: бандл не снял занавес — показываем
+  }
+
   function init() {
-    reveal();
-    lineMask();
-    counters();
     stickyHeader();
+    whenCurtainGone(function () {
+      reveal();
+      lineMask();
+      counters();
+    });
     passwordRules();
     nativeSubmit();
   }

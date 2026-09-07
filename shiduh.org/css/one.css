@@ -12,7 +12,7 @@
    Правило: базовые стили новых компонентов пишем через :where(), чтобы
    страничные модификаторы перекрывали их без гонки специфичностей.
 
-   Разделы: §tokens · §base · §motion · §legacy
+   Разделы: §tokens · §base · §motion · §legacy · §components · §public
    ========================================================================= */
 
 
@@ -1468,4 +1468,200 @@
   }
 
   :where(.sh-msg__meta) { opacity: 1; transition: none; }
+}
+
+/* ============================== §public =================================
+   Публичные экраны (A2.2): шапка, лендинг, меню, подвал. Всё поверх
+   бандла тем же селектором; движение — только transform/opacity.        */
+
+/* ------------------------------- шапка --------------------------------- */
+/* Липкая: бандл держит её на 44px отступов, при прокрутке ужимаем и даём
+   полупрозрачное «стекло» — содержимое под ней читается, а навигация
+   всегда под рукой. Класс переключает one.js по маячку в начале страницы.
+   Переход по padding — осознанное исключение из правила «только
+   transform/opacity»: срабатывает один раз на границе, а скачок высоты
+   без перехода выглядит поломкой. */
+.header {
+  position: sticky;
+  top: 0;
+  z-index: var(--sh-z-header);
+  transition: padding var(--sh-t-base) var(--sh-ease-out),
+              background-color var(--sh-t-base) var(--sh-ease-out),
+              box-shadow var(--sh-t-base) var(--sh-ease-out);
+}
+
+.header.is-scrolled {
+  padding: 12px 0;
+  background-color: rgba(245, 242, 236, .88);
+  -webkit-backdrop-filter: blur(12px);
+  backdrop-filter: blur(12px);
+  box-shadow: 0 1px 0 var(--sh-line);
+}
+
+/* Якоря (#events и др.) не должны уезжать под липкую шапку: отступ у
+   прокрутки документа, а не у каждого id — вложенные скроллеры (чат) не
+   затронуты. */
+html { scroll-padding-top: 90px; }
+
+/* копия шапки внутри мобильного меню — обычная, не липкая */
+.header--modal,
+.header--modal.is-scrolled { position: static; box-shadow: none; }
+
+/* Подчёркивание пунктов «прорисовывается» слева направо. */
+.header__nav-link {
+  padding-bottom: 2px;
+  background: linear-gradient(currentColor, currentColor) no-repeat 0 100% / 0 1px;
+  transition: background-size var(--sh-t-base) var(--sh-ease-out), color var(--sh-t-fast);
+}
+
+.header__nav-link:hover,
+.header__nav-link:focus-visible { background-size: 100% 1px; text-decoration: none; }   /* у бандла своё подчёркивание */
+
+/* ------------------------------- герой --------------------------------- */
+/* Текст героя снят с .appearance бандла (тот держал блок в opacity:0 до
+   своего наблюдателя) — вход теперь ставит слой: строки заголовка, затем
+   текст, кнопки, соцсети. */
+.hero__content { opacity: 1; transform: none; }
+/* Шкала между 25px бандла на телефоне и его же 52px на десктопе: выше —
+   строки ломаются по словам. Контейнер героя у бандла flex-basis:auto, то
+   есть max-content — строки-блоки заголовка раздували его за экран. */
+.hero__title { font-size: clamp(1.5rem, 1rem + 2.2vw, 3.25rem); line-height: var(--sh-lh-tight); }
+.hero__content-container { min-width: 0; max-width: 100%; }
+.hero__text { --sh-reveal-delay: 380ms; }
+.hero__buttons { --sh-reveal-delay: 520ms; }
+.hero__socials { --sh-reveal-delay: 660ms; }
+.hero__card-title { font-variant-numeric: tabular-nums; }
+
+/* Заголовок с построчным входом до обёртки строк не показываем — иначе
+   мигнёт целиком; если скрипт не дошёл, через 1,5 с показываем как есть. */
+.js [data-sh-lines]:not([data-sh-lines-ready]) {
+  visibility: hidden;
+  animation: sh-unhide 0s 1.5s forwards;
+}
+
+@keyframes sh-unhide { to { visibility: visible; } }
+
+/* ------------------------------ лента ---------------------------------- */
+/* География анкет: тёмная полоса под героем, города из базы. Три копии
+   дорожки едут влево на ширину одной; ширина дорожки = содержимому, поэтому
+   шов не виден, а трёх копий хватает и на широкий экран при коротком списке. */
+.sh-marquee-wrap {
+  background: var(--sh-navy);
+  color: var(--sh-cream);
+  padding: 14px 0 16px;
+  border-top: 1px solid rgba(200, 174, 136, .35);
+  border-bottom: 1px solid rgba(200, 174, 136, .35);
+  overflow: hidden;
+}
+
+.sh-marquee__lead {
+  font: 500 var(--sh-fs-xs) / 1.4 var(--sh-font-body);
+  color: var(--sh-gold);
+  letter-spacing: .06em;
+  margin-bottom: 8px;
+}
+
+.sh-marquee { display: flex; width: max-content; }
+
+.sh-marquee__track {
+  display: flex;
+  flex: none;
+  animation: sh-marquee 70s linear infinite;
+}
+
+.sh-marquee:hover .sh-marquee__track { animation-play-state: paused; }
+
+.sh-marquee__item {
+  position: relative;
+  padding: 0 28px;
+  white-space: nowrap;
+  font: 400 var(--sh-fs-body) / 1.4 var(--sh-font-display);
+  letter-spacing: .04em;
+  text-transform: uppercase;
+  color: var(--sh-cream);
+}
+
+.sh-marquee__item::after {
+  content: "";
+  position: absolute;
+  right: -3px;
+  top: 50%;
+  width: 5px;
+  height: 5px;
+  margin-top: -2px;
+  border-radius: 50%;
+  background: var(--sh-gold);
+}
+
+@keyframes sh-marquee { to { transform: translateX(-100%); } }
+
+/* --------------------------- разделы лендинга -------------------------- */
+/* Бандл держит дисплейные заголовки в 76–130px фиксированно; шкала на
+   clamp() ужимает их на узких экранах без переносов по буквам. */
+.advantages__title,
+.mission__title,
+.partners-section__title,
+.main-news__title { font-size: var(--sh-fs-display); line-height: var(--sh-lh-tight); }
+
+.main-faq__title,
+.video-section__title { font-size: var(--sh-fs-h1); line-height: var(--sh-lh-tight); }
+
+.main-faq__accordion-item-toggle { transition: transform var(--sh-t-base) var(--sh-ease-out); }
+.main-faq__accordion-item--active .main-faq__accordion-item-toggle { transform: rotate(180deg); }
+
+.swiper-navigation__button {
+  border-color: var(--sh-gold);
+  box-shadow: var(--sh-shadow-1);
+  transition: background-color var(--sh-t-base), border-color var(--sh-t-base), transform var(--sh-t-fast);
+}
+
+.swiper-navigation__button:hover { background-color: var(--sh-gold); }
+.swiper-navigation__button:active { transform: scale(.96); }
+
+/* ------------------------------- меню ---------------------------------- */
+/* Пункты мобильного меню входят ступенчато при открытии (класс ставит
+   HystModal бандла). */
+.hystmodal--active .modal__main-list > * {
+  animation: sh-rise .55s var(--sh-ease-out) both;
+}
+
+.modal__main-list--left > :nth-child(1) { animation-delay: 60ms; }
+.modal__main-list--left > :nth-child(2) { animation-delay: 120ms; }
+.modal__main-list--left > :nth-child(3) { animation-delay: 180ms; }
+.modal__main-list--left > :nth-child(4) { animation-delay: 240ms; }
+.modal__main-list--left > :nth-child(5) { animation-delay: 300ms; }
+.modal__main-list--right > :nth-child(1) { animation-delay: 360ms; }
+.modal__main-list--right > :nth-child(2) { animation-delay: 420ms; }
+.modal__main-list--right > :nth-child(3) { animation-delay: 480ms; }
+.modal__main-list--right > :nth-child(4) { animation-delay: 540ms; }
+
+@keyframes sh-rise {
+  from { opacity: 0; transform: translateY(14px); }
+  to { opacity: 1; transform: none; }
+}
+
+/* ------------------------------- подвал -------------------------------- */
+.footer::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 0;
+  height: 3px;
+  background: linear-gradient(90deg, transparent, var(--sh-gold) 30%, var(--sh-gold) 70%, transparent);
+}
+
+/* Фон видео-модалки — из инлайнового стиля макета: сам элемент lite-youtube
+   подставляет постер ролика при открытии. */
+.modal--video .lite-youtube { background-image: url("/images/video-item/video-item__img-1.jpg"); }
+
+/* Движение публичных экранов при prefers-reduced-motion: лента стоит и
+   переносится строками, меню и шапка без анимаций, заголовок виден сразу. */
+@media (prefers-reduced-motion: reduce) {
+  .sh-marquee { flex-wrap: wrap; width: auto; }
+  .sh-marquee__track { animation: none; flex-wrap: wrap; }
+  .sh-marquee__track[aria-hidden="true"] { display: none; }
+  .hystmodal--active .modal__main-list > * { animation: none; }
+  .header { transition: none; }
+  .js [data-sh-lines]:not([data-sh-lines-ready]) { visibility: visible; animation: none; }
 }
