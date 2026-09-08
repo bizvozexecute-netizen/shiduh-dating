@@ -64,20 +64,20 @@ return array(
                 $priority++;
                 $exists = (int)$db->get_var(
                     "SELECT COUNT(*) FROM `Classificator_$name` "
-                    . "WHERE `{$name}_Name`='" . $db->escape($item) . "'"
+                    . "WHERE `{$name}_Name`='" . $db->prepare($item) . "'"
                 );
                 if ($exists === 0) {
                     $db->query("INSERT INTO `Classificator_$name` SET "
-                        . "`{$name}_Name`='" . $db->escape($item) . "', "
+                        . "`{$name}_Name`='" . $db->prepare($item) . "', "
                         . "`{$name}_Priority`=" . $priority . ", `Checked`=1");
                 }
             }
 
             // регистрация в реестре справочников
-            if ((int)$db->get_var("SELECT COUNT(*) FROM `Classificator` WHERE `Table_Name`='" . $db->escape($name) . "'") === 0) {
+            if ((int)$db->get_var("SELECT COUNT(*) FROM `Classificator` WHERE `Table_Name`='" . $db->prepare($name) . "'") === 0) {
                 $db->query("INSERT INTO `Classificator` SET "
-                    . "`Classificator_Name`='" . $db->escape($spec['title']) . "', "
-                    . "`Table_Name`='" . $db->escape($name) . "', "
+                    . "`Classificator_Name`='" . $db->prepare($spec['title']) . "', "
+                    . "`Table_Name`='" . $db->prepare($name) . "', "
                     . "`System`=0, `Sort_Type`=0, `Sort_Direction`=0");
             }
         }
@@ -86,7 +86,7 @@ return array(
     'down' => function ($nc) use ($DICTS) {
         $db = $nc->db;
         foreach ($DICTS as $name => $spec) {
-            $db->query("DELETE FROM `Classificator` WHERE `Table_Name`='" . $db->escape($name) . "'");
+            $db->query("DELETE FROM `Classificator` WHERE `Table_Name`='" . $db->prepare($name) . "'");
             $db->query("DROP TABLE IF EXISTS `Classificator_$name`");
         }
     },

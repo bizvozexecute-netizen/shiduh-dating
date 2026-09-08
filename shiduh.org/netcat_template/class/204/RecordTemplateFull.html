@@ -6,10 +6,12 @@
    Шадханы, ведущие и владелец видят как раньше. $nc_anon — «посторонний»
    просмотр: не владелец, не шадхан анкеты, не шадхан вообще, не админ.
    Сравнения через (int): $f_-переменные приходят строками. */
+require_once $nc_core->DOCUMENT_ROOT . '/api/admin_lib.php';
 $nc_b1_uid = (int)$current_user['User_ID'];
+$nc_b1_super = shiduh_is_site_admin($nc_b1_uid);   // C13: список — настройка security.site_admin_ids, не константы в шаблоне
 $nc_b1_related = $nc_b1_uid > 0 && (((int)$f_User_ID === $nc_b1_uid)
     || in_array($nc_b1_uid, array((int)$f_Shadhan_1, (int)$f_Shadhan_2, (int)$f_Shadhan_3), true)
-    || $nc_b1_uid === 1 || $nc_b1_uid === 119);
+    || $nc_b1_super);
 $nc_anon = !$nc_b1_related && (int)$current_user['Type_id'] !== 2;
 ?>
 <? if($nc_anon && !$f_Open): ?>
@@ -34,7 +36,7 @@ $nc_anon = !$nc_b1_related && (int)$current_user['Type_id'] !== 2;
    из секций с data-sh-sec. */
 require_once $nc_core->DOCUMENT_ROOT . '/api/showcase_lib.php';
 $nc_c_age = showcase_age_text($f_Date_of_birth);
-$nc_c_avatar = ($current_user['User_ID'] == 1 || $current_user['User_ID'] == 119 || $f_User_ID === $current_user['User_ID'] || $f_Shadhan_1 === $current_user['User_ID'] || $f_Shadhan_2 === $current_user['User_ID'] || $f_Shadhan_3 === $current_user['User_ID'] || ($f_Open && !$nc_anon)) && trim((string)$f_Photo_avatar) !== '' ? (string)$f_Photo_avatar->resize(320, 400) : '';
+$nc_c_avatar = ($nc_b1_super || $f_User_ID === $current_user['User_ID'] || $f_Shadhan_1 === $current_user['User_ID'] || $f_Shadhan_2 === $current_user['User_ID'] || $f_Shadhan_3 === $current_user['User_ID'] || ($f_Open && !$nc_anon)) && trim((string)$f_Photo_avatar) !== '' ? (string)$f_Photo_avatar->resize(320, 400) : '';
 ?>
     <header class="sh-card-hero">
       <div class="sh-card-hero__media">
@@ -81,7 +83,7 @@ $nc_c_avatar = ($current_user['User_ID'] == 1 || $current_user['User_ID'] == 119
     <div class="lk-questionnaire__body" id="sec-anketa" data-sh-sec="Анкета">
       <div class="lk-questionnaire__body-main lk-questionnaire__body-main--full">
         <div class="lk-questionnaire__body-table">
-          <? if($current_user['User_ID'] == 119 || $f_User_ID === $current_user['User_ID'] || $f_Shadhan_1 === $current_user['User_ID'] || $f_Shadhan_2 === $current_user['User_ID'] || $f_Shadhan_3 === $current_user['User_ID'] || ($f_Open && !$nc_anon)): ?>  
+          <? if($nc_b1_super || $f_User_ID === $current_user['User_ID'] || $f_Shadhan_1 === $current_user['User_ID'] || $f_Shadhan_2 === $current_user['User_ID'] || $f_Shadhan_3 === $current_user['User_ID'] || ($f_Open && !$nc_anon)): ?>  
           <div class="lk-questionnaire__body-table-row">
             <div class="lk-questionnaire__body-table-cell lk-questionnaire__body-table-cell--key"><b>Ф.И.О.:</b></div>
             <div class="lk-questionnaire__body-table-cell lk-questionnaire__body-table-cell--value"><?= $f_Name; ?></div>
@@ -263,25 +265,25 @@ $nc_c_avatar = ($current_user['User_ID'] == 1 || $current_user['User_ID'] == 119
           <? endif; ?>
           
           
-          <? if($current_user['User_ID'] == 119 && $f_Birthcertificates): ?>  
+          <? if($nc_b1_super && $f_Birthcertificates): ?>  
           <div class="lk-questionnaire__body-table-row">
             <div class="lk-questionnaire__body-table-cell lk-questionnaire__body-table-cell--key"><b>Свидетельство о рождении:</b></div>
             <div class="lk-questionnaire__body-table-cell lk-questionnaire__body-table-cell--value"><a  data-glightbox="" href="<?= $f_Birthcertificates; ?>"><img class="lk-questionnaire__doc-img js-lazy" data-src="<?= $f_Birthcertificates; ?>" alt=""></a></div>
           </div>
           <? endif; ?>
-          <? if($current_user['User_ID'] == 119 && $f_Another_document_Jewishness): ?>  
+          <? if($nc_b1_super && $f_Another_document_Jewishness): ?>  
           <div class="lk-questionnaire__body-table-row">
             <div class="lk-questionnaire__body-table-cell lk-questionnaire__body-table-cell--key"><b>Иной документ подтверждающий еврейство:</b></div>
             <div class="lk-questionnaire__body-table-cell lk-questionnaire__body-table-cell--value"><a  data-glightbox="" href="<?= $f_Another_document_Jewishness; ?>"><img class="lk-questionnaire__doc-img js-lazy" data-src="<?= $f_Another_document_Jewishness; ?>" alt=""></a></div>
           </div>
           <? endif; ?>
-          <? if($current_user['User_ID'] == 119 && $f_Email || $f_Shadhan_1 === $current_user['User_ID'] || $f_Shadhan_2 === $current_user['User_ID'] || $f_Shadhan_3 === $current_user['User_ID']): ?>  
+          <? if(($nc_b1_super && $f_Email) || $f_Shadhan_1 === $current_user['User_ID'] || $f_Shadhan_2 === $current_user['User_ID'] || $f_Shadhan_3 === $current_user['User_ID']): ?>  
           <div class="lk-questionnaire__body-table-row">
             <div class="lk-questionnaire__body-table-cell lk-questionnaire__body-table-cell--key"><b>Email:</b></div>
             <div class="lk-questionnaire__body-table-cell lk-questionnaire__body-table-cell--value"><?= $f_Email; ?></div>
           </div>
           <? endif; ?>
-          <? if($current_user['User_ID'] == 119 && $f_Phone || $f_Shadhan_1 === $current_user['User_ID'] || $f_Shadhan_2 === $current_user['User_ID'] || $f_Shadhan_3 === $current_user['User_ID']): ?>  
+          <? if(($nc_b1_super && $f_Phone) || $f_Shadhan_1 === $current_user['User_ID'] || $f_Shadhan_2 === $current_user['User_ID'] || $f_Shadhan_3 === $current_user['User_ID']): ?>  
           <div class="lk-questionnaire__body-table-row">
             <div class="lk-questionnaire__body-table-cell lk-questionnaire__body-table-cell--key"><b>Телефон:</b></div>
             <div class="lk-questionnaire__body-table-cell lk-questionnaire__body-table-cell--value"><?= $f_Phone; ?></div>
@@ -512,7 +514,7 @@ $nc_c_avatar = ($current_user['User_ID'] == 1 || $current_user['User_ID'] == 119
     <?= nc_objects_list($sub, $cc, $queryString); ?>
     <? endif;?>
     
-    <? if($current_user['User_ID'] == 1 || $current_user['User_ID'] == 119 || $f_User_ID === $current_user['User_ID'] || $f_Shadhan_1 === $current_user['User_ID'] || $f_Shadhan_2 === $current_user['User_ID'] || $f_Shadhan_3 === $current_user['User_ID'] || ($f_Open && !$nc_anon)): ?>
+    <? if($nc_b1_super || $f_User_ID === $current_user['User_ID'] || $f_Shadhan_1 === $current_user['User_ID'] || $f_Shadhan_2 === $current_user['User_ID'] || $f_Shadhan_3 === $current_user['User_ID'] || ($f_Open && !$nc_anon)): ?>
     <? if ($f_Photo_questionnaire->count()): ?>
     <div class="lk-questionnaire__gallery" id="sec-photos" data-sh-sec="Фото">
       <div class="lk-questionnaire__gallery-title title title--lk">Фотографии</div>
@@ -545,7 +547,7 @@ $nc_c_avatar = ($current_user['User_ID'] == 1 || $current_user['User_ID'] == 119
     
     
     
-    <? if($current_user['User_ID'] == 1 || $current_user['User_ID'] == 119): ?>
+    <? if($nc_b1_super): ?>
 <?php
     // A5: список шадханов для трёх селектов — одним запросом, а не тремя одинаковыми
     $userID = (int)$current_user['User_ID'];

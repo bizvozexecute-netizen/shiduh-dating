@@ -10,11 +10,12 @@
  * сортирует строки по data-new/data-name.
  */
 $nc_l_days = showcase_days_since($f_Created_year, $f_Created_month, $f_Created_day);
+require_once $nc_core->DOCUMENT_ROOT . '/api/admin_lib.php';
 $nc_l_uid = (int)$current_user['User_ID'];
 // B-1: фото идентифицирует — постороннему кандидату в списке показываем плейсхолдер
 $nc_l_anon = (int)$current_user['Type_id'] !== 2 && $nc_l_uid > 0 && $nc_l_uid !== (int)$f_User_ID
     && !in_array($nc_l_uid, array((int)$f_Shadhan_1, (int)$f_Shadhan_2, (int)$f_Shadhan_3), true)
-    && $nc_l_uid !== 1 && $nc_l_uid !== 119;
+    && !shiduh_is_site_admin($nc_l_uid);
 $nc_l_avatar = (!$nc_l_anon && $f_Photo_avatar) ? (string)$f_Photo_avatar->resize(96, 96)
     : ((int)$f_Gender_id === 1 ? '/images/avatar/man.png' : '/images/avatar/woman.png');
 $nc_l_link = htmlspecialchars((string)$fullLink, ENT_QUOTES);

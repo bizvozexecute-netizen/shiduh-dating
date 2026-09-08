@@ -34,7 +34,7 @@ return array(
         foreach ($FIELDS as $f) {
             list($name, $type, $format, $desc) = $f;
             // идемпотентность: пропускаем, если колонка уже есть
-            if ($db->get_var("SHOW COLUMNS FROM `Message204` LIKE '" . $db->escape($name) . "'")) {
+            if ($db->get_var("SHOW COLUMNS FROM `Message204` LIKE '" . $db->prepare($name) . "'")) {
                 continue;
             }
             $nc->component->add_field(204, array(
@@ -53,8 +53,8 @@ return array(
         $db = $nc->db;
         foreach (array_reverse($FIELDS) as $f) {
             $name = $f[0];
-            $db->query("DELETE FROM `Field` WHERE `Class_ID`=204 AND `Field_Name`='" . $db->escape($name) . "'");
-            if ($db->get_var("SHOW COLUMNS FROM `Message204` LIKE '" . $db->escape($name) . "'")) {
+            $db->query("DELETE FROM `Field` WHERE `Class_ID`=204 AND `Field_Name`='" . $db->prepare($name) . "'");
+            if ($db->get_var("SHOW COLUMNS FROM `Message204` LIKE '" . $db->prepare($name) . "'")) {
                 $db->query("ALTER TABLE `Message204` DROP COLUMN `$name`");
             }
         }

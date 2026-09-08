@@ -65,14 +65,14 @@ return array(
             $order++;
             $exists = (int)$db->get_var(
                 "SELECT COUNT(*) FROM `assessment_cases` "
-                . "WHERE `dimension_group`='" . $db->escape($group) . "' "
-                . "AND `dimension`='" . $db->escape($dim) . "'"
+                . "WHERE `dimension_group`='" . $db->prepare($group) . "' "
+                . "AND `dimension`='" . $db->prepare($dim) . "'"
             );
             if ($exists === 0) {
                 $db->query("INSERT INTO `assessment_cases` SET "
-                    . "`dimension_group`='" . $db->escape($group) . "', "
-                    . "`dimension`='" . $db->escape($dim) . "', "
-                    . "`scenario_text`='" . $db->escape($text) . "', "
+                    . "`dimension_group`='" . $db->prepare($group) . "', "
+                    . "`dimension`='" . $db->prepare($dim) . "', "
+                    . "`scenario_text`='" . $db->prepare($text) . "', "
                     . "`active`=1, `sort_order`=$order, `created_at`=NOW()");
             }
         }

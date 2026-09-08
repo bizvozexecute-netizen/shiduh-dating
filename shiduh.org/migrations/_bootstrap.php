@@ -37,16 +37,16 @@ $db->query("CREATE TABLE IF NOT EXISTS `Migrations` (
 
 function mig_applied($db, $name) {
     return (int)$db->get_var(
-        "SELECT COUNT(*) FROM `Migrations` WHERE `name`='" . $db->escape($name) . "'"
+        "SELECT COUNT(*) FROM `Migrations` WHERE `name`='" . $db->prepare($name) . "'"
     ) > 0;
 }
 
 function mig_mark($db, $name) {
-    $db->query("INSERT INTO `Migrations` SET `name`='" . $db->escape($name) . "', `applied_at`=NOW()");
+    $db->query("INSERT INTO `Migrations` SET `name`='" . $db->prepare($name) . "', `applied_at`=NOW()");
 }
 
 function mig_unmark($db, $name) {
-    $db->query("DELETE FROM `Migrations` WHERE `name`='" . $db->escape($name) . "'");
+    $db->query("DELETE FROM `Migrations` WHERE `name`='" . $db->prepare($name) . "'");
 }
 
 function mig_files() {

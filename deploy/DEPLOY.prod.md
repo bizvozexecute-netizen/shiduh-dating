@@ -39,6 +39,7 @@ tar czf webroot_$(date +%F_%H%M).tar.gz /path/to/webroot   # без netcat_files
 - `shiduh.org/js/csrf.js` — обёртка fetch/XHR, подставляет `X-CSRF-Token` (C3)
 - `shiduh.org/js/chat.js`, `js/consultant.js` — поведение чата и страницы консультанта (B2–B8, A6); `js/admin.js`, `css/one-admin.css` — общие помощники и стили админ-консоли (C8); `css/fonts.css` — @font-face фирменных шрифтов для автономных страниц без бандла (межстраница приглашения, C4)
 - `shiduh.org/css/one.css`, `shiduh.org/js/one.js` — дизайн-слой (A0). Грузятся ПОСЛЕ бандла; версия в URL считается по `filemtime`, руками бампать не нужно
+- `shiduh.org/check_birthday_candidates/{index.php,.htaccess}` — поздравления (C13, §13); `shiduh.org/migrations/{002,003,006,010,016,_bootstrap}.php` — `prepare()` вместо `escape()`; `vars.inc.php.example` — `$MYSQL_TIMEZONE`; `shiduh.org/index.html` **удалить** на проде (статическая копия главной)
 - `shiduh.org/admin-cases.php`, `admin-mailing.php`, `admin-ai-prompt.php`, `admin-ai.php` (ключ провайдера вводится здесь, C9) — все на общем каркасе `api/admin_layout.php`, плюс `admin-moderation.php`, `admin-consent.php`, `admin-matches.php` (C10–C12) с библиотеками `api/moderation_lib.php`, `api/consent_admin_lib.php`, `api/match_stats_lib.php` и эндпоинтами `api/moderation_resolve.php`, `api/consent_export.php`, `api/consent_request_mailing.php`; `api/mailing_lib.php` и `api/mailing_send.php` — очередь писем вынесена в `mailing_enqueue()`; `class/204/213/RecordTemplateFull.html` и `js/lk-card.js` — кнопка «Посмотрел» у сигнала
 - **`shiduh.org/vars.inc.php`** — НЕ в git (секреты). На сервере правится руками:
   сверьте с `vars.inc.php.example` значение `$ADMIN_AUTHTIME` (30 суток вместо года, B-4)
@@ -267,7 +268,7 @@ uvicorn --factory rag.service.app:get_app --host 127.0.0.1 --port 8100
 
 - **EN-шаблоны отстают (I-10).** Часть новых блоков продублирована в EN-копии (238), часть — нет. При выкатке англоязычная витрина/карточка может не иметь отдельных ИИ-блоков. Полное сведение RU/EN — задача I-10.
 - **Захардкоженный `https://shiduh.org`** в письмах и редиректах (AUDIT №16а) — на другом домене работать не будет без правки.
-- **Cron рассылок** (дни рождения, очередь писем) на проде — отдельная настройка; локально cron намеренно не запущен (I-4).
+- **Cron рассылок** (очередь писем `mailer.php`) на проде — отдельная настройка; локально cron намеренно не запущен (I-4). Поздравления с днём рождения — см. §13.
 
 ---
 
@@ -299,3 +300,15 @@ uvicorn --factory rag.service.app:get_app --host 127.0.0.1 --port 8100
 **Эндпоинты.** Каждый `api/*.php` вызывает `shiduh_bootstrap_api()` до загрузки ядра: фатал
 внутри `include` теперь отдаёт JSON 500 без подробностей (раньше — пустой ответ 200 из-за
 `ob_start()` ядра), подробности уходят в лог.
+
+## 13. Cron поздравлений (C13)
+
+Задача планировщика NetCat на `check_birthday_candidates` удаляется миграцией 027 (она стояла «каждую минуту» по несуществующему адресу и не имела дедупликации). Вместо неё — системный cron раз в день от пользователя веб-сервера:
+
+```
+0 9 * * *  php /path/webroot/check_birthday_candidates/index.php >> /var/log/shiduh-birthday.log 2>&1
+```
+
+Скрипт работает только из CLI (по HTTP — 403, каталог закрыт `.htaccess`), шлёт по одному письму в год кандидату и каждому ведущему шадхану, пишет итог в лог канала `[cron]`. Повторный запуск в тот же день ничего не дублирует.
+
+**Часы.** В `vars.inc.php` задайте `$MYSQL_TIMEZONE = "+03:00";` (как в `vars.inc.php.example`): ядро выполняет `SET TIME_ZONE`, и `NOW()` в базе совпадает с PHP. Без этого «сегодня» у скрипта и у базы могут быть разными днями. PHP при этом должен жить в том же поясе (`date.timezone = Europe/Moscow` в php.ini/.htaccess). Если базой пользуются и из консоли/cron-скриптов SQL, задайте тот же пояс серверу (`default-time-zone = '+03:00'` в my.cnf, как в `docker/mysql/my.cnf` стенда) — иначе окна «за последний час» из консоли и из PHP считаются по-разному.

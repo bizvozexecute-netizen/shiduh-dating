@@ -37,6 +37,9 @@ $MYSQL_DB_NAME = getenv("NC_MYSQL_DB_NAME") ?: "shiduh_org";
 $MYSQL_PORT = getenv("NC_MYSQL_PORT") ?: "3306";
 $MYSQL_SOCKET = getenv("NC_MYSQL_SOCKET") ?: "";
 $MYSQL_CHARSET = "utf8";
+// C13: часы MySQL и PHP должны совпадать (даты «сегодня», NOW() в записях);
+// ядро само делает SET TIME_ZONE (nc_db.class.php), если переменная задана
+$MYSQL_TIMEZONE = getenv("NC_MYSQL_TIMEZONE") ?: "+03:00";
 $MYSQL_ENCRYPT = "MD5";
 
 if ($MYSQL_PASSWORD === false || $MYSQL_PASSWORD === "") {

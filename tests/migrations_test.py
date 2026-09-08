@@ -271,6 +271,13 @@ class TestUp:
         fmt = dbq("SELECT Format FROM Field WHERE Field_ID=648")
         assert fmt.startswith("10485760:image/*"), "формат поля фото без лимита: " + fmt[:40]
 
+    def test_broken_birthday_cron_task_removed(self):
+        # миграция 027 (C13): задача планировщика «каждую минуту» по несуществующему адресу
+        assert dbq("SELECT COUNT(*) FROM `CronTasks` WHERE Cron_Script_URL LIKE '%check_birthday_candidates%'") == "0", \
+            "сломанная задача CronTasks осталась"
+        code, out = migrate("status")
+        assert "027_disable_broken_cron_task" in out, out
+
     def test_auth_password_rules(self):
         # миграция 026 (A2): минимум пароля 8 в обоих каталогах, согласие обязательно
         rows = dbq("SELECT Catalogue_ID, Value FROM `Settings` WHERE Module='auth' AND `Key`='pass_min' ORDER BY 1")

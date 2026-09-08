@@ -159,6 +159,17 @@ function shiduh_setting($module, $key, $default = '') {
 // настроек (ai_settings_lib) и проверку прав.
 define('SHIDUH_SUPERADMIN_DEFAULT', '1,119,43');
 
+/*
+ * Администраторы сайта в карточках анкет (полный просмотр, контакты, документы):
+ * исторически 1 и 119. Отдельно от superadmin_ids (там ещё 43, шадхан из
+ * шаблонов 183) — расширять доступ к документам без запроса заказчика нельзя.
+ */
+define('SHIDUH_SITE_ADMIN_DEFAULT', '1,119');
+function shiduh_is_site_admin($uid) {
+    $ids = (string)shiduh_setting('security', 'site_admin_ids', SHIDUH_SITE_ADMIN_DEFAULT);
+    return in_array((int)$uid, array_map('intval', explode(',', $ids)), true);
+}
+
 function shiduh_is_superadmin($uid) {
     $ids = (string)shiduh_setting('security', 'superadmin_ids', SHIDUH_SUPERADMIN_DEFAULT);
     return in_array((int)$uid, array_map('intval', explode(',', $ids)), true);
