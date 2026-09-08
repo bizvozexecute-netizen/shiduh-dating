@@ -1,0 +1,8 @@
+<?php
+// В админке NetCat (iframe без стилей и скриптов кабинета) — штатная форма ядра.
+if (!empty($inside_admin) || !empty($admin_mode)) { require $ROOT_FOLDER . 'message_edit.php'; return; }
+// A7: после отказа EditCond без nc_ctpl ядро рисует корневой EditTemplate —
+// показываем тот же мастер, что и в кабинете (шаблон 206).
+$nc_af_ctpl_id = 206;
+require $nc_core->DOCUMENT_ROOT . '/api/anketa_edit_form.inc.php';
+?>

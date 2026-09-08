@@ -1,0 +1,8 @@
+<?php
+// В админке NetCat (iframe без стилей и скриптов кабинета) — штатная форма ядра.
+if (!empty($inside_admin) || !empty($admin_mode)) { require $ROOT_FOLDER . 'message_edit.php'; return; }
+// A7: форма правки — api/anketa_edit_form.inc.php (общая для страницы кабинета
+// и для повторного показа после отказа EditCond).
+$nc_af_ctpl_id = 206;
+require $nc_core->DOCUMENT_ROOT . '/api/anketa_edit_form.inc.php';
+?>

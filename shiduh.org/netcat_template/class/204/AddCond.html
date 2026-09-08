@@ -1,0 +1,50 @@
+<?php
+/*
+ * Проверка анкеты кандидата до записи (этап «До идеала», A7). Ядро включает
+ * этот файл из add.php ДО message_fields.php: $posting = 0 отменяет запись,
+ * $warnText печатается вверху формы, $nc_sh_errors — у полей, а
+ * $nc_sh_open_step говорит мастеру, какой шаг открыть.
+ *
+ * Общая для всех шаблонов добавления класса 204 (209 — кабинет шадхана,
+ * 240 — английская копия): подшаблоны подключают этот файл, иначе POST с
+ * их cc обошёл бы проверку. Правила — в api/anketa_validate_lib.php.
+ */
+require_once $nc_core->DOCUMENT_ROOT . '/api/anketa_validate_lib.php';
+
+// $_POST — сырые значения (глобалы $f_* со слэшами, эмуляция magic quotes)
+$nc_sh_errors = anketa_validate($_POST, 'add');
+$nc_sh_open_step = 0;
+
+/*
+ * Дата рождения: мастер шлёт три скрытые части, без JS приходит одно поле
+ * type="date". Ядро собирает DATETIME из глобалов $f_Date_of_birth_*
+ * (message_fields.php), а message_put.php пишет поле, только если части
+ * есть в $_REQUEST — заполняем и то и другое.
+ */
+$nc_sh_dob = anketa_dob_from_post($_POST);
+if (is_array($nc_sh_dob)) {
+    $f_Date_of_birth_year  = $nc_sh_dob[0];
+    $f_Date_of_birth_month = $nc_sh_dob[1];
+    $f_Date_of_birth_day   = $nc_sh_dob[2];
+    $f_Date_of_birth_hours = $f_Date_of_birth_minutes = $f_Date_of_birth_seconds = 0;
+    foreach (array('day' => $nc_sh_dob[2], 'month' => $nc_sh_dob[1], 'year' => $nc_sh_dob[0]) as $nc_sh_k => $nc_sh_v) {
+        $_REQUEST['f_Date_of_birth_' . $nc_sh_k] = $_POST['f_Date_of_birth_' . $nc_sh_k] = (string)$nc_sh_v;
+    }
+}
+
+if ($nc_sh_errors) {
+    $posting = 0;
+    $warnText = 'Проверьте заполнение анкеты: ошибки отмечены у полей.';
+    $nc_sh_open_step = anketa_errors_step($nc_sh_errors);
+    /*
+     * Форма рисуется из глобалов запроса — со слэшами (эмуляция magic
+     * quotes). add.php снимает их только у переменных, упомянутых в самом
+     * AddTemplate.html, а поля печатает api/anketa_form.inc.php — возвращаем
+     * сырые значения сами.
+     */
+    foreach ($_POST as $nc_sh_k => $nc_sh_v) {
+        if (strpos($nc_sh_k, 'f_') === 0 && is_string($nc_sh_v)) {
+            $$nc_sh_k = $nc_sh_v;
+        }
+    }
+}

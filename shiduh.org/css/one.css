@@ -1784,6 +1784,62 @@
   .sh-subnav__link, .lk-match__rec { transition: none; }
 }
 
+/* ============================== §wizard =================================
+   Мастер анкеты (A7): семь шагов одной формы. Шаги — секции с data-sh-step,
+   скрипт прячет их атрибутом hidden; без JS видны все. Ниже — только то,
+   чего нет в бандле: навигация шагов, ошибки у полей, сводка, черновик. */
+.sh-wizard .form__body { display: block; margin-bottom: 0; }
+.sh-wizard .form__body-section { border-bottom: 0; padding: var(--sh-s-6) 0; }
+.sh-wizard .form__body-title { text-transform: none; font: 400 var(--sh-fs-h3) / 1.25 var(--sh-font-display); color: var(--sh-ink); margin-bottom: var(--sh-s-5); outline: none; }
+.sh-wizard .form__body-title:focus-visible { box-shadow: none; }
+.sh-wizard .form__item-name { text-transform: none; font-size: var(--sh-fs-sm); margin-bottom: var(--sh-s-2); }
+.sh-wizard .form__input, .sh-wizard .form__textarea { height: auto; min-height: 52px; }
+/* обёртка списка бандла несёт верхний отступ ~19px — поле уезжало ниже соседнего */
+.sh-wizard .form__item > .select, .sh-wizard .form__item > .form__select { margin-top: 0; }
+.sh-wizard input[type="date"].form__input { -webkit-appearance: none; appearance: none; }
+.sh-wizard .form__item.is-invalid .form__input,
+.sh-wizard .form__item.is-invalid .form__textarea,
+.sh-wizard .form__item.is-invalid .select__el { border-color: var(--sh-err-ink); }
+.sh-wizard .sh-field__error { margin-top: 6px; }
+.sh-wizard .sh-field__hint { margin-top: 4px; }
+.sh-wizard__lead { color: var(--sh-ink-2); margin: 0 0 var(--sh-s-4); max-width: var(--sh-measure); }
+
+.sh-wizard__nav { position: sticky; top: var(--sh-header-h, 0px); z-index: var(--sh-z-sticky); background: rgba(255, 255, 255, .94); -webkit-backdrop-filter: blur(8px); backdrop-filter: blur(8px); padding: var(--sh-s-3) 0; margin-bottom: var(--sh-s-2); }
+.sh-wizard__count { margin: 0 0 var(--sh-s-2); font-size: var(--sh-fs-sm); color: var(--sh-ink-2); }
+.sh-wizard__nav .sh-progress { margin-bottom: var(--sh-s-3); }
+.sh-wizard__nav .sh-stepper { margin: 0; }
+.sh-stepper__btn { all: unset; cursor: pointer; }
+.sh-stepper__btn:focus-visible { outline: 2px solid var(--sh-gold); outline-offset: 2px; border-radius: var(--sh-r-pill); }
+.sh-stepper__item--current .sh-stepper__btn { cursor: default; }
+
+.sh-wizard__actions { display: flex; gap: var(--sh-s-3); justify-content: space-between; padding: var(--sh-s-4) 0 0; }
+.sh-wizard__actions .sh-wizard__next { margin-left: auto; }
+.sh-wizard__footer { border-top: 0; padding-top: var(--sh-s-4); }
+
+.sh-consent { grid-column: 1 / -1; background: var(--sh-cream-2); border: 1px solid var(--sh-sand); border-radius: var(--sh-r-m); padding: var(--sh-s-4) var(--sh-s-5); }
+.sh-consent .checkbox__text { font-size: var(--sh-fs-sm); line-height: 1.5; }
+.sh-consent__intro, .sh-consent__points { font-size: var(--sh-fs-sm); line-height: 1.6; color: var(--sh-ink-2); margin: var(--sh-s-3) 0 0; }
+.sh-consent__points { padding-left: 18px; }
+.sh-consent__stamp { font-size: var(--sh-fs-xs); color: var(--sh-ink-2); margin-top: var(--sh-s-2); }
+
+.sh-summary { display: grid; grid-template-columns: 1fr; gap: 6px; margin: 0; }
+.sh-summary__step { margin-top: var(--sh-s-4); font: 400 var(--sh-fs-body) / 1.3 var(--sh-font-display); }
+.sh-summary__step:first-child { margin-top: 0; }
+.sh-summary__row { display: grid; grid-template-columns: minmax(140px, 1fr) 2fr; gap: var(--sh-s-3); margin: 0; padding: 6px 0; border-bottom: 1px solid var(--sh-line); font-size: var(--sh-fs-sm); }
+.sh-summary__key { color: var(--sh-ink-2); }
+.sh-summary__value { overflow-wrap: anywhere; }
+.sh-wizard__draft { display: flex; flex-wrap: wrap; gap: var(--sh-s-3); align-items: center; margin-bottom: var(--sh-s-4); }
+
+.sh-lk-links { display: flex; gap: var(--sh-s-5); border-bottom: 1px solid var(--sh-line); padding-bottom: var(--sh-s-4); margin-bottom: var(--sh-s-2); }
+.sh-lk-links__item { color: var(--sh-ink-2); font-size: var(--sh-fs-body); }
+.sh-lk-links__item.is-active { color: var(--sh-ink); font-weight: 500; }
+
+@media (max-width: 767.98px) {
+  .sh-wizard__nav .sh-stepper { display: none; }
+  .sh-wizard__actions { position: sticky; bottom: 0; background: rgba(255, 255, 255, .94); padding: var(--sh-s-3) 0; }
+  .sh-summary__row { grid-template-columns: 1fr; gap: 2px; }
+}
+
 /* ============================== §public =================================
    Публичные экраны (A2.2): шапка, лендинг, меню, подвал. Всё поверх
    бандла тем же селектором; движение — только transform/opacity.        */

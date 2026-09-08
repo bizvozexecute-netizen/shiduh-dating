@@ -1,0 +1,7 @@
+<?php
+// В админке NetCat (iframe без стилей и скриптов кабинета) — штатная форма ядра.
+if (!empty($inside_admin) || !empty($admin_mode)) { require $ROOT_FOLDER . 'message_edit.php'; return; }
+// A7: форма добавления шлёт cc=22 (зеркало), и после отказа AddCond ядро
+// рисует корневой AddTemplate — тот же мастер, что у шадхана (шаблон 209).
+require dirname(__FILE__) . '/209/AddTemplate.html';
+?>

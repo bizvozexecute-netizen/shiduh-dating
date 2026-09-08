@@ -1,0 +1,55 @@
+<?php
+/*
+ * Проверка анкеты при правке (этап «До идеала», A7). Ядро включает файл из
+ * message.php ДО message_put.php: $posting = 0 отменяет запись, форма
+ * печатает $warnText вверху и $nc_sh_errors у полей, мастер открывает шаг
+ * $nc_sh_open_step.
+ *
+ * Правка идёт с partial=1 — проверяются только присланные поля: формы
+ * выбора шадхана (217/247) и загрузка файла отдельным запросом шлют
+ * несколько полей и не должны споткнуться об «обязательное имя».
+ * Общая для подшаблонов класса 204 (206 — кабинет, 239 — английская
+ * копия): они подключают этот файл. Правила — api/anketa_validate_lib.php.
+ */
+require_once $nc_core->DOCUMENT_ROOT . '/api/anketa_validate_lib.php';
+
+$nc_sh_errors = anketa_validate($_POST, 'edit');
+$nc_sh_open_step = 0;
+
+// см. AddCond.html: части даты — и в глобалы, и в $_REQUEST
+$nc_sh_dob = anketa_dob_from_post($_POST);
+if (is_array($nc_sh_dob)) {
+    $f_Date_of_birth_year  = $nc_sh_dob[0];
+    $f_Date_of_birth_month = $nc_sh_dob[1];
+    $f_Date_of_birth_day   = $nc_sh_dob[2];
+    $f_Date_of_birth_hours = $f_Date_of_birth_minutes = $f_Date_of_birth_seconds = 0;
+    foreach (array('day' => $nc_sh_dob[2], 'month' => $nc_sh_dob[1], 'year' => $nc_sh_dob[0]) as $nc_sh_k => $nc_sh_v) {
+        $_REQUEST['f_Date_of_birth_' . $nc_sh_k] = $_POST['f_Date_of_birth_' . $nc_sh_k] = (string)$nc_sh_v;
+    }
+}
+
+if ($nc_sh_errors) {
+    $posting = 0;
+    $warnText = 'Проверьте заполнение анкеты: ошибки отмечены у полей.';
+    $nc_sh_open_step = anketa_errors_step($nc_sh_errors);
+
+    /*
+     * При отказе ядро не перечитывает строку из базы (posting задан) и
+     * рисует форму из глобалов запроса: со слэшами (в файловом режиме
+     * message.php их не снимает) и без полей, которых в форме нет.
+     * Возвращаем сырые значения и подтягиваем то, что форма показывает,
+     * но не редактирует.
+     */
+    foreach ($_POST as $nc_sh_k => $nc_sh_v) {
+        if (strpos($nc_sh_k, 'f_') === 0 && is_string($nc_sh_v)) {
+            $$nc_sh_k = $nc_sh_v;
+        }
+    }
+    $nc_sh_row = $db->get_row("SELECT `Message_ID`, `User_ID`, `Checked`, `Shadhan_1`, `Shadhan_2`, `Shadhan_3`, "
+        . "`Consent_sensitive_at`, `Consent_sensitive_version` FROM `Message204` WHERE `Message_ID` = " . (int)$message, ARRAY_A);
+    if ($nc_sh_row) {
+        foreach ($nc_sh_row as $nc_sh_k => $nc_sh_v) {
+            ${'f_' . $nc_sh_k} = $nc_sh_v;
+        }
+    }
+}

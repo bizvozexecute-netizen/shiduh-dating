@@ -261,7 +261,8 @@ def test_avatar_accept_offers_only_images():
     (Class.html — источник склейки, RecordTemplate — часть)."""
     import glob
     files = (glob.glob(os.path.join(ROOT, "shiduh.org", "netcat_template", "class", "204", "**", "*.html"), recursive=True)
-             + glob.glob(os.path.join(ROOT, "shiduh.org", "netcat_template", "class", "netcat_module_auth_user", "**", "*.html"), recursive=True))
+             + glob.glob(os.path.join(ROOT, "shiduh.org", "netcat_template", "class", "netcat_module_auth_user", "**", "*.html"), recursive=True)
+             + [os.path.join(ROOT, "shiduh.org", "api", "anketa_form.inc.php")])  # A7: общая форма анкеты
     seen = 0
     for path in files:
         src = open(path, encoding="utf-8").read()

@@ -6,7 +6,11 @@
    отметку и стираем поле здоровья (в т.ч. заполненное раньше).
    Правило и текст — в одном месте: api/consent_lib.php. */
 require_once $nc_core->DOCUMENT_ROOT . '/api/consent_lib.php';
-consent_apply($nc_core->db, (int)$message, !empty($_POST['f_Consent_sensitive']));
+// A7: формы с partial=1 (выбор шадхана, загрузка файла) не несут галочку —
+// решение о согласии принимается только когда поле было в форме
+if (array_key_exists('f_Consent_sensitive', $_POST)) {
+    consent_apply($nc_core->db, (int)$message, !empty($_POST['f_Consent_sensitive']));
+}
 /* C5. Ядро проверило только заявленный клиентом MIME; здесь — реальные байты:
    фото обязано быть картинкой, документ — картинкой или PDF. Иначе файл
    удаляется, поле обнуляется. */
