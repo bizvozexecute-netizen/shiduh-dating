@@ -5,7 +5,7 @@ $arrayMonth = array("января", "февраля", "марта", "апрел�
 
 <div class="news-item appearance-container main-news__item <?= ($f_RowID == $begRow) ? 'news-item--large' : ''; ?>">
                 <div class="news-item__wrapper appearance">
-                  <a class="news-item__head" href="<?=$fullLink?>" title="">
+                  <a class="news-item__head" tabindex="-1" aria-hidden="true" href="<?=$fullLink?>" title="">
                     <?= ($f_RowID == $begRow) ? '<span class="news-item__badge">Главное</span>' : ''; ?>
                     <img class="news-item__img js-lazy" data-src="<?= $f_RowID == $begRow ? $f_newsImage->resize(773, 773) : $f_newsImage->resize(370, 370) ?>" alt="">
                   </a>

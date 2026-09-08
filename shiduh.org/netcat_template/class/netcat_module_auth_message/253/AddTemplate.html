@@ -24,9 +24,9 @@ if (!$inside_admin && $to_user && $uid != $current_user['User_ID'] && $nc_core->
     <?= $nc_core->token->get_input() ?>
  <input type='hidden' name='f_Subject' class='text' tabindex='1' value='Написать админу' />
               <div class="form__body">
-                <input class="form__input" type="text" placeholder="Ваше ФИО" required name="f_name">
+                <input class="form__input" type="text" placeholder="Ваше ФИО" required name="f_name" aria-label="Ваше ФИО" aria-label="Ваше ФИО">
                 
-                <textarea class="form__textarea" placeholder="Текст сообщения" name="f_Message"></textarea>
+                <textarea class="form__textarea" placeholder="Текст сообщения" name="f_Message" aria-label="Текст сообщения" aria-label="Текст сообщения"></textarea>
               </div>
               <div class="form__footer">
                 

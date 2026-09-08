@@ -42,7 +42,7 @@ $arrayMonth = array("января", "февраля", "марта", "апрел�
 
 <div class="news-item news__item pagination-list__item <?= $f_mainNews ? 'news__item--large news-item--large pagination-list__item--large' : ''; ?>">
   <div class="news-item__wrapper ">
-    <a class="news-item__head" href="<?=$fullLink?>" title="">
+    <a class="news-item__head" tabindex="-1" aria-hidden="true" href="<?=$fullLink?>" title="">
       <?= $f_mainNews ? '<span class="news-item__badge">Главное</span>' : ''; ?>
       <img class="news-item__img js-lazy" data-src="<?= $f_mainNews ? $f_newsImage->resize(773, 773) : $f_newsImage->resize(370, 370) ?>" alt="">
     </a>

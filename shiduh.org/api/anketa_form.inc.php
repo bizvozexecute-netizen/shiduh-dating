@@ -242,146 +242,146 @@ $nc_af_step = function ($n, $title, $id) {
               </div>
               <div class="form__item-family-list">
                 <div class="form__item-family-item form__item-family-item--father form__item-family-item--hidden">
-                  <input class="form__input " id="personal_family_structure_father" name="f_Personal_family_structure_father" value="<?= anketa_v($f_Personal_family_structure_father) ?>" maxlength="255" size="50" type="text" placeholder="Введите имя Папы">
+                  <input class="form__input " id="personal_family_structure_father" name="f_Personal_family_structure_father" value="<?= anketa_v($f_Personal_family_structure_father) ?>" maxlength="255" size="50" type="text" placeholder="Введите имя Папы" aria-label="Введите имя Папы">
                 </div>
                 <div class="form__item-family-item form__item-family-item--mother form__item-family-item--hidden">
-                  <input class="form__input " id="personal_family_structure_mother" name="f_Personal_family_structure_mother" value="<?= anketa_v($f_Personal_family_structure_mother) ?>" maxlength="255" size="50" type="text" placeholder="Введите имя Мамы">
+                  <input class="form__input " id="personal_family_structure_mother" name="f_Personal_family_structure_mother" value="<?= anketa_v($f_Personal_family_structure_mother) ?>" maxlength="255" size="50" type="text" placeholder="Введите имя Мамы" aria-label="Введите имя Мамы">
                 </div>
                 <div class="form__item-family-item form__item-family-item--brother form__item-family-item--hidden">
-                  <input class="form__input " id="personal_family_structure_brother-1" name="f_Personal_family_structure_brother_1" value="<?= anketa_v($f_Personal_family_structure_brother_1) ?>" maxlength="255" size="50" type="text" placeholder="Введите имя Брата">
-                  <div class="form__item-family-item-btn-wrapper">
-                    <button class="form__item-family-item-btn form__item-family-item-btn--remove" type="button">-</button>
-                    <button class="form__item-family-item-btn form__item-family-item-btn--add" type="button">+</button>
-                  </div>
-                </div>
-                <div class="form__item-family-item form__item-family-item--brother form__item-family-item--hidden">
-                  <input class="form__input " id="personal_family_structure_brother-2" name="f_Personal_family_structure_brother_2" value="<?= anketa_v($f_Personal_family_structure_brother_2) ?>" maxlength="255" size="50" type="text" placeholder="Введите имя Брата 2">
+                  <input class="form__input " id="personal_family_structure_brother-1" name="f_Personal_family_structure_brother_1" value="<?= anketa_v($f_Personal_family_structure_brother_1) ?>" maxlength="255" size="50" type="text" placeholder="Введите имя Брата" aria-label="Введите имя Брата">
                   <div class="form__item-family-item-btn-wrapper">
                     <button class="form__item-family-item-btn form__item-family-item-btn--remove" type="button">-</button>
                     <button class="form__item-family-item-btn form__item-family-item-btn--add" type="button">+</button>
                   </div>
                 </div>
                 <div class="form__item-family-item form__item-family-item--brother form__item-family-item--hidden">
-                  <input class="form__input " id="personal_family_structure_brother-3" name="f_Personal_family_structure_brother_3" value="<?= anketa_v($f_Personal_family_structure_brother_3) ?>" maxlength="255" size="50" type="text" placeholder="Введите имя Брата 3">
+                  <input class="form__input " id="personal_family_structure_brother-2" name="f_Personal_family_structure_brother_2" value="<?= anketa_v($f_Personal_family_structure_brother_2) ?>" maxlength="255" size="50" type="text" placeholder="Введите имя Брата 2" aria-label="Введите имя Брата 2">
                   <div class="form__item-family-item-btn-wrapper">
                     <button class="form__item-family-item-btn form__item-family-item-btn--remove" type="button">-</button>
                     <button class="form__item-family-item-btn form__item-family-item-btn--add" type="button">+</button>
                   </div>
                 </div>
                 <div class="form__item-family-item form__item-family-item--brother form__item-family-item--hidden">
-                  <input class="form__input " id="personal_family_structure_brother-4" name="f_Personal_family_structure_brother_4" value="<?= anketa_v($f_Personal_family_structure_brother_4) ?>" maxlength="255" size="50" type="text" placeholder="Введите имя Брата 4">
+                  <input class="form__input " id="personal_family_structure_brother-3" name="f_Personal_family_structure_brother_3" value="<?= anketa_v($f_Personal_family_structure_brother_3) ?>" maxlength="255" size="50" type="text" placeholder="Введите имя Брата 3" aria-label="Введите имя Брата 3">
                   <div class="form__item-family-item-btn-wrapper">
                     <button class="form__item-family-item-btn form__item-family-item-btn--remove" type="button">-</button>
                     <button class="form__item-family-item-btn form__item-family-item-btn--add" type="button">+</button>
                   </div>
                 </div>
                 <div class="form__item-family-item form__item-family-item--brother form__item-family-item--hidden">
-                  <input class="form__input " id="personal_family_structure_brother-5" name="f_Personal_family_structure_brother_5" value="<?= anketa_v($f_Personal_family_structure_brother_5) ?>" maxlength="255" size="50" type="text" placeholder="Введите имя Брата 5">
+                  <input class="form__input " id="personal_family_structure_brother-4" name="f_Personal_family_structure_brother_4" value="<?= anketa_v($f_Personal_family_structure_brother_4) ?>" maxlength="255" size="50" type="text" placeholder="Введите имя Брата 4" aria-label="Введите имя Брата 4">
                   <div class="form__item-family-item-btn-wrapper">
                     <button class="form__item-family-item-btn form__item-family-item-btn--remove" type="button">-</button>
                     <button class="form__item-family-item-btn form__item-family-item-btn--add" type="button">+</button>
                   </div>
                 </div>
                 <div class="form__item-family-item form__item-family-item--brother form__item-family-item--hidden">
-                  <input class="form__input " id="personal_family_structure_brother-6" name="f_Personal_family_structure_brother_6" value="<?= anketa_v($f_Personal_family_structure_brother_6) ?>" maxlength="255" size="50" type="text" placeholder="Введите имя Брата 6">
+                  <input class="form__input " id="personal_family_structure_brother-5" name="f_Personal_family_structure_brother_5" value="<?= anketa_v($f_Personal_family_structure_brother_5) ?>" maxlength="255" size="50" type="text" placeholder="Введите имя Брата 5" aria-label="Введите имя Брата 5">
                   <div class="form__item-family-item-btn-wrapper">
                     <button class="form__item-family-item-btn form__item-family-item-btn--remove" type="button">-</button>
                     <button class="form__item-family-item-btn form__item-family-item-btn--add" type="button">+</button>
                   </div>
                 </div>
                 <div class="form__item-family-item form__item-family-item--brother form__item-family-item--hidden">
-                  <input class="form__input " id="personal_family_structure_brother-7" name="f_Personal_family_structure_brother_7" value="<?= anketa_v($f_Personal_family_structure_brother_7) ?>" maxlength="255" size="50" type="text" placeholder="Введите имя Брата 7">
+                  <input class="form__input " id="personal_family_structure_brother-6" name="f_Personal_family_structure_brother_6" value="<?= anketa_v($f_Personal_family_structure_brother_6) ?>" maxlength="255" size="50" type="text" placeholder="Введите имя Брата 6" aria-label="Введите имя Брата 6">
                   <div class="form__item-family-item-btn-wrapper">
                     <button class="form__item-family-item-btn form__item-family-item-btn--remove" type="button">-</button>
                     <button class="form__item-family-item-btn form__item-family-item-btn--add" type="button">+</button>
                   </div>
                 </div>
                 <div class="form__item-family-item form__item-family-item--brother form__item-family-item--hidden">
-                  <input class="form__input " id="personal_family_structure_brother-8" name="f_Personal_family_structure_brother_8" value="<?= anketa_v($f_Personal_family_structure_brother_8) ?>" maxlength="255" size="50" type="text" placeholder="Введите имя Брата 8">
+                  <input class="form__input " id="personal_family_structure_brother-7" name="f_Personal_family_structure_brother_7" value="<?= anketa_v($f_Personal_family_structure_brother_7) ?>" maxlength="255" size="50" type="text" placeholder="Введите имя Брата 7" aria-label="Введите имя Брата 7">
                   <div class="form__item-family-item-btn-wrapper">
                     <button class="form__item-family-item-btn form__item-family-item-btn--remove" type="button">-</button>
                     <button class="form__item-family-item-btn form__item-family-item-btn--add" type="button">+</button>
                   </div>
                 </div>
                 <div class="form__item-family-item form__item-family-item--brother form__item-family-item--hidden">
-                  <input class="form__input " id="personal_family_structure_brother-9" name="f_Personal_family_structure_brother_9" value="<?= anketa_v($f_Personal_family_structure_brother_9) ?>" maxlength="255" size="50" type="text" placeholder="Введите имя Брата 9">
+                  <input class="form__input " id="personal_family_structure_brother-8" name="f_Personal_family_structure_brother_8" value="<?= anketa_v($f_Personal_family_structure_brother_8) ?>" maxlength="255" size="50" type="text" placeholder="Введите имя Брата 8" aria-label="Введите имя Брата 8">
                   <div class="form__item-family-item-btn-wrapper">
                     <button class="form__item-family-item-btn form__item-family-item-btn--remove" type="button">-</button>
                     <button class="form__item-family-item-btn form__item-family-item-btn--add" type="button">+</button>
                   </div>
                 </div>
                 <div class="form__item-family-item form__item-family-item--brother form__item-family-item--hidden">
-                  <input class="form__input " id="personal_family_structure_brother-10" name="f_Personal_family_structure_brother_10" value="<?= anketa_v($f_Personal_family_structure_brother_10) ?>" maxlength="255" size="50" type="text" placeholder="Введите имя Брата 10">
+                  <input class="form__input " id="personal_family_structure_brother-9" name="f_Personal_family_structure_brother_9" value="<?= anketa_v($f_Personal_family_structure_brother_9) ?>" maxlength="255" size="50" type="text" placeholder="Введите имя Брата 9" aria-label="Введите имя Брата 9">
+                  <div class="form__item-family-item-btn-wrapper">
+                    <button class="form__item-family-item-btn form__item-family-item-btn--remove" type="button">-</button>
+                    <button class="form__item-family-item-btn form__item-family-item-btn--add" type="button">+</button>
+                  </div>
+                </div>
+                <div class="form__item-family-item form__item-family-item--brother form__item-family-item--hidden">
+                  <input class="form__input " id="personal_family_structure_brother-10" name="f_Personal_family_structure_brother_10" value="<?= anketa_v($f_Personal_family_structure_brother_10) ?>" maxlength="255" size="50" type="text" placeholder="Введите имя Брата 10" aria-label="Введите имя Брата 10">
                   <div class="form__item-family-item-btn-wrapper">
                     <button class="form__item-family-item-btn form__item-family-item-btn--remove" type="button">-</button>
                     <button class="form__item-family-item-btn form__item-family-item-btn--add" type="button">+</button>
                   </div>
                 </div>
                 <div class="form__item-family-item form__item-family-item--sister form__item-family-item--hidden">
-                  <input class="form__input " id="personal_family_structure_sister-1" name="f_Personal_family_structure_sister_1" value="<?= anketa_v($f_Personal_family_structure_sister_1) ?>" maxlength="255" size="50" type="text" placeholder="Введите имя Сестры">
+                  <input class="form__input " id="personal_family_structure_sister-1" name="f_Personal_family_structure_sister_1" value="<?= anketa_v($f_Personal_family_structure_sister_1) ?>" maxlength="255" size="50" type="text" placeholder="Введите имя Сестры" aria-label="Введите имя Сестры">
                   <div class="form__item-family-item-btn-wrapper">
                     <button class="form__item-family-item-btn form__item-family-item-btn--remove" type="button">-</button>
                     <button class="form__item-family-item-btn form__item-family-item-btn--add" type="button">+</button>
                   </div>
                 </div>
                 <div class="form__item-family-item form__item-family-item--sister form__item-family-item--hidden">
-                  <input class="form__input " id="personal_family_structure_sister-2" name="f_Personal_family_structure_sister_2" value="<?= anketa_v($f_Personal_family_structure_sister_2) ?>" maxlength="255" size="50" type="text" placeholder="Введите имя Сестры 2">
+                  <input class="form__input " id="personal_family_structure_sister-2" name="f_Personal_family_structure_sister_2" value="<?= anketa_v($f_Personal_family_structure_sister_2) ?>" maxlength="255" size="50" type="text" placeholder="Введите имя Сестры 2" aria-label="Введите имя Сестры 2">
                   <div class="form__item-family-item-btn-wrapper">
                     <button class="form__item-family-item-btn form__item-family-item-btn--remove" type="button">-</button>
                     <button class="form__item-family-item-btn form__item-family-item-btn--add" type="button">+</button>
                   </div>
                 </div>
                 <div class="form__item-family-item form__item-family-item--sister form__item-family-item--hidden">
-                  <input class="form__input " id="personal_family_structure_sister-3" name="f_Personal_family_structure_sister_3" value="<?= anketa_v($f_Personal_family_structure_sister_3) ?>" maxlength="255" size="50" type="text" placeholder="Введите имя Сестры 3">
+                  <input class="form__input " id="personal_family_structure_sister-3" name="f_Personal_family_structure_sister_3" value="<?= anketa_v($f_Personal_family_structure_sister_3) ?>" maxlength="255" size="50" type="text" placeholder="Введите имя Сестры 3" aria-label="Введите имя Сестры 3">
                   <div class="form__item-family-item-btn-wrapper">
                     <button class="form__item-family-item-btn form__item-family-item-btn--remove" type="button">-</button>
                     <button class="form__item-family-item-btn form__item-family-item-btn--add" type="button">+</button>
                   </div>
                 </div>
                 <div class="form__item-family-item form__item-family-item--sister form__item-family-item--hidden">
-                  <input class="form__input " id="personal_family_structure_sister-4" name="f_Personal_family_structure_sister_4" value="<?= anketa_v($f_Personal_family_structure_sister_4) ?>" maxlength="255" size="50" type="text" placeholder="Введите имя Сестры 4">
+                  <input class="form__input " id="personal_family_structure_sister-4" name="f_Personal_family_structure_sister_4" value="<?= anketa_v($f_Personal_family_structure_sister_4) ?>" maxlength="255" size="50" type="text" placeholder="Введите имя Сестры 4" aria-label="Введите имя Сестры 4">
                   <div class="form__item-family-item-btn-wrapper">
                     <button class="form__item-family-item-btn form__item-family-item-btn--remove" type="button">-</button>
                     <button class="form__item-family-item-btn form__item-family-item-btn--add" type="button">+</button>
                   </div>
                 </div>
                 <div class="form__item-family-item form__item-family-item--sister form__item-family-item--hidden">
-                  <input class="form__input " id="personal_family_structure_sister-5" name="f_Personal_family_structure_sister_5" value="<?= anketa_v($f_Personal_family_structure_sister_5) ?>" maxlength="255" size="50" type="text" placeholder="Введите имя Сестры 5">
+                  <input class="form__input " id="personal_family_structure_sister-5" name="f_Personal_family_structure_sister_5" value="<?= anketa_v($f_Personal_family_structure_sister_5) ?>" maxlength="255" size="50" type="text" placeholder="Введите имя Сестры 5" aria-label="Введите имя Сестры 5">
                   <div class="form__item-family-item-btn-wrapper">
                     <button class="form__item-family-item-btn form__item-family-item-btn--remove" type="button">-</button>
                     <button class="form__item-family-item-btn form__item-family-item-btn--add" type="button">+</button>
                   </div>
                 </div>
                 <div class="form__item-family-item form__item-family-item--sister form__item-family-item--hidden">
-                  <input class="form__input " id="personal_family_structure_sister-6" name="f_Personal_family_structure_sister_6" value="<?= anketa_v($f_Personal_family_structure_sister_6) ?>" maxlength="255" size="50" type="text" placeholder="Введите имя Сестры 6">
+                  <input class="form__input " id="personal_family_structure_sister-6" name="f_Personal_family_structure_sister_6" value="<?= anketa_v($f_Personal_family_structure_sister_6) ?>" maxlength="255" size="50" type="text" placeholder="Введите имя Сестры 6" aria-label="Введите имя Сестры 6">
                   <div class="form__item-family-item-btn-wrapper">
                     <button class="form__item-family-item-btn form__item-family-item-btn--remove" type="button">-</button>
                     <button class="form__item-family-item-btn form__item-family-item-btn--add" type="button">+</button>
                   </div>
                 </div>
                 <div class="form__item-family-item form__item-family-item--sister form__item-family-item--hidden">
-                  <input class="form__input " id="personal_family_structure_sister-7" name="f_Personal_family_structure_sister_7" value="<?= anketa_v($f_Personal_family_structure_sister_7) ?>" maxlength="255" size="50" type="text" placeholder="Введите имя Сестры 7">
+                  <input class="form__input " id="personal_family_structure_sister-7" name="f_Personal_family_structure_sister_7" value="<?= anketa_v($f_Personal_family_structure_sister_7) ?>" maxlength="255" size="50" type="text" placeholder="Введите имя Сестры 7" aria-label="Введите имя Сестры 7">
                   <div class="form__item-family-item-btn-wrapper">
                     <button class="form__item-family-item-btn form__item-family-item-btn--remove" type="button">-</button>
                     <button class="form__item-family-item-btn form__item-family-item-btn--add" type="button">+</button>
                   </div>
                 </div>
                 <div class="form__item-family-item form__item-family-item--sister form__item-family-item--hidden">
-                  <input class="form__input " id="personal_family_structure_sister-8" name="f_Personal_family_structure_sister_8" value="<?= anketa_v($f_Personal_family_structure_sister_8) ?>" maxlength="255" size="50" type="text" placeholder="Введите имя Сестры 8">
+                  <input class="form__input " id="personal_family_structure_sister-8" name="f_Personal_family_structure_sister_8" value="<?= anketa_v($f_Personal_family_structure_sister_8) ?>" maxlength="255" size="50" type="text" placeholder="Введите имя Сестры 8" aria-label="Введите имя Сестры 8">
                   <div class="form__item-family-item-btn-wrapper">
                     <button class="form__item-family-item-btn form__item-family-item-btn--remove" type="button">-</button>
                     <button class="form__item-family-item-btn form__item-family-item-btn--add" type="button">+</button>
                   </div>
                 </div>
                 <div class="form__item-family-item form__item-family-item--sister form__item-family-item--hidden">
-                  <input class="form__input " id="personal_family_structure_sister-9" name="f_Personal_family_structure_sister_9" value="<?= anketa_v($f_Personal_family_structure_sister_9) ?>" maxlength="255" size="50" type="text" placeholder="Введите имя Сестры 9">
+                  <input class="form__input " id="personal_family_structure_sister-9" name="f_Personal_family_structure_sister_9" value="<?= anketa_v($f_Personal_family_structure_sister_9) ?>" maxlength="255" size="50" type="text" placeholder="Введите имя Сестры 9" aria-label="Введите имя Сестры 9">
                   <div class="form__item-family-item-btn-wrapper">
                     <button class="form__item-family-item-btn form__item-family-item-btn--remove" type="button">-</button>
                     <button class="form__item-family-item-btn form__item-family-item-btn--add" type="button">+</button>
                   </div>
                 </div>
                 <div class="form__item-family-item form__item-family-item--sister form__item-family-item--hidden">
-                  <input class="form__input " id="personal_family_structure_sister-10" name="f_Personal_family_structure_sister_10" value="<?= anketa_v($f_Personal_family_structure_sister_10) ?>" maxlength="255" size="50" type="text" placeholder="Введите имя Сестры 10">
+                  <input class="form__input " id="personal_family_structure_sister-10" name="f_Personal_family_structure_sister_10" value="<?= anketa_v($f_Personal_family_structure_sister_10) ?>" maxlength="255" size="50" type="text" placeholder="Введите имя Сестры 10" aria-label="Введите имя Сестры 10">
                   <div class="form__item-family-item-btn-wrapper">
                     <button class="form__item-family-item-btn form__item-family-item-btn--remove" type="button">-</button>
                     <button class="form__item-family-item-btn form__item-family-item-btn--add" type="button">+</button>

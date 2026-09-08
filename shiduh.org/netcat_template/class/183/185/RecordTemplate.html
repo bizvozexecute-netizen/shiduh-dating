@@ -6,7 +6,7 @@ $arrayMonth = array("января", "февраля", "марта", "апрел�
 
 <div class="news-item appearance-container last-news__grid-item">
   <div class="news-item__wrapper appearance">
-    <a class="news-item__head" href="<?=$fullLink?>" title="">
+    <a class="news-item__head" tabindex="-1" aria-hidden="true" href="<?=$fullLink?>" title="" tabindex="-1" aria-hidden="true">
       <img class="news-item__img js-lazy" data-src="<?= $f_newsImage->resize(370, 370); ?>" alt="">
     </a>
     <div class="news-item__info">

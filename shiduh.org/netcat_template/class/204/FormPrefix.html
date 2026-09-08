@@ -47,13 +47,13 @@
               
               <div class="form__item tpl-field">
                 <label class="form__item-name" for="">ID анкеты</label>
-                <input class="form__input tpl-field-input" name="id_candidate"  type="text" id="" placeholder="Укажите ID анкеты" >
+                <input class="form__input tpl-field-input" name="id_candidate"  type="text" id="" placeholder="Укажите ID анкеты" aria-label="ID анкеты" aria-label="ID анкеты" aria-label="ID анкеты" aria-label="ID анкеты" >
               </div>   
             
               <? if($current_user['Type_id'] == 2): ?>
               <div class="form__item tpl-field">
                 <label class="form__item-name" for="">ФИО</label>
-                <input class="form__input tpl-field-input" name="name"  type="text" id="" placeholder="Укажите ФИО" >
+                <input class="form__input tpl-field-input" name="name"  type="text" id="" placeholder="Укажите ФИО" aria-label="Ф.И.О." aria-label="Ф.И.О." aria-label="Ф.И.О." aria-label="Ф.И.О." >
               </div>  
               <? endif; ?>
             
@@ -72,9 +72,9 @@
               <div class="form__item tpl-field">
                 <label class="form__item-name" for="search_age_start">Возраст</label>
                 <div class="form__item-range">
-                  <input class="form__input tpl-field-input" name="age[0]" min="0" step="any" max="200" maxlength="12" size="12" type="number" id="search_age_start" value="0" placeholder="ОТ" required>
+                  <input class="form__input tpl-field-input" name="age[0]" min="0" step="any" max="200" maxlength="12" size="12" type="number" aria-label="Возраст от" id="search_age_start" value="0" placeholder="ОТ" required>
                   <span class="form__item-range-separator">—</span>
-                  <input class="form__input tpl-field-input" name="age[1]" min="1" step="any" max="200" maxlength="12" size="12" type="number" id="search_age_end" value="200" placeholder="ДО" required>
+                  <input class="form__input tpl-field-input" name="age[1]" min="1" step="any" max="200" maxlength="12" size="12" type="number" aria-label="Возраст до" id="search_age_end" value="200" placeholder="ДО" required>
                 </div>
               </div>
               <div class="form__item tpl-field">
@@ -87,7 +87,7 @@
               </div>
               <div class="form__item tpl-field">
                 <label class="form__item-name" for="search_country">Город</label>
-                <input class="form__input tpl-field-input" name="city"  type="text" id="" placeholder="Укажите город" >
+                <input class="form__input tpl-field-input" name="city"  type="text" id="" placeholder="Укажите город" aria-label="Город" aria-label="Город" aria-label="Город" aria-label="Город" >
                 <!--<div class="select form__select form__select--city select--search">
                   <? nc_objects_list( $sub, $cc, "&nc_ctpl=220" ); ?>
                 </div>-->
@@ -96,9 +96,9 @@
                 <label class="form__item-name" for="search_height_start">Рост</label>
                 <div class="form__item-range">
                 <input name="srchPat" hidden>
-                  <input class="form__input tpl-field-input" name="height_min" min="0" step="any" max="250" maxlength="12" size="12" type="number" id="search_height_start" value="" placeholder="ОТ" >
+                  <input class="form__input tpl-field-input" name="height_min" min="0" step="any" max="250" maxlength="12" size="12" type="number" aria-label="Рост от" id="search_height_start" value="" placeholder="ОТ" >
                   <span class="form__item-range-separator">—</span>
-                  <input class="form__input tpl-field-input" name="height_max" min="0" step="any" max="250" maxlength="12" size="12" type="number" id="search_height_end" value="250" placeholder="ДО" >
+                  <input class="form__input tpl-field-input" name="height_max" min="0" step="any" max="250" maxlength="12" size="12" type="number" aria-label="Рост до" id="search_height_end" value="250" placeholder="ДО" >
                 </div>
               </div>
               <div class="form__item tpl-field">
