@@ -150,6 +150,19 @@
     new IntersectionObserver(function (entries) {
       header.classList.toggle('is-scrolled', !entries[0].isIntersecting);
     }, { threshold: 0 }).observe(sentinel);
+
+    // Высота шапки — для липких элементов ниже неё (подменю карточки):
+    // после прокрутки шапка сжимается, поэтому наблюдаем за размером.
+    var publish = function () {
+      var pos = getComputedStyle(header).position;
+      var h = (pos === 'sticky' || pos === 'fixed') ? header.offsetHeight : 0;
+      document.documentElement.style.setProperty('--sh-header-h', h + 'px');
+    };
+    publish();
+    // border-box: высота меняется через padding, content-box при этом прежний
+    if ('ResizeObserver' in window) { new ResizeObserver(publish).observe(header, { box: 'border-box' }); }
+    else { window.addEventListener('resize', publish); }
+    header.addEventListener('transitionend', publish);
   }
 
   /* --------------------------------------------------------------- тосты --

@@ -42,12 +42,16 @@ def test_shadhan_sees_match_screen():
     assert "Рекомендации ИИ" in html, "нет блока рекомендаций"
     assert "js-match-load" in html, "нет кнопки загрузки подбора"
     assert 'data-anketa="%d"' % ANKETA in html, "кнопка не привязана к анкете"
-    # кнопки решений и обоснования рисуются JS-ом из этого же шаблона
-    assert "js-match-propose" in html and "js-match-reject" in html
-    assert "js-match-explain" in html
+    # кнопки решений и обоснования рисует js/lk-card.js (A5: скрипт вынесен
+    # из шаблона во внешний файл, корень блока — data-sh-match)
+    assert 'data-sh-match' in html, "нет корня блока подбора для lk-card.js"
+    assert "/js/lk-card.js" in html, "скрипт карточки не подключён"
+    js = urllib.request.urlopen(BASE + "/js/lk-card.js", timeout=60).read().decode("utf-8", "replace")
+    assert "js-match-propose" in js and "js-match-reject" in js
+    assert "js-match-explain" in js
     # причины отклонения — ровно те, что принимает match_feedback.php
     for reason in ("values", "love_language", "geography", "age", "other"):
-        assert "'%s'" % reason in html, "в списке причин нет " + reason
+        assert "'%s'" % reason in js, "в списке причин нет " + reason
 
 
 def test_candidate_does_not_see_match_screen():

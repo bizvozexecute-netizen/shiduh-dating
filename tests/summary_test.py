@@ -262,8 +262,12 @@ def test_card_button_is_active_and_wired():
     req.add_header("Cookie", "PHP_AUTH_SID=%s; PHP_AUTH_LANG=Russian" % sid)
     html = urllib.request.build_opener(NoRedirect).open(req, timeout=120)        .read().decode("utf-8", "replace")
     assert "Fatal error" not in html and "Parse error" not in html
-    assert "summary_generate.php" in html, "кнопка не вызывает генерацию"
     assert "js-ai-summary-refresh" in html, "нет кнопки обновления резюме"
+    # A5: обработчик кнопки вынесен из шаблона в js/lk-card.js — вызов
+    # генерации ищем там, а не в HTML карточки
+    assert "/js/lk-card.js" in html, "скрипт карточки не подключён"
+    js = urllib.request.urlopen(BASE + "/js/lk-card.js", timeout=60).read().decode("utf-8", "replace")
+    assert "summary_generate.php" in js and "js-ai-summary-refresh" in js, "кнопка не вызывает генерацию"
     assert 'data-anketa="%d"' % ANKETA in html, "кнопка без id анкеты"
     # кнопка больше не заблокирована
     assert "disabled title=\"Появится на следующем этапе\"" not in html,         "кнопка осталась неактивной"

@@ -15,7 +15,10 @@ $nc_anon = !$nc_b1_related && (int)$current_user['Type_id'] !== 2;
 <? if($nc_anon && !$f_Open): ?>
 <section class="lk-questionnaire lk-questionnaire--candidate">
   <div class="lk-questionnaire__wrapper">
-    <p style="text-align:center;color:#756d65;padding:60px 20px">Анкета закрыта владельцем. Чтобы познакомиться, обратитесь к своему шадхану.</p>
+    <div class="sh-empty lk-questionnaire__closed">
+      <div class="sh-empty__title">Анкета закрыта владельцем</div>
+      <p>Чтобы познакомиться, обратитесь к своему шадхану.</p>
+    </div>
   </div>
 </section>
 <? else: ?>
@@ -24,51 +27,59 @@ $nc_anon = !$nc_b1_related && (int)$current_user['Type_id'] !== 2;
   
 
   
-    <div class="lk-head lk-questionnaire__head">
-      <div class="lk-questionnaire__head-row">
-        <h1 class="lk-head__title lk-questionnaire__head-title">ID: <?= $f_Message_ID; ?> <?= $f_Open && !$nc_anon ? '- '.$f_Name : ''; ?></h1>
-        <div class="lk-questionnaire__head-manage">
+<?php
+/* A5: шапка карточки — фото 320×400 из миниатюр ядра (раньше оригинал в
+   отдельной липкой колонке), имя, возраст и город, статусы подтверждений
+   пилюлями, действия в одном ряду. Подменю разделов ниже строит lk-card.js
+   из секций с data-sh-sec. */
+require_once $nc_core->DOCUMENT_ROOT . '/api/showcase_lib.php';
+$nc_c_age = showcase_age_text($f_Date_of_birth);
+$nc_c_avatar = ($current_user['User_ID'] == 1 || $current_user['User_ID'] == 119 || $f_User_ID === $current_user['User_ID'] || $f_Shadhan_1 === $current_user['User_ID'] || $f_Shadhan_2 === $current_user['User_ID'] || $f_Shadhan_3 === $current_user['User_ID'] || ($f_Open && !$nc_anon)) && trim((string)$f_Photo_avatar) !== '' ? (string)$f_Photo_avatar->resize(320, 400) : '';
+?>
+    <header class="sh-card-hero">
+      <div class="sh-card-hero__media">
+        <?php if ($nc_c_avatar): ?>
+        <img class="sh-card-hero__img lk-questionnaire__body-img js-lazy" data-src="<?= htmlspecialchars($nc_c_avatar, ENT_QUOTES) ?>" width="320" height="400" alt="">
+        <?php else: ?>
+        <div class="sh-card-hero__img sh-card-hero__img--empty sh-avatar--anon" aria-hidden="true"><svg class="sh-card-hero__icon"><use xlink:href="/images/sprite.svg#user"></use></svg></div>
+        <?php endif; ?>
+      </div>
+      <div class="sh-card-hero__body">
+        <div class="sh-card-hero__top">
+          <h1 class="lk-head__title lk-questionnaire__head-title sh-card-hero__title">ID: <?= (int)$f_Message_ID ?> <?= $f_Open && !$nc_anon ? '- '.$f_Name : ''; ?></h1>
+          <a class="lk-questionnaire__head-exit sh-card-hero__back" href="<?= shiduh_back_url('/my/candidate/') ?>">Назад</a>
+        </div>
+        <p class="sh-card-hero__meta"><?= $nc_c_age !== '' ? $nc_c_age . ' ' . num2word((int)$nc_c_age, array('год', 'года', 'лет')) : '' ?><?= trim((string)$f_City) !== '' ? ($nc_c_age !== '' ? ' · ' : '') . lk_esc($f_City) : '' ?><?= trim((string)$f_Country) !== '' ? ', ' . lk_esc($f_Country) : '' ?></p>
+        <div class="sh-card-hero__pills">
+          <span class="sh-pill <?= $f_Success_docs ? 'sh-pill--ok' : 'sh-pill--muted' ?>">Свидетельство о рождении <?= $f_Success_docs ? '' : 'не ' ?>подтверждено</span>
+          <span class="sh-pill <?= $f_Success_ravin ? 'sh-pill--ok' : 'sh-pill--muted' ?>"><?= $f_Success_ravin ? 'Подтверждён' : 'Не подтверждён' ?> раввином</span>
+          <span class="sh-pill sh-pill--muted">в базе с <?= sprintf('%02d', (int)$f_Created_day) ?>.<?= sprintf('%02d', (int)$f_Created_month) ?>.<?= (int)$f_Created_year ?></span>
+        </div>
+        <div class="sh-card-hero__actions lk-questionnaire__head-manage">
           <?= nc_objects_list(72, 74, "&IDCandidate=$f_Message_ID" ); ?>
+          <? if(!$nc_anon && $f_User_ID !== $current_user['User_ID']): ?>
+          <a href="<?= nc_auth_messages_url($f_User_ID); ?>" class="lk-questionnaire__body-write button button--write">
+            <svg class="button__icon"><use xlink:href="/images/sprite.svg#letter"></use></svg>
+            <span class="button__text">Написать</span>
+          </a>
+          <? endif; ?>
+          <? if($current_user['Type_id'] !== 1): ?>
+          <a class="button button--secondary button--sm lk-candidates__item-info-link sh-card-hero__search" href="<?= '/my/poisk-shiduha/' ?>?ID=<?= $f_Message_ID; ?>&gender=<?= $f_Search_gender_id;?>&<?= $f_Search_education_id[0] === '1'  ? '' : http_build_query(['Education' => $f_Search_education_id]); ?>&<?= http_build_query(['Number_of_children' => $f_Search_number_of_children]); ?>&<?= http_build_query(['Marital_status' => $Marital_status]); ?>&<?= http_build_query(['Belonging_denomination' => $f_Search_belonging_denomination_id]); ?>&age[0]=<?= $f_Search_age_start ? $f_Search_age_start -5 : 0; ?>&age[1]=<?= $f_Search_age_end ? $f_Search_age_end + 5 :  300; ?>">
+            <svg class="lk-sort__search-icon lk-sort__search-icon--gold"><use xlink:href="/images/sprite.svg#search"></use></svg>
+            <span>Поиск шидуха</span>
+          </a>
+          <? endif; ?>
           <? if($f_User_ID === $current_user['User_ID']): ?>
-          <a href="/my/edit-anket/?object=<?= $f_Message_ID; ?>" class="lk-questionnaire__head-write button button--write-short">
-            <svg class="button__icon">
-              <use xlink:href="/images/sprite.svg#write"></use>
-            </svg>
+          <a href="/my/edit-anket/?object=<?= (int)$f_Message_ID ?>" class="lk-questionnaire__head-write button button--write-short" aria-label="Редактировать анкету">
+            <svg class="button__icon"><use xlink:href="/images/sprite.svg#write"></use></svg>
           </a>
           <? endif; ?>
         </div>
-        <a class="lk-questionnaire__head-exit" href="<?= shiduh_back_url('/my/candidate/') ?>" title="">Назад</a>
       </div>
-      
-      
- 
-      
-      
-      
-      <div class="lk-questionnaire__head-redistration-date">Дата регистрации: <?= $f_Created_day; ?>.<?= $f_Created_month; ?>.<?= $f_Created_year; ?></div>
-      <div class="lk-questionnaire__head-info-list">
-        <? if($f_Success_docs):?>
-        <div class="lk-questionnaire__head-subtitle lk-questionnaire__head-subtitle--check">Свидетельство о рождении подтверждено</div>
-        <? else: ?>
-        <div class="lk-questionnaire__head-subtitle lk-questionnaire__head-subtitle--uncheck">Свидетельство о рождении не подтверждено</div>
-        <? endif; ?>
-        <? if($f_Success_ravin):?>
-        <div class="lk-questionnaire__head-subtitle lk-questionnaire__head-subtitle--check">Подтвержден раввином</div>
-        <? else: ?>
-        <div class="lk-questionnaire__head-subtitle lk-questionnaire__head-subtitle--uncheck">Не подтвержден раввином</div>
-        <? endif; ?>
-        <? if($current_user['Type_id'] !== 1): ?>  
-        <a style="display: flex;  font-size: 16px;margin-top:10px;" class="lk-candidates__item-info-link" href="<?= '/my/poisk-shiduha/' ?>?ID=<?= $f_Message_ID; ?>&gender=<?= $f_Search_gender_id;?>&<?= $f_Search_education_id[0] === '1'  ? '' : http_build_query(['Education' => $f_Search_education_id]); ?>&<?= http_build_query(['Number_of_children' => $f_Search_number_of_children]); ?>&<?= http_build_query(['Marital_status' => $Marital_status]); ?>&<?= http_build_query(['Belonging_denomination' => $f_Search_belonging_denomination_id]); ?>&age[0]=<?= $f_Search_age_start ? $f_Search_age_start -5 : 0; ?>&age[1]=<?= $f_Search_age_end ? $f_Search_age_end + 5 :  300; ?>" title="">
-          <svg class="lk-sort__search-icon" style="stroke: #C7AD88;margin-left:3px; margin-right:8px;">
-            <use xlink:href="/images/sprite.svg#search"></use>
-          </svg>
-          <span class="">Поиск шидуха</span>
-        </a>
-        <? endif; ?>
-      </div>
-    </div>
-    <div class="lk-questionnaire__body">
-      <div class="lk-questionnaire__body-main">
+    </header>
+    <nav class="sh-subnav" data-sh-subnav hidden aria-label="Разделы карточки"></nav>
+    <div class="lk-questionnaire__body" id="sec-anketa" data-sh-sec="Анкета">
+      <div class="lk-questionnaire__body-main lk-questionnaire__body-main--full">
         <div class="lk-questionnaire__body-table">
           <? if($current_user['User_ID'] == 119 || $f_User_ID === $current_user['User_ID'] || $f_Shadhan_1 === $current_user['User_ID'] || $f_Shadhan_2 === $current_user['User_ID'] || $f_Shadhan_3 === $current_user['User_ID'] || ($f_Open && !$nc_anon)): ?>  
           <div class="lk-questionnaire__body-table-row">
@@ -255,13 +266,13 @@ $nc_anon = !$nc_b1_related && (int)$current_user['Type_id'] !== 2;
           <? if($current_user['User_ID'] == 119 && $f_Birthcertificates): ?>  
           <div class="lk-questionnaire__body-table-row">
             <div class="lk-questionnaire__body-table-cell lk-questionnaire__body-table-cell--key"><b>Свидетельство о рождении:</b></div>
-            <div class="lk-questionnaire__body-table-cell lk-questionnaire__body-table-cell--value"><a  data-glightbox="" href="<?= $f_Birthcertificates; ?>"><img style="max-width:100%;" class=" js-lazy" data-src="<?= $f_Birthcertificates; ?>" alt=""></a></div>
+            <div class="lk-questionnaire__body-table-cell lk-questionnaire__body-table-cell--value"><a  data-glightbox="" href="<?= $f_Birthcertificates; ?>"><img class="lk-questionnaire__doc-img js-lazy" data-src="<?= $f_Birthcertificates; ?>" alt=""></a></div>
           </div>
           <? endif; ?>
           <? if($current_user['User_ID'] == 119 && $f_Another_document_Jewishness): ?>  
           <div class="lk-questionnaire__body-table-row">
             <div class="lk-questionnaire__body-table-cell lk-questionnaire__body-table-cell--key"><b>Иной документ подтверждающий еврейство:</b></div>
-            <div class="lk-questionnaire__body-table-cell lk-questionnaire__body-table-cell--value"><a  data-glightbox="" href="<?= $f_Another_document_Jewishness; ?>"><img style="max-width:100%;" class=" js-lazy" data-src="<?= $f_Another_document_Jewishness; ?>" alt=""></a></div>
+            <div class="lk-questionnaire__body-table-cell lk-questionnaire__body-table-cell--value"><a  data-glightbox="" href="<?= $f_Another_document_Jewishness; ?>"><img class="lk-questionnaire__doc-img js-lazy" data-src="<?= $f_Another_document_Jewishness; ?>" alt=""></a></div>
           </div>
           <? endif; ?>
           <? if($current_user['User_ID'] == 119 && $f_Email || $f_Shadhan_1 === $current_user['User_ID'] || $f_Shadhan_2 === $current_user['User_ID'] || $f_Shadhan_3 === $current_user['User_ID']): ?>  
@@ -277,31 +288,12 @@ $nc_anon = !$nc_b1_related && (int)$current_user['Type_id'] !== 2;
           </div>
           <? endif; ?>
         </div>
-        <div class="lk-questionnaire__body-buttons">
-          <? /* B-1: постороннему кнопку «Написать» не показываем — экран «Написать»
-             раскрывает Name адресата (get_by_id(uid,'Name')), обходя обезличивание */ ?>
-          <? if(!$nc_anon && $f_User_ID !== $current_user['User_ID']): ?>
-          <a href="<?= nc_auth_messages_url($f_User_ID); ?>" class="lk-questionnaire__body-write button button--write">
-            <svg class="button__icon">
-              <use xlink:href="/images/sprite.svg#letter"></use>
-            </svg>
-            <span class="button__text">Написать</span>
-          </a>
-          <? endif; ?>
-        </div>
-        
       </div>
-      <? if($current_user['User_ID'] == 1  || $current_user['User_ID'] == 119 || $f_User_ID === $current_user['User_ID'] || $f_Shadhan_1 === $current_user['User_ID'] || $f_Shadhan_2 === $current_user['User_ID'] || $f_Shadhan_3 === $current_user['User_ID'] || ($f_Open && !$nc_anon)): ?>  
-      <picture class="lk-questionnaire__body-picture">
-        <img class="lk-questionnaire__body-img js-lazy" data-src="<?= $f_Photo_avatar; ?>" alt="">
-      </picture>
-      <? endif; ?>
-      
     </div>
     <? if($f_Search_gender || $f_Search_jewish_name || $f_Search_place_of_birth || $f_Search_country || $f_Search_belonging_denomination || $f_Search_education || $f_Search_specialization || $f_Search_what_does || $f_Search_hobby || $f_Search_bad_habits || $f_Search_health_status || $f_Search_was_previously_married || $f_Search_divorced || $f_Search_number_of_children || $f_Search_age_of_children || $f_Search_family_composition_relationships || $f_Search_are_you_ready_to_move): ?>  
-    <div class="lk-questionnaire__section">
+    <div class="lk-questionnaire__section" id="sec-prefs" data-sh-sec="Предпочтения">
       <div class="lk-questionnaire__section-title title title--lk">Предпочтения</div>
-      <div class="lk-questionnaire__body-table" style="width:100%;">
+      <div class="lk-questionnaire__body-table lk-questionnaire__wide">
           <? if($f_Search_gender): ?>  
           <div class="lk-questionnaire__body-table-row">
             <div class="lk-questionnaire__body-table-cell lk-questionnaire__body-table-cell--key"><b>Пол:</b></div>
@@ -425,56 +417,31 @@ $nc_anon = !$nc_b1_related && (int)$current_user['Type_id'] !== 2;
       </div>
     </div>
     <? endif; ?>
-    <? if($nc_core->user->get_by_id($f_User_ID, "Type_id" ) === 2 || $f_Shadhan_1 || $f_Shadhan_2 || $f_Shadhan_3): ?>  
-    <div class="lk-questionnaire__section">
+    <?php
+    /* A5: шадханы анкеты одним списком через кэш на запрос — раньше 14 вызовов
+       get_by_id в этом блоке. Автор-шадхан идёт первым. */
+    $nc_c_owner = lk_user_brief((int)$f_User_ID, 110);
+    $nc_c_shadhans = array();
+    if ($nc_c_owner['type'] === 2) { $nc_c_shadhans[] = (int)$f_User_ID; }
+    foreach (array($f_Shadhan_1, $f_Shadhan_2, $f_Shadhan_3) as $nc_c_sid) {
+        if ((int)$nc_c_sid > 0 && !in_array((int)$nc_c_sid, $nc_c_shadhans, true)) { $nc_c_shadhans[] = (int)$nc_c_sid; }
+    }
+    ?>
+    <? if($nc_c_shadhans): ?>
+    <div class="lk-questionnaire__section" id="sec-shadhans" data-sh-sec="Шадханы">
       <div class="lk-questionnaire__section-title title title--lk">Шадханы</div>
-      <div class="">
-        <ul class="shadhans lk-questionnaire__shadhans">  
-          <? if($nc_core->user->get_by_id($f_User_ID, "Type_id" ) === 2): ?>  
-          <a class="shadhans__item" href="/my/shadhany/shadhan_<?= $f_User_ID;?>.html">
+      <div class="lk-questionnaire__wide">
+        <ul class="shadhans lk-questionnaire__shadhans">
+          <?php foreach ($nc_c_shadhans as $nc_c_sid): $nc_c_sh = lk_user_brief($nc_c_sid, 110); ?>
+          <li><a class="shadhans__item" href="/my/shadhany/shadhan_<?= $nc_c_sid ?>.html">
             <div class="shadhans__item-avatar">
-              <img class="shadhans__item-avatar-img js-lazy" data-src="<?= $nc_core->user->get_by_id($f_User_ID, "Photo_avatar" ); ?>" alt="">
+              <img class="shadhans__item-avatar-img js-lazy" data-src="<?= htmlspecialchars($nc_c_sh['avatar'], ENT_QUOTES) ?>" width="55" height="55" alt="">
             </div>
             <div class="shadhans__item-body">
-              <div class="shadhans__item-name"><?= $nc_core->user->get_by_id($f_User_ID, "Name" ); ?></div>
-              <div class="shadhans__item-address"><?= $nc_core->user->get_by_id($f_User_ID, "Country" ); ?></div>
+              <div class="shadhans__item-name"><?= lk_esc($nc_c_sh['name']) ?></div>
             </div>
-          </a>
-          <? endif; ?>    
-           
-          <? if($f_Shadhan_1): ?>  
-          <a class="shadhans__item" href="/my/shadhany/shadhan_<?= $f_Shadhan_1;?>.html">
-            <div class="shadhans__item-avatar">
-              <img class="shadhans__item-avatar-img js-lazy" data-src="<?= $nc_core->user->get_by_id($f_Shadhan_1, "Photo_avatar" ); ?>" alt="">
-            </div>
-            <div class="shadhans__item-body">
-              <div class="shadhans__item-name"><?= $nc_core->user->get_by_id($f_Shadhan_1, "Name" ); ?></div>
-              <div class="shadhans__item-address"><?= $nc_core->user->get_by_id($f_Shadhan_1, "Country" ); ?></div>
-            </div>
-          </a>
-          <? endif; ?>
-          <? if($f_Shadhan_2): ?>  
-          <a class="shadhans__item " href="/my/shadhany/shadhan_<?= $f_Shadhan_2;?>.html">
-            <div class="shadhans__item-avatar">
-              <img class="shadhans__item-avatar-img js-lazy" data-src="<?= $nc_core->user->get_by_id($f_Shadhan_2, "Photo_avatar" ); ?>" alt="">
-            </div>
-            <div class="shadhans__item-body">
-              <div class="shadhans__item-name"><?= $nc_core->user->get_by_id($f_Shadhan_2, "Name" ); ?></div>
-              <div class="shadhans__item-address"><?= $nc_core->user->get_by_id($f_Shadhan_2, "Country" ); ?></div>
-            </div>
-          </a>
-          <? endif; ?>
-          <? if($f_Shadhan_3): ?>  
-          <a class="shadhans__item " href="/my/shadhany/shadhan_<?= $f_Shadhan_3;?>.html">
-            <div class="shadhans__item-avatar">
-              <img class="shadhans__item-avatar-img js-lazy" data-src="<?= $nc_core->user->get_by_id($f_Shadhan_3, "Photo_avatar" ); ?>" alt="">
-            </div>
-            <div class="shadhans__item-body">
-              <div class="shadhans__item-name"><?= $nc_core->user->get_by_id($f_Shadhan_3, "Name" ); ?></div>
-              <div class="shadhans__item-address"><?= $nc_core->user->get_by_id($f_Shadhan_3, "Country" ); ?></div>
-            </div>
-          </a>
-          <? endif; ?>  
+          </a></li>
+          <?php endforeach; ?>
         </ul>
       </div>
     </div>
@@ -547,7 +514,7 @@ $nc_anon = !$nc_b1_related && (int)$current_user['Type_id'] !== 2;
     
     <? if($current_user['User_ID'] == 1 || $current_user['User_ID'] == 119 || $f_User_ID === $current_user['User_ID'] || $f_Shadhan_1 === $current_user['User_ID'] || $f_Shadhan_2 === $current_user['User_ID'] || $f_Shadhan_3 === $current_user['User_ID'] || ($f_Open && !$nc_anon)): ?>
     <? if ($f_Photo_questionnaire->count()): ?>
-    <div class="lk-questionnaire__gallery">
+    <div class="lk-questionnaire__gallery" id="sec-photos" data-sh-sec="Фото">
       <div class="lk-questionnaire__gallery-title title title--lk">Фотографии</div>
       <div class="lk-questionnaire__gallery-swiper swiper">
         <div class="swiper-wrapper">
@@ -579,6 +546,12 @@ $nc_anon = !$nc_b1_related && (int)$current_user['Type_id'] !== 2;
     
     
     <? if($current_user['User_ID'] == 1 || $current_user['User_ID'] == 119): ?>
+<?php
+    // A5: список шадханов для трёх селектов — одним запросом, а не тремя одинаковыми
+    $userID = (int)$current_user['User_ID'];
+    $nc_sh_shadhan_rows = $nc_core->db->get_results("SELECT * FROM User WHERE Type = 2 AND User_ID != 1 AND User_ID != " . (int)$userID . " AND Checked = 1 AND User_ID != 119", ARRAY_A);
+    $nc_sh_shadhan_rows = is_array($nc_sh_shadhan_rows) ? $nc_sh_shadhan_rows : array();
+    ?>
 <?=( $warnText ? "<div class='warnText'>$warnText</div>" : NULL )?>
     <div class="lk-questionnaire__section">
       <form name='adminForm' id='adminForm' class="form--lk-questionnaire-candidate" enctype='multipart/form-data' method='post' action='<?= $SUB_FOLDER ?><?= $HTTP_ROOT_PATH ?>message.php'>
@@ -629,8 +602,7 @@ $nc_anon = !$nc_b1_related && (int)$current_user['Type_id'] !== 2;
               <div id="" class="select form__select">
                 <?
 $userID = $current_user['User_ID'];
-$nc_core->db->query("SELECT * FROM User WHERE Type = 2 AND User_ID != 1 AND User_ID != $userID AND Checked = 1 AND User_ID != 119", ARRAY_A );
-$arr = $nc_core->db->last_result;
+$arr = $nc_sh_shadhan_rows;
 if (!empty($arr)) {?>
 <select class="select__el" name="f_Shadhan_1" >
 <option  value="0">-- Выбрать --</option>
@@ -658,8 +630,7 @@ if (!empty($arr)) {?>
               <div id="" class="select form__select">
                 <?
 $userID = $current_user['User_ID'];
-$nc_core->db->query("SELECT * FROM User WHERE Type = 2 AND User_ID != 1 AND User_ID != $userID AND Checked = 1 AND User_ID != 119", ARRAY_A );
-$arr = $nc_core->db->last_result;
+$arr = $nc_sh_shadhan_rows;
 if (!empty($arr)) {?>
 <select class="select__el" name="f_Shadhan_2" >
 <option value="0">-- Выбрать --</option>
@@ -683,8 +654,7 @@ if (!empty($arr)) {?>
               <div id="" class="select form__select">
 <?
 $userID = $current_user['User_ID'];
-$nc_core->db->query("SELECT * FROM User WHERE Type = 2 AND User_ID != 1 AND User_ID != $userID AND Checked = 1 AND User_ID != 119", ARRAY_A );
-$arr = $nc_core->db->last_result;
+$arr = $nc_sh_shadhan_rows;
 if (!empty($arr)) {?>
 <select class="select__el" name="f_Shadhan_3" >
 <option  value="0">-- Выбрать --</option>
@@ -715,6 +685,7 @@ if (!empty($arr)) {?>
       </form>
     </div>
 <? endif;?>  
+    <script src="/js/lk-card.js?v=<?= (int)@filemtime($nc_core->DOCUMENT_ROOT . '/js/lk-card.js') ?>" defer></script>
     <div class="lk-questionnaire__goback">
       <a class="lk-questionnaire__goback-link" href="<?= shiduh_back_url('/my/candidate/') ?>" title="">Вернуться назад</a>
     </div>

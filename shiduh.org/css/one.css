@@ -1609,6 +1609,181 @@
 .sh-pager__state { min-width: 8em; text-align: center; font-variant-numeric: tabular-nums; }
 .sh-pager__link.is-disabled { opacity: .45; pointer-events: none; }
 
+/* ------------------------------ карточка -------------------------------- */
+/* Карточка кандидата (A5): шапка-герой, подменю разделов, блоки ИИ. Раньше
+   стили портрета и подбора жили <style>-блоками в шаблоне, а 39 элементов
+   несли инлайновые стили; здесь они на токенах. */
+.sh-card-hero {
+  display: grid;
+  grid-template-columns: 200px minmax(0, 1fr);
+  gap: var(--sh-s-6);
+  align-items: start;
+  padding: var(--sh-s-6) 0 var(--sh-s-5);
+  border-bottom: 1px solid var(--sh-line);
+}
+
+.sh-card-hero__media { position: relative; }
+
+.sh-card-hero__img {
+  display: block;
+  width: 100%;
+  aspect-ratio: 4 / 5;
+  object-fit: cover;
+  border-radius: var(--sh-r-l);
+  background: var(--sh-sand);
+}
+
+.sh-card-hero__img--empty { display: grid; place-items: center; }
+.sh-card-hero__icon { width: 48px; height: 48px; stroke: var(--sh-ink-3); fill: none; }
+
+.sh-card-hero__top { display: flex; align-items: flex-start; gap: var(--sh-s-4); }
+.sh-card-hero__title { margin: 0; flex: 1 1 auto; }
+.sh-card-hero__back { flex: none; margin-left: auto; }
+.sh-card-hero__meta { margin: var(--sh-s-2) 0 0; color: var(--sh-ink-2); font-size: var(--sh-fs-body); }
+.sh-card-hero__pills { display: flex; flex-wrap: wrap; gap: var(--sh-s-2); margin-top: var(--sh-s-4); }
+.sh-card-hero__actions { display: flex; flex-wrap: wrap; align-items: center; gap: var(--sh-s-3); margin-top: var(--sh-s-5); }
+.sh-card-hero__search { display: inline-flex; align-items: center; gap: 6px; }
+
+@media (max-width: 767.98px) {
+  .sh-card-hero { grid-template-columns: 1fr; gap: var(--sh-s-4); padding-top: var(--sh-s-4); }
+  .sh-card-hero__media { max-width: 200px; }
+}
+
+/* Подменю разделов: липкое под шапкой кабинета, строит lk-card.js.
+   Шапка сайта тоже липкая (top:0, z-index выше) — подменю встаёт под её
+   нижний край: высоту шапки публикует one.js в --sh-header-h. */
+.sh-subnav {
+  position: sticky;
+  top: var(--sh-header-h, 0px);
+  z-index: var(--sh-z-sticky);
+  margin: 0 -40px;
+  padding: 8px 40px;
+  background: rgba(255, 255, 255, .92);
+  -webkit-backdrop-filter: blur(8px);
+  backdrop-filter: blur(8px);
+  border-bottom: 1px solid var(--sh-line);
+  overflow-x: auto;
+}
+
+.sh-subnav__list { display: flex; gap: 4px; list-style: none; margin: 0; padding: 0; white-space: nowrap; }
+
+.sh-subnav__link {
+  display: inline-block;
+  padding: 6px 12px;
+  border-radius: var(--sh-r-pill);
+  font-size: var(--sh-fs-sm);
+  color: var(--sh-ink-2);
+  transition: background-color var(--sh-t-fast) var(--sh-ease-out), color var(--sh-t-fast) var(--sh-ease-out);
+}
+
+.sh-subnav__link:hover { background: var(--sh-cream-2); color: var(--sh-ink); }
+.sh-subnav__link.is-active { background: var(--sh-navy); color: var(--sh-paper); }
+
+@media (max-width: 1279.98px) {
+  .sh-subnav { margin: 0 -30px; padding: 8px 30px; }
+}
+@media (max-width: 767.98px) {
+  .sh-subnav { margin: 0 -15px; padding: 8px 15px; }
+}
+
+/* Карточка — элемент грида кабинета (320px 1fr): у грид-элемента
+   min-width:auto, и широкое содержимое растягивало колонку за окно. */
+.lk-questionnaire { min-width: 0; max-width: 100%; }
+
+/* Разделы: бандл держит анкету во flex-строке с липкой колонкой фото —
+   фото уехало в шапку, основной столбец занимает всю ширину. */
+.lk-questionnaire__body-main--full { flex: 1 1 auto; max-width: 100%; }
+.lk-questionnaire__wide { width: 100%; }
+.lk-questionnaire__only { font-weight: 400; font-size: var(--sh-fs-xs); color: var(--sh-warn-ink); }
+.lk-questionnaire__lead { color: var(--sh-ink-2); margin: 0 0 10px; max-width: var(--sh-measure); }
+.lk-questionnaire__msg { margin-top: 8px; font-size: var(--sh-fs-sm); }
+.lk-questionnaire__doc-img { max-width: 100%; }
+.lk-questionnaire__closed { margin: var(--sh-s-8) 0; }
+/* К общему html{scroll-padding-top} (шапка) добавляется высота подменю. */
+[data-sh-sec] { scroll-margin-top: 44px; }
+
+/* Статусы: цвет — классом, а не style.color из скрипта. */
+.is-muted { color: var(--sh-ink-2); }
+.is-ok { color: var(--sh-ok-ink); }
+.is-err { color: var(--sh-err-ink); }
+
+/* Оговорка (X-4): не диагноз, со слов кандидата. */
+.sh-alert {
+  font-size: var(--sh-fs-xs);
+  line-height: 1.6;
+  color: var(--sh-warn-ink);
+  background: var(--sh-warn-bg);
+  border: 1px solid #e8ddc7;
+  border-radius: var(--sh-r-s);
+  padding: 9px 11px;
+  margin: 0 0 12px;
+}
+
+/* Сигналы внимания */
+.lk-risk { margin-bottom: 9px; padding: 11px 13px; }
+.lk-risk__kind { font-size: var(--sh-fs-sm); font-weight: 500; color: var(--sh-ink); }
+.lk-risk__note { font-size: var(--sh-fs-sm); line-height: 1.6; color: var(--sh-ink); margin-top: 4px; }
+.lk-risk__hint { font-size: var(--sh-fs-xs); line-height: 1.55; color: var(--sh-ink-2); margin-top: 6px; }
+.lk-risk__when { font-size: var(--sh-fs-xs); color: var(--sh-ink-3); margin-top: 6px; }
+
+/* Психологический портрет (перенесено из <style> шаблона) */
+.lk-psy { display: grid; gap: 18px; grid-template-columns: 250px minmax(0, 1fr); width: 100%; }
+@media (max-width: 760px) { .lk-psy { grid-template-columns: 1fr; } }
+.lk-psy__chart { background: var(--sh-paper); border: 1px solid var(--sh-line); border-radius: var(--sh-r-m); padding: 12px; display: grid; place-items: center; }
+.lk-psy__h { font-size: 11.5px; letter-spacing: .06em; text-transform: uppercase; color: var(--sh-ink-2); margin-bottom: 8px; }
+.lk-psy__bars { list-style: none; margin: 11px 0 0; padding: 0; display: flex; flex-direction: column; gap: 10px; }
+.lk-psy__bar { display: grid; grid-template-columns: 1fr auto; gap: 4px 10px; font-size: 13.5px; }
+.lk-psy__bar b { font-weight: 500; }
+.lk-psy__bar em { font-style: normal; font-variant-numeric: tabular-nums; color: var(--sh-gold-ink); font-weight: 700; }
+.lk-psy__track { grid-column: 1 / -1; height: 8px; background: var(--sh-sand); border-radius: 99px; overflow: hidden; }
+.lk-psy__track > i { display: block; height: 100%; background: var(--sh-gold); border-radius: 99px; }
+.lk-psy__bar--top .lk-psy__track > i { background: var(--sh-gold-deep); }
+.lk-psy__panel { background: var(--sh-paper); border: 1px solid var(--sh-line); border-radius: var(--sh-r-m); padding: 15px; margin-top: 14px; }
+.lk-psy__text { font-size: var(--sh-fs-sm); line-height: 1.65; max-width: 66ch; margin: 7px 0 0; }
+.lk-psy__foot { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; margin-top: 13px; padding-top: 11px; border-top: 1px solid var(--sh-line); font-size: var(--sh-fs-xs); color: var(--sh-ink-2); }
+.lk-psy__spacer { flex: 1; }
+.lk-psy__pill { border-radius: 999px; padding: 3px 10px; background: #eae4d9; color: var(--sh-ink-2); }
+.lk-psy__empty { color: var(--sh-ink-2); }
+.lk-psy__hint { display: block; margin-top: 4px; font-size: 13px; }
+
+/* Подбор пар (перенесено из <style> шаблона; карточки пар — .sh-card) */
+.lk-match__rec { margin-top: 12px; padding: 14px; transition: opacity var(--sh-t-base) var(--sh-ease-out); }
+.lk-match__rec--rejected { opacity: .45; }
+.lk-match__top { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; }
+.lk-match__who b { font-weight: 600; }
+.lk-match__who span { display: block; font-size: 12.5px; color: var(--sh-ink-2); }
+.lk-match__score { margin-left: auto; text-align: right; }
+.lk-match__score b { font-size: 19px; color: var(--sh-gold-ink); font-variant-numeric: tabular-nums; }
+.lk-match__sbar { width: 120px; height: 7px; background: var(--sh-sand); border-radius: 99px; overflow: hidden; margin-top: 4px; }
+.lk-match__sbar > i { display: block; height: 100%; background: var(--sh-gold-deep); }
+.lk-match__parts { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px; margin-top: 11px; }
+.lk-match__part { font-size: 12.5px; color: var(--sh-ink-2); }
+.lk-match__part b { color: var(--sh-ink); font-variant-numeric: tabular-nums; }
+.lk-match__track { height: 6px; background: var(--sh-sand); border-radius: 99px; overflow: hidden; margin-top: 4px; }
+.lk-match__track > i { display: block; height: 100%; background: var(--sh-gold); }
+.lk-match__why { font-size: 13.5px; line-height: 1.6; background: var(--sh-cream); border-radius: var(--sh-r-s); padding: 10px 12px; margin-top: 11px; }
+.lk-match__acts { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; margin-top: 11px; }
+.lk-match__sel { border: 1px solid var(--sh-line); background: var(--sh-cream); border-radius: var(--sh-r-s); padding: 7px 9px; font-size: 13px; color: var(--sh-ink); }
+.lk-match__done { font-size: 13px; color: var(--sh-gold-ink); }
+.lk-match__done--gap { margin-top: 10px; }
+.lk-match__msg { font-size: 13px; margin-top: 10px; }
+.lk-match__zero { font-size: 13px; line-height: 1.6; color: var(--sh-gold-ink); background: var(--sh-warn-bg); border: 1px solid #e8ddc7; border-radius: var(--sh-r-m); padding: 10px 12px; margin: 12px 0 0; }
+
+/* Приглашение по ссылке */
+.lk-invite { margin-top: 12px; }
+.lk-invite__row { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+.lk-invite__row--gap { margin-top: 10px; }
+.lk-invite__input { flex: 1; min-width: 200px; width: auto; }
+.lk-invite__note { color: var(--sh-gold-ink); font-size: 12.5px; margin-top: 6px; }
+.lk-invite__msg { font-size: 12.5px; margin-top: 6px; }
+.lk-invite__error { font-size: 13px; margin-top: 10px; }
+
+.lk-questionnaire__shadhans { list-style: none; padding: 0; }
+
+@media (prefers-reduced-motion: reduce) {
+  .sh-subnav__link, .lk-match__rec { transition: none; }
+}
+
 /* ============================== §public =================================
    Публичные экраны (A2.2): шапка, лендинг, меню, подвал. Всё поверх
    бандла тем же селектором; движение — только transform/opacity.        */

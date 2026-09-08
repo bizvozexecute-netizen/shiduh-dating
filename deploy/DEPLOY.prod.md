@@ -44,6 +44,7 @@ tar czf webroot_$(date +%F_%H%M).tar.gz /path/to/webroot   # без netcat_files
   сверьте с `vars.inc.php.example` значение `$ADMIN_AUTHTIME` (30 суток вместо года, B-4)
 - `shiduh.org/netcat_files/.htaccess` — запрет исполнения в каталоге загрузок (C5). Требует `AllowOverride All` для каталога и модули `mod_authz_core`, `mod_headers` (nosniff); без `mod_headers` блок с заголовком просто пропускается
 - `shiduh.org/api/landing_lib.php` — числа и города для главной (A2.2); его подключает `template/3/4/Template.html`
+- `shiduh.org/js/lk-card.js` — поведение карточки кандидата (A5): резюме от ИИ, подбор пар, приглашение, подменю разделов; подключается из шаблонов карточек после `js/csrf.js`
 - `shiduh.org/api/showcase_lib.php` — витрина: возраст в SQL, JOIN владельца, пейджер (A4); его подключают `class/204/Settings.html` и `class/204/213/Settings.html`
 - `shiduh.org/api/lk_lib.php` — помощники кабинета (A3): миниатюры аватаров через ядро, ссылка выхода, краткая карточка собеседника; его подключают партиалы кабинета и шаблоны сообщений 265
 - `shiduh.org/api/auth_rules_lib.php` — правила регистрации (A2.1): порог 18 лет, пароль, телефон, тип; его подключают `class/netcat_module_auth_user/{AddCond,EditCond}.html`
@@ -57,6 +58,7 @@ tar czf webroot_$(date +%F_%H%M).tar.gz /path/to/webroot   # без netcat_files
 - `class/netcat_module_auth_message/{265,259,320}/AddTemplate.html` и `class/183/275/AddTemplate.html` — формы сообщения и статьи с виджетом фото. **Хэш настроек виджета считается от `SecretKey`**, поэтому эти три файла выкатываются в том же окне, что и миграция `019` (§8.5): старый прод-шаблон с константой после ротации ключа ответит «Settings integrity error» на любое сообщение
 - `template/{3,28}/{Template,Header,Footer}.html` — метатег `csrf-token`, подключение `/js/csrf.js`, безопасное поле `REQUESTED_FROM` формы входа (C2/C3). **Править комплектом: `Template.html` — это склейка `Header.html`+`Footer.html`**
 - `template/3/{Template,Footer}.html`, `template/3/partials/{aside_profile,lk-menu-mobile,lk-aside-body}.html` — меню кабинета одним партиалом (A3; `lk-aside-body.html` новый, без него сайдбар и мобильное меню пустые)
+- `class/204/RecordTemplateFull.html`, `class/204/213/RecordTemplateFull.html` — карточки (A5): без `<style>` и инлайновых `<script>`, hero и подменю; вместе с `js/lk-card.js`
 - `class/204/{Settings,RecordTemplate,FormSuffix,Class}.html`, `class/204/213/{Settings,RecordTemplate,FormPrefix,FormSuffix,Class}.html` — витрина и «Мои кандидаты» (A4): страницы, возраст в SQL. Копировать вместе с `Class.html` (источник для ядра)
 - `class/netcat_module_auth_message/265/*` и `266/{Class,RecordTemplate}.html` — список и письмо (A3). **`Class.html` — источник, части пересобираются ядром**; копировать папки целиком. `AddTemplate.html` не менялся (там хэш виджета фото)
 - `template/3/4/{Template,Header}.html` — лендинг (A2.2): счётчики из базы, лента городов, вход героя на слое. **Копировать оба файла**: `Header.html` — это секция Header из `Template.html`, ядро сверяет md5
