@@ -560,7 +560,7 @@ $nc_c_avatar = trim((string)$f_Photo_avatar) !== '' ? (string)$f_Photo_avatar->r
     $nc_risk_kinds = risk_kinds();
     ?>
     <? if($nc_risks): ?>
-    <div class="lk-questionnaire__section" id="sec-risks" data-sh-sec="Сигналы внимания">
+    <div class="lk-questionnaire__section" id="sec-risks" data-sh-sec="Сигналы внимания" data-sh-risks>
       <div class="lk-questionnaire__section-title title title--lk">Сигналы внимания
         <span class="lk-questionnaire__only">— только для шадхана</span></div>
       <div class="lk-questionnaire__body">
@@ -577,6 +577,8 @@ $nc_c_avatar = trim((string)$f_Photo_avatar) !== '' ? (string)$f_Photo_avatar->r
             <? endif; ?>
             <div class="lk-risk__hint"><?= htmlspecialchars(risk_kind_hint($nc_r['kind']), ENT_QUOTES, 'UTF-8') ?></div>
             <div class="lk-risk__when"><?= htmlspecialchars((string)$nc_r['created_at'], ENT_QUOTES, 'UTF-8') ?></div>
+            <?php /* C10: отметка «посмотрел» закрывает сигнал (api/moderation_resolve.php, js/lk-card.js) */ ?>
+            <div class="lk-risk__actions"><button type="button" class="button button--sm button--secondary js-risk-resolve" data-note="<?= (int)$nc_r['id'] ?>">Посмотрел</button><span class="lk-risk__msg lk-questionnaire__msg" role="status"></span></div>
           </div>
           <? endforeach; ?>
         </div>

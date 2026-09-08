@@ -93,6 +93,9 @@ function admin_nav_items() {
         'prompt'  => array('href' => '/admin-ai-prompt.php', 'title' => 'Промпт консультанта'),
         'cases'   => array('href' => '/admin-cases.php',     'title' => 'Кейсы опроса'),
         'mailing' => array('href' => '/admin-mailing.php',   'title' => 'Рассылка'),
+        'moderation' => array('href' => '/admin-moderation.php', 'title' => 'Сигналы внимания'),
+        'consent' => array('href' => '/admin-consent.php',   'title' => 'Согласия'),
+        'matches' => array('href' => '/admin-matches.php',   'title' => 'Подбор'),
     );
 }
 

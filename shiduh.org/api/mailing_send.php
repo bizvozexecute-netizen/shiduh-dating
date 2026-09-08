@@ -6,7 +6,8 @@
  * body. Письма уходят только адресатам с подтверждённым email (Confirmed=1):
  * кладутся в Mail_Queue (nc_mail2queue), реально шлёт штатный крон mailer
  * порциями по 20 — троттлинг Р-2. В каждом письме — ссылка отписки с
- * персональным токеном (Р-3); лог — mailings + mailing_log.
+ * персональным токеном (Р-3); лог — mailings + mailing_log. Сама очередь —
+ * mailing_enqueue() в mailing_lib.php (её же зовёт запрос согласия, C11).
  * CSRF — заслон по Origin/Referer, как в api/invite_create.php.
  */
 $NETCAT_FOLDER = realpath(dirname(__FILE__) . '/..') . '/';
@@ -70,75 +71,9 @@ $recipients = (array)$db->get_results(
     ARRAY_A
 );
 
-$db->query(
-    "INSERT INTO `mailings` SET "
-    . "`created_by`=$uid, "
-    . "`filters`='" . $db->prepare(json_encode($filters, JSON_UNESCAPED_UNICODE)) . "', "
-    . "`subject`='" . $db->prepare($subject) . "', "
-    . "`body`='" . $db->prepare($body) . "', "
-    . "`recipients_total`=0, "
-    . "`created_at`=NOW()"
-);
-if ($db->is_error || !$db->insert_id) {
+$result = mailing_enqueue($db, $uid, $subject, $body, $filters, $recipients);
+if (!$result['mailing_id']) {
     shiduh_json(500, array('error' => 'Не удалось создать рассылку'));
 }
-$mailing_id = (int)$db->insert_id;
 
-$base = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off' ? 'https' : 'http')
-      . '://' . (string)($_SERVER['HTTP_HOST'] ?? '');
-$from = $nc_core->get_settings('FromEmail', 'subscriber')
-     ?: ($nc_core->get_settings('SpamFromEmail', 'system') ?: ('noreply@' . $req_host));
-
-// Сегмент может быть большим (тысячи адресатов): не даём PHP умереть по
-// таймауту посреди цикла — как штатный bulk-отправитель admin/user/MessageToAll.php.
-@set_time_limit(0);
-@ignore_user_abort(true);
-
-$queued = 0;
-foreach ($recipients as $r) {
-    $r_uid = (int)$r['User_ID'];
-    $email = (string)$r['Email'];
-
-    // Персональный токен отписки: заводим при первом касании, дальше переиспользуем.
-    $token = $db->get_var("SELECT `token` FROM `mailing_optout` WHERE `user_id`=$r_uid");
-    if (!$token) {
-        $token = bin2hex(random_bytes(32));
-        $db->query(
-            "INSERT IGNORE INTO `mailing_optout` SET "
-            . "`user_id`=$r_uid, `token`='" . $db->prepare($token) . "', "
-            . "`opted_out`=0, `created_at`=NOW()"
-        );
-        // гонка двух запросов: перечитываем фактический токен
-        $token = $db->get_var("SELECT `token` FROM `mailing_optout` WHERE `user_id`=$r_uid");
-    }
-
-    if (!$token || !preg_match('/^[0-9a-f]{64}$/', $token)) {
-        // Без рабочего токена ссылка отписки в письме была бы мёртвой —
-        // такого адресата пропускаем и честно пишем в лог ошибку.
-        $db->query(
-            "INSERT INTO `mailing_log` SET "
-            . "`mailing_id`=$mailing_id, `user_id`=$r_uid, "
-            . "`email`='" . $db->prepare($email) . "', "
-            . "`status`='error', `queued_at`=NOW()"
-        );
-        continue;
-    }
-
-    $message = $body . "\n\n---\n"
-        . "Отписаться от рассылки: $base/api/mailing_unsubscribe.php?t=$token";
-
-    nc_mail2queue($email, $from, $subject, $message);
-
-    $db->query(
-        "INSERT INTO `mailing_log` SET "
-        . "`mailing_id`=$mailing_id, `user_id`=$r_uid, "
-        . "`email`='" . $db->prepare($email) . "', "
-        . "`status`='queued', `queued_at`=NOW()"
-    );
-    // счётчик копим инкрементально: при обрыве соединения шапка не останется
-    // с нулём при реально ушедших письмах
-    $db->query("UPDATE `mailings` SET `recipients_total`=`recipients_total`+1 WHERE `id`=$mailing_id");
-    $queued++;
-}
-
-shiduh_json(200, array('ok' => true, 'mailing_id' => $mailing_id, 'queued' => $queued));
+shiduh_json(200, array('ok' => true, 'mailing_id' => $result['mailing_id'], 'queued' => $result['queued']));

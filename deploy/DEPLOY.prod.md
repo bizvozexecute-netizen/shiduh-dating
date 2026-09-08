@@ -39,7 +39,7 @@ tar czf webroot_$(date +%F_%H%M).tar.gz /path/to/webroot   # без netcat_files
 - `shiduh.org/js/csrf.js` — обёртка fetch/XHR, подставляет `X-CSRF-Token` (C3)
 - `shiduh.org/js/chat.js`, `js/consultant.js` — поведение чата и страницы консультанта (B2–B8, A6); `js/admin.js`, `css/one-admin.css` — общие помощники и стили админ-консоли (C8); `css/fonts.css` — @font-face фирменных шрифтов для автономных страниц без бандла (межстраница приглашения, C4)
 - `shiduh.org/css/one.css`, `shiduh.org/js/one.js` — дизайн-слой (A0). Грузятся ПОСЛЕ бандла; версия в URL считается по `filemtime`, руками бампать не нужно
-- `shiduh.org/admin-cases.php`, `admin-mailing.php`, `admin-ai-prompt.php`, `admin-ai.php` (ключ провайдера вводится здесь, C9) — все на общем каркасе `api/admin_layout.php`
+- `shiduh.org/admin-cases.php`, `admin-mailing.php`, `admin-ai-prompt.php`, `admin-ai.php` (ключ провайдера вводится здесь, C9) — все на общем каркасе `api/admin_layout.php`, плюс `admin-moderation.php`, `admin-consent.php`, `admin-matches.php` (C10–C12) с библиотеками `api/moderation_lib.php`, `api/consent_admin_lib.php`, `api/match_stats_lib.php` и эндпоинтами `api/moderation_resolve.php`, `api/consent_export.php`, `api/consent_request_mailing.php`; `api/mailing_lib.php` и `api/mailing_send.php` — очередь писем вынесена в `mailing_enqueue()`; `class/204/213/RecordTemplateFull.html` и `js/lk-card.js` — кнопка «Посмотрел» у сигнала
 - **`shiduh.org/vars.inc.php`** — НЕ в git (секреты). На сервере правится руками:
   сверьте с `vars.inc.php.example` значение `$ADMIN_AUTHTIME` (30 суток вместо года, B-4)
 - `shiduh.org/netcat_files/.htaccess` — запрет исполнения в каталоге загрузок (C5). Требует `AllowOverride All` для каталога и модули `mod_authz_core`, `mod_headers` (nosniff); без `mod_headers` блок с заголовком просто пропускается
@@ -108,7 +108,7 @@ tar czf webroot_$(date +%F_%H%M).tar.gz /path/to/webroot   # без netcat_files
 # рекомендуемый способ — одним rsync, атомарно с точки зрения пользователя
 rsync -a --delete-after \
   shiduh.org/api/ shiduh@prod:/path/webroot/api/
-rsync -a shiduh.org/admin-cases.php shiduh.org/admin-mailing.php \n  shiduh.org/admin-ai-prompt.php shiduh.org/admin-ai.php shiduh@prod:/path/webroot/
+rsync -a shiduh.org/admin-cases.php shiduh.org/admin-mailing.php \n  shiduh.org/admin-ai-prompt.php shiduh.org/admin-ai.php \n  shiduh.org/admin-moderation.php shiduh.org/admin-consent.php shiduh.org/admin-matches.php shiduh@prod:/path/webroot/
 rsync -a shiduh.org/js/ shiduh@prod:/path/webroot/js/
 rsync -a shiduh.org/css/one.css shiduh.org/css/one-admin.css shiduh.org/css/fonts.css shiduh@prod:/path/webroot/css/
 rsync -a shiduh.org/netcat_template/ shiduh@prod:/path/webroot/netcat_template/

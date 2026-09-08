@@ -1725,6 +1725,7 @@
 .lk-risk__note { font-size: var(--sh-fs-sm); line-height: 1.6; color: var(--sh-ink); margin-top: 4px; }
 .lk-risk__hint { font-size: var(--sh-fs-xs); line-height: 1.55; color: var(--sh-ink-2); margin-top: 6px; }
 .lk-risk__when { font-size: var(--sh-fs-xs); color: var(--sh-ink-3); margin-top: 6px; }
+.lk-risk__actions { display: flex; align-items: center; gap: var(--sh-s-3); margin-top: var(--sh-s-3); }
 
 /* Психологический портрет (перенесено из <style> шаблона) */
 .lk-psy { display: grid; gap: 18px; grid-template-columns: 250px minmax(0, 1fr); width: 100%; }

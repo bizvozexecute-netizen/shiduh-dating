@@ -594,9 +594,11 @@ def dbq_strict(sql):
 
 def backup_row(table, row_id, fields, key="Message_ID"):
     """Снимок полей одной строки: dict поле → значение (NULL_MARK для NULL)."""
-    packed = dbq_strict("SELECT CONCAT_WS(CHAR(31), %s) FROM `%s` WHERE `%s`=%d"
+    # ведущее '#' — иначе пустое первое поле съедает strip() в dbq (вывод mysql
+    # начинается с табуляции), и значений оказывается на одно меньше
+    packed = dbq_strict("SELECT CONCAT_WS(CHAR(31), '#', %s) FROM `%s` WHERE `%s`=%d"
                         % (", ".join("IFNULL(`%s`,'%s')" % (f, NULL_MARK) for f in fields), table, key, int(row_id)))
-    vals = [mysql_unescape(v) for v in packed.split(chr(31))]
+    vals = [mysql_unescape(v) for v in packed.split(chr(31))[1:]]
     assert len(vals) == len(fields), "снимок строки %s#%s: %d значений вместо %d" % (table, row_id, len(vals), len(fields))
     return dict(zip(fields, vals))
 

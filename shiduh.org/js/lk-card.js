@@ -271,7 +271,38 @@
     Array.prototype.forEach.call(secs, function (sec) { if (sec.id) { io.observe(sec); } });
   }
 
+  /* ------------------------------------------------- сигналы внимания --
+     C10: «Посмотрел» закрывает сигнал (api/moderation_resolve.php — право у
+     ведущего шадхана и администратора). Закрытый исчезает из списка, пустой
+     блок прячется: сигнал — повод присмотреться один раз, а не постоянная метка. */
+  function riskBlock() {
+    var root = document.querySelector('[data-sh-risks]');
+    if (!root) { return; }
+    Array.prototype.forEach.call(root.querySelectorAll('.js-risk-resolve'), function (btn) {
+      btn.addEventListener('click', function () {
+        var card = btn.closest ? btn.closest('.lk-risk') : null;
+        var msg = card && card.querySelector('.lk-risk__msg');
+        btn.disabled = true;
+        say(msg, 'Сохраняем…', 'muted');
+        post('/api/moderation_resolve.php', { note_id: btn.getAttribute('data-note') }).then(function (r) {
+          if (r.code !== 200) {
+            btn.disabled = false;
+            say(msg, (r.data && r.data.error) ? r.data.error : 'Не удалось сохранить отметку.', 'err');
+            return;
+          }
+          if (card && card.parentNode) { card.parentNode.removeChild(card); }
+          if (!root.querySelector('.lk-risk')) {
+            root.hidden = true;
+            var link = document.querySelector('.sh-subnav a[href="#' + root.id + '"]');
+            if (link && link.parentNode && link.parentNode.parentNode) { link.parentNode.parentNode.removeChild(link.parentNode); }
+          }
+        });
+      });
+    });
+  }
+
   function init() {
+    riskBlock();
     aiSummary();
     matchBlock();
     inviteBlock();
