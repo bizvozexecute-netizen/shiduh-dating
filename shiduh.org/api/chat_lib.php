@@ -654,6 +654,62 @@ function chat_chip_value($text) {
     return $text;
 }
 
+/*
+ * Приписка к ответу о незаписанных заменах: поле, что в анкете сейчас и что
+ * предложено. Только по вопросам ЭТОГО хода (asked_message_id): старые
+ * вопросы уже сняты ai_pending_expire_answered. Клиент рисует done.reply
+ * как итог, поэтому приписка видна и в потоке, и в истории.
+ */
+function chat_pending_field_titles() {
+    return array(
+        'City' => 'город', 'Place_of_birth' => 'место рождения', 'Kashrut_level' => 'кашрут',
+        'Shabbat_level' => 'Шаббат', 'Observance_growth' => 'рост в соблюдении', 'Family_values' => 'семейные ценности',
+        'Housing_after_marriage' => 'жильё после свадьбы', 'Are_you_ready_to_move' => 'готовность к переезду',
+        'Diaspora_openness' => 'открытость к другим общинам', 'About_self' => 'о себе', 'Languages_spoken' => 'языки',
+        'Sport_attitude' => 'спорт', 'Introvert_extrovert' => 'интроверт или экстраверт',
+    );
+}
+
+/* Ключи полей, о замене которых модель спросила в этом ходу (по событиям
+ * инструментов, собранным эмиттером): повтор вопроса хранит старый номер
+ * реплики, по одному номеру его не узнать. */
+function chat_asked_now($emit) {
+    $keys = array();
+    if (!is_array($emit) || empty($emit['collected'])) {
+        return $keys;
+    }
+    $collected = call_user_func($emit['collected']);
+    foreach ((array)(isset($collected['tool_events']) ? $collected['tool_events'] : array()) as $ev) {
+        if (isset($ev['name']) && $ev['name'] === 'update_profile_fields' && !empty($ev['pending'])) {
+            foreach ((array)$ev['pending'] as $k) {
+                $keys[(string)$k] = true;
+            }
+        }
+    }
+    return array_keys($keys);
+}
+
+function chat_append_pending_note($db, $uid, $user_message_id, $thread, $reply, array $asked_now = array()) {
+    $titles = chat_pending_field_titles();
+    $notes = array();
+    foreach (ai_pending_list($db, $uid, $thread) as $p) {
+        $asked_here = (int)$p['asked_message_id'] === (int)$user_message_id
+            || in_array((string)$p['tool_key'], $asked_now, true);
+        if (!$asked_here) {
+            continue;
+        }
+        $title = isset($titles[$p['field']]) ? $titles[$p['field']] : (string)$p['field'];
+        $notes[] = 'поле «' . $title . '» пока не изменено — в анкете «'
+            . (string)$p['current_label'] . '». Поменять на «' . (string)$p['proposed_label'] . '»?';
+    }
+    if (!$notes) {
+        return $reply;
+    }
+    return rtrim((string)$reply) . "
+
+Уточню: " . implode(' ', $notes) . ' Ответьте «да» или «нет».';
+}
+
 function chat_chips($db, $uid, $ctx = array()) {
     $uid = (int)$uid;
     $chips = array();
@@ -946,13 +1002,23 @@ function chat_run($db, $uid, array $in, $emit = null) {
      * до суток, и согласие на совсем другой вопрос консультанта позже зачлось
      * бы за согласие на замену.
      */
-    ai_pending_expire_answered($db, $uid, $user_message_id, $thread);
+    $asked_now = chat_asked_now($emit);
+    ai_pending_expire_answered($db, $uid, $user_message_id, $thread, $asked_now);
 
     // модель могла вернуть пустой текст (например, снова попросив инструмент)
     $reply = trim((string)$res['content']);
     if ($reply === '') {
         $reply = 'Записал, спасибо. Расскажите ещё что-нибудь о себе.';
     }
+
+    /*
+     * Живая проверка четырёх моделей (deepseek, gpt-4.1-nano, gemini flash,
+     * qwen): на ответ инструмента «поле уже заполнено — спросите» модель
+     * нередко пишет «записал», и человек уверен, что анкета изменилась.
+     * Сервер знает правду — вопросы о замене, заданные в этом ходу, ещё
+     * открыты — и дописывает её сам, независимо от модели.
+     */
+    $reply = chat_append_pending_note($db, $uid, $user_message_id, $thread, $reply, $asked_now);
 
     $saved = chat_insert_assistant($db, $uid, $thread, $reply, $tokens);
     return array(

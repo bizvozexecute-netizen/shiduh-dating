@@ -172,7 +172,7 @@ php migrations/migrate.php up        # применить неприменённ
 | `provider` | `stub` | `openrouter` — включить живой LLM |
 | `api_key` | `''` | ключ OpenRouter (Э1) — **не хранить в git** |
 | `base_url` | `https://openrouter.ai/api/v1` | если другой OpenAI-совместимый шлюз |
-| `model` | `openai/gpt-4o-mini` | выбор модели |
+| `model` | `mistralai/mistral-small-2603` | выбор модели — по живому прогону шести моделей 2026-09-10 (`tools/live_bench.py`, итоги в `docs/REPORT.md` §4); запасные: `deepseek/deepseek-v4-flash` (в 2 раза дешевле, но задержки до 30 с), `qwen/qwen3.8-flash` (самые живые ответы, дороже и с всплесками задержки). Модели с «рассуждением» (`gpt-5-mini`) при `max_tokens=700` возвращают пустой ответ — не ставить |
 | `temperature` | `0.7` | тон ответов |
 | `timeout` | `15` | сек на запрос |
 | `max_retries` | `2` | ретраи при 429/5xx |

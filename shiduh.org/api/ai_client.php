@@ -108,7 +108,9 @@ function ai_config() {
         'provider'    => (string)$get('provider', 'stub'),
         'api_key'     => (string)$get('api_key', ''),
         'base_url'    => rtrim((string)$get('base_url', 'https://openrouter.ai/api/v1'), '/'),
-        'model'       => (string)$get('model', 'openai/gpt-4o-mini'),
+        // по живому прогону шести моделей OpenRouter (tools/live_bench.py, 2026-09-10): быстрая,
+        // без сбоев в цепочке инструментов, короткие ответы; см. deploy/DEPLOY.prod.md §7
+        'model'       => (string)$get('model', 'mistralai/mistral-small-2603'),
         // Таймаут с запасом под шлюз: худший случай 3 попытки × 15с + 1.5с
         // пауз ≈ 46с — укладывается в типовые 60с фронтового прокси.
         'timeout'     => (int)$get('timeout', 15),

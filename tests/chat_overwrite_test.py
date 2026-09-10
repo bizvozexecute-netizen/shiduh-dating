@@ -30,8 +30,9 @@ import pytest
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from fake_llm import (  # noqa: E402
-    clear_ai_settings, dbq, login, post_json, set_fake_mode, setting,
-    start_fake_server, stop_fake_server, use_fake_provider,
+    backup_row, clear_ai_settings, dbq, login, post_json, restore_row,
+    set_fake_mode, setting, start_fake_server, stop_fake_server,
+    use_fake_provider,
 )
 
 CANDIDATE = "uad322c9ddbba@example.local"   # User_ID 44
@@ -64,9 +65,7 @@ def setup_module(module):
     use_fake_provider()
     # тесты правят живые анкеты dev-БД: запоминаем всё, что трогаем, чтобы
     # прерванный прогон не оставил в ней сентинелы
-    row = dbq("SELECT %s FROM Message204 WHERE Message_ID=%d"
-              % (", ".join("`%s`" % f for f in FIELDS), anketa_id()))
-    _SAVED["row"] = row.split("\t") if row else None
+    _SAVED["row"] = backup_row("Message204", anketa_id(), FIELDS)
     wipe()
 
 
@@ -75,9 +74,7 @@ def teardown_module(module):
     clear_ai_settings()
     wipe()
     if _SAVED.get("row"):
-        sets = ", ".join("`%s`='%s'" % (f, v.replace("'", "''"))
-                         for f, v in zip(FIELDS, _SAVED["row"]))
-        dbq("UPDATE Message204 SET %s WHERE Message_ID=%d" % (sets, anketa_id()))
+        restore_row("Message204", anketa_id(), _SAVED["row"])
 
 
 def wipe():
@@ -147,6 +144,27 @@ def test_model_is_told_to_ask():
     reply = js.get("reply", "")
     assert "already_filled" in reply or "уже заполнено" in reply, \
         "модели не сообщили, что поле занято: " + reply[:200]
+
+
+def test_reply_tells_user_value_is_not_saved_yet():
+    """Живые модели на «уже заполнено — спросите» отвечают «записал».
+    Сервер дописывает правду сам: что в анкете сейчас и что предложено."""
+    wipe()
+    set_city("Москва")
+    code, js = propose("Ашдод")
+    reply = js.get("reply", "")
+    assert "пока не изменено" in reply, "нет приписки о незаписанной замене: " + reply[:200]
+    assert "поле «город» пока не изменено — в анкете «Москва»" in reply, reply[:300]
+    assert "«Ашдод»" in reply, reply[:300]
+    assert city() == "Москва"
+    # приписка есть и в сохранённой истории — её видит и повторное открытие чата
+    last = dbq("SELECT content FROM `ai_chat_messages` WHERE user_id=%d AND role='assistant' ORDER BY id DESC LIMIT 1" % uid())
+    assert "пока не изменено" in last
+    # без вопроса о замене приписки нет
+    wipe()
+    set_city("")
+    code, js = propose("Ашдод")
+    assert "пока не изменено" not in js.get("reply", "")
 
 
 def test_pending_question_reaches_prompt():
@@ -326,6 +344,21 @@ def test_repeated_proposal_does_not_cancel_consent():
     code, js = say("да, поменяйте", mode="propose_then_confirm",
                    tool_args={"city": "Ашдод"})
     assert city() == "Ашдод", "согласие потеряно из-за повтора предложения"
+
+
+def test_repeated_proposal_keeps_the_question_open():
+    """Человек не ответил на вопрос, а модель в следующем ходу предложила тот
+    же город снова. Вопрос повторён — значит, он снова открыт: приписка о
+    незаписанном поле есть, и «да» следующим ходом применяет замену. Иначе
+    сервер снимает вопрос как «отвеченный», а модель пишет «записал»."""
+    wipe()
+    set_city("Москва")
+    propose("Ашдод")                                      # ход 1: вопрос
+    code, js = propose("Ашдод", text="кстати, я ещё люблю читать")  # ход 2: повтор
+    assert "пока не изменено" in js.get("reply", ""), js.get("reply", "")[:200]
+    assert len(pending()) == 1, "повторённый вопрос снят как отвеченный: %s" % pending()
+    confirm()                                             # ход 3: согласие
+    assert city() == "Ашдод", "согласие после повтора вопроса не применилось"
 
 
 def test_question_is_bound_to_its_dialogue():

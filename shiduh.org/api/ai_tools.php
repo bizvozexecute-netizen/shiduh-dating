@@ -432,7 +432,13 @@ function ai_pending_drop($db, $user_id, $column) {
  * удалило, а заново предложенное в этом же ходу имеет номер текущей реплики
  * и под условие не попадает.
  */
-function ai_pending_expire_answered($db, $user_id, $current_message_id, $thread = null) {
+/*
+ * $asked_again — ключи полей, о которых модель спросила снова в этом же ходу
+ * (повтор вопроса сохраняет прежний номер реплики, см. ai_pending_ask).
+ * Повторённый вопрос снова открыт — снимать его как отвеченный нельзя,
+ * иначе «да» следующим ходом упрётся в «не спрашивали».
+ */
+function ai_pending_expire_answered($db, $user_id, $current_message_id, $thread = null, array $asked_again = array()) {
     $current_message_id = (int)$current_message_id;
     if ($current_message_id <= 0) {
         return;
@@ -440,6 +446,13 @@ function ai_pending_expire_answered($db, $user_id, $current_message_id, $thread 
     // Реплика в другом диалоге чужой вопрос не отвечает — и не должна
     // съедать его окно: у каждого разговора свой ход.
     $where = $thread === null ? '' : " AND `thread`=" . (int)$thread;
+    if ($asked_again) {
+        $keys = array();
+        foreach ($asked_again as $k) {
+            $keys[] = "'" . $db->prepare((string)$k) . "'";
+        }
+        $where .= ' AND `tool_key` NOT IN (' . implode(',', $keys) . ')';
+    }
     $db->query(
         "DELETE FROM `ai_pending_overwrites` WHERE `user_id`=" . (int)$user_id
         . " AND `asked_message_id` < $current_message_id" . $where
