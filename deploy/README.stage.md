@@ -87,7 +87,24 @@ rsync -avz --progress shiduh.org/netcat_files/ shiduh@<ip>:~/shiduh/shiduh.org/n
 
 Без `netcat_files` стенд поднимется, но анкеты будут с битыми фотографиями.
 
-### 5. Поднять
+### 5. Права на каталоги, куда пишет сайт
+
+На Linux это обязательный шаг, на локальной машине его нет: Docker Desktop
+раздаёт права сам, и про них забываешь. Apache в контейнере работает от
+`www-data`, а файлы после распаковки принадлежат владельцу каталога — сайт
+отдаёт «Не могу записать файл» вместо страницы, потому что не может собрать
+кэш шаблонов.
+
+```bash
+cd ~/shiduh/shiduh.org
+sudo mkdir -p netcat/tmp
+sudo chown -R www-data:www-data netcat_template netcat_files netcat/tmp
+```
+
+Повторять после каждой новой заливки `netcat_files` — `rsync` и `tar`
+возвращают владельца обратно.
+
+### 6. Поднять
 
 ```bash
 cd ~/shiduh
@@ -95,7 +112,9 @@ docker compose -f docker-compose.stage.yml up -d --build
 docker compose -f docker-compose.stage.yml ps
 ```
 
-### 6. Залить базу и настроить домен
+Сборка образа PHP на одном ядре идёт около десяти минут.
+
+### 7. Залить базу и настроить домен
 
 ```bash
 C="docker compose -f docker-compose.stage.yml"
@@ -117,7 +136,7 @@ $C exec -T db sh /tools/05_set_domain.sh stage.shiduh.org
 
 Шаг с `03_verify.sql` — не формальность. Если хоть одна проверка не пройдёт, значит на стенд приехали неотмытые данные, и дальше идти нельзя.
 
-### 6.5. Миграции и настройки
+### 8. Миграции и настройки
 
 Дамп — снимок боевой схемы. Всё, что сделано после него, накатывается
 миграциями; без них не будет ни чата, ни согласий, ни админ-консоли.
@@ -134,6 +153,10 @@ $C exec -T web php /var/www/html/migrations/migrate.php status   # 001–013, 01
 - `/admin-ai.php` — провайдер, ключ, модель (`mistralai/mistral-small-2603`,
   обоснование в `docs/REPORT.md` §4), затем «Проверить подключение».
   **С российского адреса OpenRouter отвечает 403** — см. «Доступ к модели».
+  Пока вопрос не решён, оставьте провайдера `stub`: чат при этом полностью
+  рабочий (поток, разметка, подсказки, история, «Остановить»), а вместо
+  ответа модели приходит честная строка «живой ИИ подключится на следующем
+  этапе». Это лучше, чем ошибка на каждое сообщение.
 - `/admin-ai.php`, блок капчи — серверный секрет SmartCaptcha, если он уже
   получен; без него капча проверяется только в браузере.
 
@@ -143,10 +166,18 @@ $C exec -T web php /var/www/html/migrations/migrate.php status   # 001–013, 01
 $C exec -T web rm -f /var/www/html/index.html
 ```
 
-Cron поздравлений (по желанию, стенд без него работает):
+Cron поздравлений — **на хосте, не в контейнере**: в образе `php:7.4-apache`
+демона cron нет, и файл в `/etc/cron.d` внутри контейнера никогда не сработает.
 
 ```bash
-$C exec -T web sh -c 'echo "0 9 * * * www-data php /var/www/html/check_birthday_candidates/index.php" > /etc/cron.d/shiduh-birthday'
+sudo tee /etc/cron.d/shiduh-stage-birthday >/dev/null <<'CRON'
+SHELL=/bin/bash
+0 9 * * * root cd /home/shiduh/shiduh && /usr/bin/docker compose -f docker-compose.stage.yml exec -T web php /var/www/html/check_birthday_candidates/index.php >> /var/log/shiduh-birthday.log 2>&1
+CRON
+sudo chmod 644 /etc/cron.d/shiduh-stage-birthday
+
+# разовая проверка: письма уйдут в mailpit, наружу не денутся
+docker compose -f docker-compose.stage.yml exec -T web php /var/www/html/check_birthday_candidates/index.php
 ```
 
 ---
@@ -170,7 +201,7 @@ curl -s -o /dev/null -w "%{http_code}
 сам сайт переносить не нужно — достаточно направить его на посредника.
 Варианты решения — в `docs/REPORT.md` §5.
 
-### 7. Проверить
+### 9. Проверить
 
 Открыть `https://stage.shiduh.org` — браузер спросит логин и пароль из `.env`, дальше должен отдаться сайт.
 
