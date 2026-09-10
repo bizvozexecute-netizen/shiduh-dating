@@ -47,6 +47,7 @@ services:
       # Домен стенда. Должен совпадать с Catalogue.Domain в базе,
       # иначе NetCat не опознает сайт — см. tools/05_set_domain.sh
       NC_HTTP_HOST: ${STAGE_DOMAIN}
+      NC_MYSQL_TIMEZONE: ${NC_MYSQL_TIMEZONE:-+03:00}
     volumes:
       - ./shiduh.org:/var/www/html
       - ./docker/php/php.ini:/usr/local/etc/php/conf.d/zz-netcat.ini:ro
@@ -57,8 +58,10 @@ services:
     restart: unless-stopped
 
   db:
+    # --default-time-zone: пояс сервера = пояс приложения (C13). Флагом, а не
+    # в my.cnf: конфиг с правами 777 mysqld молча игнорирует.
     image: mysql:5.7
-    command: --default-authentication-plugin=mysql_native_password
+    command: --default-authentication-plugin=mysql_native_password --default-time-zone=+03:00
     ports:
       # Только на локальный интерфейс: снаружи не достучаться,
       # подключение через SSH-туннель.

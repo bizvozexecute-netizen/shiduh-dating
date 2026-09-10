@@ -50,6 +50,22 @@ if [ -f /root/.ssh/authorized_keys ]; then
     chmod 600 "/home/$STAGE_USER/.ssh/authorized_keys"
 fi
 
+echo "==> Подкачка"
+# На машине с 2 ГБ памяти и без swap сборка образа PHP и импорт дампа
+# упираются в OOM: сборщик и mysqld просят пик одновременно. Гигабайты
+# подкачки медленные, но выкрутиться дают.
+if [ "$(swapon --show --noheadings | wc -l)" -eq 0 ]; then
+    fallocate -l 2G /swapfile || dd if=/dev/zero of=/swapfile bs=1M count=2048
+    chmod 600 /swapfile
+    mkswap /swapfile
+    swapon /swapfile
+    grep -q '^/swapfile' /etc/fstab || echo '/swapfile none swap sw 0 0' >> /etc/fstab
+    # база в контейнере: своп нужен как страховка, а не как основная память
+    sysctl -w vm.swappiness=10
+    grep -q '^vm.swappiness' /etc/sysctl.conf || echo 'vm.swappiness=10' >> /etc/sysctl.conf
+fi
+free -h
+
 echo "==> Файрвол: наружу только SSH, HTTP и HTTPS"
 ufw allow OpenSSH
 ufw allow 80/tcp
@@ -60,9 +76,18 @@ ufw status verbose
 echo "==> Автообновления безопасности"
 dpkg-reconfigure -f noninteractive unattended-upgrades
 
-echo "==> Отключаю вход по паролю в SSH"
-sed -i 's/^#\?PasswordAuthentication.*/PasswordAuthentication no/' /etc/ssh/sshd_config
-systemctl reload ssh || systemctl reload sshd
+# Вход по паролю выключается ОТДЕЛЬНЫМ шагом и только осознанно: сделать это
+# до того, как владелец сервера положил свой ключ, — значит запереть его
+# снаружи (останется только консоль хостера).
+if [ "${DISABLE_PASSWORD_AUTH:-0}" = "1" ]; then
+    echo "==> Отключаю вход по паролю в SSH"
+    sed -i 's/^#\?PasswordAuthentication.*/PasswordAuthentication no/' /etc/ssh/sshd_config
+    systemctl reload ssh || systemctl reload sshd
+else
+    echo "==> Вход по паролю оставлен включённым."
+    echo "    Положите свой ключ в ~/.ssh/authorized_keys и повторите запуск"
+    echo "    с DISABLE_PASSWORD_AUTH=1 — это последний шаг подготовки машины."
+fi
 
 cat <<EOF
 

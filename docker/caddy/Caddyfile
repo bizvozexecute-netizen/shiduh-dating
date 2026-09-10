@@ -4,7 +4,20 @@
 # обезличенных данных это копия боевого сервиса, и в поиске ей делать нечего.
 
 {$STAGE_DOMAIN} {
-	encode gzip
+	# Сжимаем только перечисленное. text/event-stream в список НЕ входит
+	# намеренно: сжатый поток копится в буфере, и ответ консультанта
+	# доезжает целиком в конце — вместо того чтобы печататься на глазах.
+	encode gzip {
+		match {
+			header Content-Type text/html*
+			header Content-Type text/plain*
+			header Content-Type text/css*
+			header Content-Type text/javascript*
+			header Content-Type application/javascript*
+			header Content-Type application/json*
+			header Content-Type image/svg+xml*
+		}
+	}
 
 	# Забор от посторонних и от поисковых роботов
 	basic_auth {
@@ -12,16 +25,33 @@
 	}
 
 	# Стенд не должен попадать в индекс ни при каких обстоятельствах
+	# «?» — поставить, только если приложение не поставило своё: админка
+	# отдаёт X-Frame-Options: DENY и свою CSP, перебивать их нельзя.
 	header {
 		X-Robots-Tag "noindex, nofollow, noarchive"
-		X-Content-Type-Options "nosniff"
-		X-Frame-Options "SAMEORIGIN"
-		Referrer-Policy "same-origin"
+		?X-Content-Type-Options "nosniff"
+		?X-Frame-Options "SAMEORIGIN"
+		?Referrer-Policy "same-origin"
 		-Server
 	}
 
 	# NetCat определяет сайт по HTTP_HOST, поэтому заголовки хоста
 	# пробрасываем как есть.
+	# Потоковый ответ консультанта: отдавать клиенту сразу, не копить.
+	# Caddy делает это сам, увидев text/event-stream, но у чата есть и
+	# длинные не-потоковые ответы — прокси не должен рвать их по таймауту.
+	@chat path /api/ai_chat.php
+	reverse_proxy @chat web:80 {
+		header_up Host {host}
+		header_up X-Real-IP {remote_host}
+		header_up X-Forwarded-Proto {scheme}
+		flush_interval -1
+		transport http {
+			read_timeout 300s
+			write_timeout 300s
+		}
+	}
+
 	reverse_proxy web:80 {
 		header_up Host {host}
 		header_up X-Real-IP {remote_host}
