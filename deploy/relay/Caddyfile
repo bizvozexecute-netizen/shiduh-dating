@@ -1,0 +1,47 @@
+# Пересылка запросов сайта shiduh.org к API модели (OpenRouter).
+#
+# Зачем: с российского адреса openrouter.ai отвечает 403 по стране, а база
+# сайта по закону обязана оставаться в России. Поэтому за границу вынесена
+# только пересылка запросов к API, сайт и персональные данные остаются на
+# сервере в России.
+#
+# Порт 9443, а не 443: 443 и 8443 на этой машине заняты другим сервисом,
+# его не трогаем. Порт 80 нужен Let's Encrypt для проверки владения именем.
+{
+	http_port 80
+	https_port 9443
+}
+
+https://130-12-242-212.sslip.io:9443 {
+	# Пускаем только наш сервер приложения. Без этого получился бы открытый
+	# прокси к платному API: адрес найдут сканеры за считаные часы.
+	@ours remote_ip 159.194.243.61
+	handle @ours {
+		reverse_proxy https://openrouter.ai {
+			header_up Host openrouter.ai
+			# ответы модели идут потоком; копить их в буфере нельзя
+			flush_interval -1
+			transport http {
+				read_timeout 300s
+				write_timeout 300s
+			}
+		}
+	}
+	handle {
+		respond "not for you" 403
+	}
+
+	# 443 занят, поэтому проверка владения именем только через порт 80.
+	tls {
+		issuer acme {
+			disable_tlsalpn_challenge
+		}
+	}
+
+	log {
+		output file /data/access.log {
+			roll_size 5MiB
+			roll_keep 3
+		}
+	}
+}
