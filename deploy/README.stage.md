@@ -93,6 +93,36 @@ rsync -avz --progress shiduh.org/netcat_files/ shiduh@<ip>:~/shiduh/shiduh.org/n
 
 Без `netcat_files` стенд поднимется, но анкеты будут с битыми фотографиями.
 
+**Если канал до сервера медленный или рвётся.** Второй стенд (2026-09-11)
+заливался с машины за VPN: 148 КБ/с и обрывы соединения каждые несколько
+минут, `scp` целого архива не доезжал. Что помогает:
+
+```bash
+# 1. уменьшенная копия аватаров: 820 МБ → 230 МБ, имена и форматы файлов
+#    сохраняются (на них ссылается база); галереи и документы (multifile,
+#    1,8 ГБ) на стенд можно не тащить — на демонстрацию они не влияют
+python tools/stage/shrink_avatars.py shiduh.org/netcat_files/23 /tmp/avatars/23
+tar cf - -C /tmp/avatars 23 | gzip -1 > /tmp/avatars.tgz
+
+# 2. заливка кусками с повторами и сверкой контрольной суммы
+bash tools/stage/upload-chunked.sh /tmp/avatars.tgz shiduh@<ip> /tmp/avatars.tgz 8m
+gzip -6 -c dump-out/dump.anonymized.sql > /tmp/dump.sql.gz      # 31 МБ → 1,4 МБ
+bash tools/stage/upload-chunked.sh /tmp/dump.sql.gz shiduh@<ip> ~/shiduh/dump-out/dump.sql.gz 2m
+
+# на сервере
+tar xzf /tmp/avatars.tgz -C ~/shiduh/shiduh.org/netcat_files
+gunzip ~/shiduh/dump-out/dump.sql.gz && mv ~/shiduh/dump-out/dump.sql ~/shiduh/dump-out/dump.anonymized.sql
+```
+
+Шаги 7–8 ниже по той же причине лучше запускать отсоединённо, чтобы обрыв
+SSH не убил импорт на середине: `deploy/finish-stage.sh` делает их все и
+пишет журнал в `/root/finish-stage.log`:
+
+```bash
+nohup bash deploy/finish-stage.sh stage.shiduh.org 'пароль-стенда' > /root/finish-stage.log 2>&1 &
+tail -f /root/finish-stage.log      # ждать строку FINISH_DONE
+```
+
 ### 5. Права на каталоги, куда пишет сайт
 
 На Linux это обязательный шаг, на локальной машине его нет: Docker Desktop
