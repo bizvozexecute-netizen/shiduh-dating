@@ -202,6 +202,19 @@ $C exec -T web php /var/www/html/migrations/migrate.php status   # 001–013, 01
 $C exec -T web rm -f /var/www/html/index.html
 ```
 
+Презентация для заказчика — обычным файлом рядом с сайтом:
+
+```bash
+scp presentation/onesoul-2026-09.html shiduh@<ip>:~/shiduh/shiduh.org/presentation.html
+ssh shiduh@<ip> 'sudo chown www-data:www-data ~/shiduh/shiduh.org/presentation.html'
+# откроется по https://<домен>/presentation.html под тем же паролем стенда
+```
+
+Это не забывается только пока записано: файл лежит в `presentation/` репозитория,
+а не в `shiduh.org/`, поэтому при переустановке стенда сам он не приедет. Правило
+перезаписи NetCat отдаёт существующие файлы напрямую, поэтому ничего настраивать
+не нужно.
+
 Cron поздравлений — **на хосте, не в контейнере**: в образе `php:7.4-apache`
 демона cron нет, и файл в `/etc/cron.d` внутри контейнера никогда не сработает.
 
