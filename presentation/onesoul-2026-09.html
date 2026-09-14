@@ -84,19 +84,27 @@ body {
 }
 .slide--navy .eyebrow { color: var(--gold); }
 
-h1, h2 { font-family: var(--disp); font-weight: 400; margin: 0; text-wrap: balance; }
-h1 { font-size: clamp(2.4rem, 1.4rem + 4.2vw, 5rem); line-height: 1.04; }
-h2 { font-size: clamp(1.7rem, 1.1rem + 2.2vw, 2.9rem); line-height: 1.12; }
+/* Дисплейный шрифт — только крупно (титул, разделители): у него тонкие
+   штрихи, и на среднем кегле кириллица теряет читаемость. Заголовки
+   контентных слайдов набраны текстовым шрифтом в среднем начертании. */
+h1 { font-family: var(--disp); font-weight: 400; margin: 0; text-wrap: balance;
+     font-size: clamp(2.4rem, 1.4rem + 4.2vw, 5rem); line-height: 1.04; }
+h2 { font-family: var(--body); font-weight: 500; margin: 0; text-wrap: balance;
+     color: var(--navy); letter-spacing: -.01em;
+     font-size: clamp(1.5rem, 1.05rem + 1.5vw, 2.25rem); line-height: 1.22; }
+.slide--navy h2 { color: var(--cream); }
 .sub {
   margin: 1.1rem 0 0;
   font-size: clamp(1rem, .95rem + .35vw, 1.2rem);
-  color: var(--ink-2);
-  max-width: 40ch;
+  color: var(--ink);
+  max-width: 42ch;
+  text-wrap: pretty;
 }
 .slide--navy .sub { color: #cfc7bb; }
 
 h2 + .lead { margin-top: 1rem; }
-.lead { font-size: clamp(1rem, .95rem + .3vw, 1.15rem); color: var(--ink-2); max-width: 60ch; margin: 0; text-wrap: pretty; }
+.lead { font-size: clamp(1rem, .95rem + .3vw, 1.12rem); color: var(--ink); max-width: 60ch; margin: 0; text-wrap: pretty; }
+.lead--muted { color: var(--ink-2); }
 
 /* --- сетки --- */
 .cols { display: grid; gap: clamp(20px, 3vw, 44px); align-items: center; }
@@ -114,6 +122,41 @@ h2 + .lead { margin-top: 1rem; }
 }
 .facts b { font-weight: 500; }
 .facts .muted { color: var(--ink-2); }
+.facts b { color: var(--navy); }
+.slide--navy .facts b { color: var(--cream); }
+
+/* --- плотный перечень: слайды «что именно сделано» --- */
+.scope { margin: 0; padding: 0; list-style: none; }
+/* Колонки, а не сетка: в сетке строки выравниваются парами, и пункт из одной
+   строки оставляет дыру рядом с пунктом из двух. Колонки просто переливаются. */
+@media (min-width: 860px) { .scope--2 { columns: 2; column-gap: 2.6rem; } }
+.scope li {
+  display: grid; grid-template-columns: .8rem 1fr; gap: .7rem;
+  break-inside: avoid; -webkit-column-break-inside: avoid;
+  margin-bottom: .5rem;
+  font-size: clamp(.9rem, .86rem + .16vw, 1rem);
+  line-height: 1.45;
+  padding-bottom: .5rem;
+  border-bottom: 1px solid var(--line);
+}
+.scope li::before { content: ""; width: .3rem; height: .3rem; margin-top: .58rem; background: var(--gold-deep); border-radius: 50%; }
+.scope b { font-weight: 500; color: var(--navy); }
+.slide--navy .scope li { border-bottom-color: rgba(232, 225, 213, .16); }
+.slide--navy .scope b { color: var(--cream); }
+.scope .q { color: var(--ink-2); }
+.slide--navy .scope .q { color: #b9b1a5; }
+
+/* --- полоса этапов --- */
+.phases { display: grid; gap: .5rem; margin: 0; padding: 0; list-style: none; }
+@media (min-width: 780px) { .phases { grid-template-columns: repeat(2, 1fr); gap: .5rem 2.2rem; } }
+.phases li { display: grid; grid-template-columns: 2.1rem 1fr; gap: .8rem; align-items: baseline; padding: .45rem 0; border-bottom: 1px solid var(--line); }
+.phases .n { font-family: var(--disp); font-size: 1.25rem; color: var(--gold-deep); }
+.phases .t { font-weight: 500; color: var(--navy); }
+.phases .d { color: var(--ink-2); font-size: .9rem; }
+
+/* --- разделитель акта --- */
+.slide--break .in { max-width: 900px; }
+.slide--break h1 { font-size: clamp(2rem, 1.2rem + 3.4vw, 4rem); }
 
 /* --- числа --- */
 .nums { display: grid; gap: clamp(14px, 2vw, 26px); grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); }
@@ -285,6 +328,194 @@ tr.is-pick td:first-child { font-weight: 500; box-shadow: inset 3px 0 0 var(--go
         <div class="num"><div class="num__v">990</div><div class="num__l">автоматических проверок <span class="num__was">(было 358)</span></div></div>
       </div>
       <p class="lead" style="margin-top: 1.6rem;">479 файлов, 24 тысячи строк кода, 26 обновлений схемы базы. Всё это проверяется автоматически при каждом изменении.</p>
+    </div>
+  </section>
+
+  <!-- этапы --------------------------------------------------------------- -->
+  <section class="slide" aria-label="Как шли">
+    <div class="in stack">
+      <p class="eyebrow">Порядок работ</p>
+      <h2>Восемь этапов, каждый заканчивался работающим сервисом</h2>
+      <p class="lead">Ни один этап не оставлял сайт в половинчатом состоянии: код собирается, проверки проходят, изменения схемы обратимы.</p>
+      <ol class="phases" style="margin-top: 1.2rem;">
+        <li><span class="n">1</span><span><span class="t">Аудит и локальная копия.</span> <span class="d">Разбор чужого кода, обезличенная база, воспроизводимое окружение.</span></span></li>
+        <li><span class="n">2</span><span><span class="t">Фундамент данных.</span> <span class="d">Новые поля анкеты, справочники, таблицы, индексы под подбор.</span></span></li>
+        <li><span class="n">3</span><span><span class="t">ИИ-консультант.</span> <span class="d">Диалог, автозаполнение анкеты, резюме кандидата.</span></span></li>
+        <li><span class="n">4</span><span><span class="t">Ценностный профиль.</span> <span class="d">Кейсы, разбор ответов, книги как источник, портрет в карточке.</span></span></li>
+        <li><span class="n">5</span><span><span class="t">Подбор пар.</span> <span class="d">Фильтры, балл по трём составляющим, обоснование, решения шадхана.</span></span></li>
+        <li><span class="n">6</span><span><span class="t">Безопасность.</span> <span class="d">Инъекции, пароли, сессии, загрузки, капча, права.</span></span></li>
+        <li><span class="n">7</span><span><span class="t">Интерфейс.</span> <span class="d">Дизайн-слой, лендинг, кабинет, витрина, карточки, мастер анкеты.</span></span></li>
+        <li><span class="n">8</span><span><span class="t">Управление и выкатка.</span> <span class="d">Семь экранов админки, ранбук, тестовый стенд, живая модель.</span></span></li>
+      </ol>
+    </div>
+  </section>
+
+  <!-- разделитель --------------------------------------------------------- -->
+  <section class="slide slide--navy slide--break" aria-label="Раздел: что именно сделано">
+    <div class="in">
+      <p class="eyebrow">Подробно</p>
+      <h1>Что именно<br>сделано</h1>
+      <p class="sub">82 закрытых пункта плана. Дальше — шесть слайдов по направлениям, без сокращений.</p>
+    </div>
+  </section>
+
+  <!-- объём: фундамент ---------------------------------------------------- -->
+  <section class="slide" aria-label="Объём: данные и фундамент">
+    <div class="in stack">
+      <p class="eyebrow">Направление 1 · Данные</p>
+      <h2>Фундамент: во что складывать то, чего раньше не собирали</h2>
+      <ul class="scope scope--2" style="margin-top: 1.1rem;">
+        <li><span><b>Десять новых полей анкеты</b> <span class="q">— заполняются в разговоре, не обязательны в форме</span></span></li>
+        <li><span><b>Справочники кашрута и Шаббата</b> <span class="q">— в одном месте, а не вписаны в код</span></span></li>
+        <li><span><b>Переписка с консультантом</b> <span class="q">— с диалогами, оценками и пометкой обрыва</span></span></li>
+        <li><span><b>Промпт с историей версий</b> <span class="q">— кто и когда менял, возврат к любой</span></span></li>
+        <li><span><b>Кейсы опроса и ответы на них</b> <span class="q">— ответы хранятся навсегда, версиями</span></span></li>
+        <li><span><b>Профили ценностей</b> <span class="q">— считаются кодом, а не моделью</span></span></li>
+        <li><span><b>Решения по парам и обоснования</b> <span class="q">— чтобы не платить дважды за то же</span></span></li>
+        <li><span><b>Приглашения по ссылке</b> <span class="q">— токен, срок, отметка использования</span></span></li>
+        <li><span><b>Рассылки, отписки, журнал</b> <span class="q">— кому, когда и с каким исходом</span></span></li>
+        <li><span><b>Согласия на сведения о здоровье</b> <span class="q">— дата и редакция текста</span></span></li>
+        <li><span><b>Сигналы внимания</b> <span class="q">— отдельно от анкеты, без влияния на подбор</span></span></li>
+        <li><span><b>Журнал расхода на модель</b> <span class="q">— по видам обращений и по дням</span></span></li>
+        <li><span><b>Составные индексы под подбор</b> <span class="q">— поиск пары не перебирает всю базу</span></span></li>
+        <li><span><b>26 обновлений схемы</b> <span class="q">— каждое с откатом, ни одного необратимого</span></span></li>
+      </ul>
+    </div>
+  </section>
+
+  <!-- объём: консультант -------------------------------------------------- -->
+  <section class="slide slide--paper" aria-label="Объём: ИИ-консультант">
+    <div class="in stack">
+      <p class="eyebrow">Направление 2 · Консультант</p>
+      <h2>Диалог, который действительно заполняет анкету</h2>
+      <ul class="scope scope--2" style="margin-top: 1.1rem;">
+        <li><span><b>Потоковый ответ</b> <span class="q">— с откатом на обычный, если сеть не даёт потока</span></span></li>
+        <li><span><b>Честный индикатор ожидания</b> <span class="q">— «подбираю материалы», «думаю», «записываю»</span></span></li>
+        <li><span><b>Кнопка «Остановить»</b> <span class="q">— начатый текст сохраняется</span></span></li>
+        <li><span><b>Разметка без выполнения кода</b> <span class="q">— списки и выделения безопасны</span></span></li>
+        <li><span><b>История постранично и по диалогам</b> <span class="q">— прошлые разговоры доступны</span></span></li>
+        <li><span><b>Оценка ответа</b> <span class="q">— палец вверх или вниз</span></span></li>
+        <li><span><b>Приветствие и подсказки</b> <span class="q">— по тому, чего в анкете не хватает</span></span></li>
+        <li><span><b>Тринадцать полей автозаполнения</b> <span class="q">— список закрыт в коде</span></span></li>
+        <li><span><b>Подтверждение перед заменой</b> <span class="q">— и приписка от сервера поверх ответа модели</span></span></li>
+        <li><span><b>Голосовой ввод</b> <span class="q">— кнопка микрофона, без отправки на сервер</span></span></li>
+        <li><span><b>Промпт правится в админке</b> <span class="q">— с версиями и откатом</span></span></li>
+        <li><span><b>Несменяемый запрет</b> <span class="q">— о здоровье, деньгах и заключениях, поверх любого промпта</span></span></li>
+        <li><span><b>Учёт расхода и потолок ответа</b> <span class="q">— видно, куда уходят деньги</span></span></li>
+        <li><span><b>Пределы 30 в час и 6 в минуту</b> <span class="q">— плюс десять диалогов в сутки</span></span></li>
+        <li><span><b>Защита от зацикливания</b> <span class="q">— не более одного повторного обращения к модели</span></span></li>
+        <li><span><b>Повтор после обрыва без дублей</b> <span class="q">— реплика сохраняется до обращения к модели</span></span></li>
+      </ul>
+    </div>
+  </section>
+
+  <!-- объём: профиль и подбор --------------------------------------------- -->
+  <section class="slide" aria-label="Объём: профиль и подбор">
+    <div class="in stack">
+      <p class="eyebrow">Направление 3 · Профиль и подбор</p>
+      <h2>Ценностный портрет и пары, которые объясняют себя</h2>
+      <div class="cols cols--2" style="margin-top: .9rem;">
+        <ul class="scope">
+          <li><span><b>Три книги разобраны на 1271 фрагмент</b> <span class="q">— консультант опирается на источники, а не выдумывает</span></span></li>
+          <li><span><b>Поиск по смыслу отдельным сервисом</b> <span class="q">— выключается одной настройкой</span></span></li>
+          <li><span><b>Двенадцать кейсов опроса</b> <span class="q">— правятся в админке без программиста</span></span></li>
+          <li><span><b>Модель только разбирает один ответ</b> <span class="q">— профиль считает код, результат воспроизводим</span></span></li>
+          <li><span><b>Ответы хранятся навсегда</b> <span class="q">— повторный ответ начинает новую версию, старое не стирается</span></span></li>
+          <li><span><b>Радар языков любви и полосы ценностей</b> <span class="q">— в карточке у шадхана</span></span></li>
+          <li><span><b>Опрос синхронизирован с диалогом</b> <span class="q">— ответ кнопкой и ответ словами равноценны</span></span></li>
+        </ul>
+        <ul class="scope">
+          <li><span><b>Обязательные фильтры</b> <span class="q">— пол, возраст с обеих сторон, религиозная совместимость</span></span></li>
+          <li><span><b>Балл из трёх составляющих</b> <span class="q">— ценности 0,4, языки любви 0,3, смысловая близость 0,3</span></span></li>
+          <li><span><b>Разбивка балла видна шадхану</b> <span class="q">— не «магическое число», а из чего оно сложилось</span></span></li>
+          <li><span><b>Обоснование пары словами</b> <span class="q">— по фактам анкет, без имён и контактов, сохраняется</span></span></li>
+          <li><span><b>Решение шадхана с причиной</b> <span class="q">— предложил или отклонил, и почему</span></span></li>
+          <li><span><b>Кандидат видит пары обезличенно</b> <span class="q">— без имён и контактов</span></span></li>
+          <li><span><b>В паре виден ведущий шадхан</b> <span class="q">— понятно, с кем договариваться</span></span></li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- объём: безопасность -------------------------------------------------- -->
+  <section class="slide slide--navy" aria-label="Объём: безопасность">
+    <div class="in stack">
+      <p class="eyebrow">Направление 4 · Безопасность</p>
+      <h2>Закрыто пятнадцать классов проблем, часть из них — на живом сайте</h2>
+      <ul class="scope scope--2" style="margin-top: 1.1rem;">
+        <li><span><b>Подстановка запросов к базе</b> <span class="q">— во всех копиях шаблонов, включая публичные новости и видео</span></span></li>
+        <li><span><b>Внедрение чужого кода в страницы</b> <span class="q">— в поиске и списках</span></span></li>
+        <li><span><b>Подделка запросов</b> <span class="q">— заслон на всех изменяющих действиях</span></span></li>
+        <li><span><b>Переход на чужой сайт</b> <span class="q">— через подставленный адрес возврата</span></span></li>
+        <li><span><b>Пароли без соли</b> <span class="q">— переведены на современный хэш незаметно при входе</span></span></li>
+        <li><span><b>Общеизвестный секретный ключ</b> <span class="q">— заменён, токены перестали быть предсказуемыми</span></span></li>
+        <li><span><b>Вечные сессии</b> <span class="q">— срок и привязка к адресу</span></span></li>
+        <li><span><b>Вход по ссылке из письма</b> <span class="q">— заменён страницей подтверждения</span></span></li>
+        <li><span><b>Загрузка файлов</b> <span class="q">— размер, тип по содержимому, запрет запуска</span></span></li>
+        <li><span><b>Чужая анкета</b> <span class="q">— только открытая и без контактов</span></span></li>
+        <li><span><b>Регистрация</b> <span class="q">— 18 лет, правила пароля, согласие без предустановленной галочки</span></span></li>
+        <li><span><b>Защита от роботов на сервере</b> <span class="q">— включается секретом, не только в браузере</span></span></li>
+        <li><span><b>Единые проверки прав</b> <span class="q">— кандидат, шадхан, администратор, суперадминистратор</span></span></li>
+        <li><span><b>Наблюдаемость</b> <span class="q">— ошибки в журнал, наружу без подробностей</span></span></li>
+        <li><span><b>Мёртвые куски сайта удалены</b> <span class="q">— обратимо, с архивом на случай отката</span></span></li>
+      </ul>
+    </div>
+  </section>
+
+  <!-- объём: интерфейс ---------------------------------------------------- -->
+  <section class="slide slide--paper" aria-label="Объём: интерфейс">
+    <div class="in stack">
+      <p class="eyebrow">Направление 5 · Интерфейс</p>
+      <h2>Весь сайт пересобран на общем наборе правил</h2>
+      <ul class="scope scope--2" style="margin-top: 1.1rem;">
+        <li><span><b>Дизайн-слой на токенах</b> <span class="q">— цвета, шрифты и отступы в одном месте</span></span></li>
+        <li><span><b>Без сборки и сторонних инструментов</b> <span class="q">— правится обычным редактором</span></span></li>
+        <li><span><b>Лендинг с живыми числами</b> <span class="q">— считаются из базы, а не вписаны руками</span></span></li>
+        <li><span><b>Липкая шапка и модальный вход</b> <span class="q">— на всех публичных страницах</span></span></li>
+        <li><span><b>Витрина по 24 анкеты</b> <span class="q">— постраничность в запросе, миниатюры вместо полных фото</span></span></li>
+        <li><span><b>Карточка кандидата</b> <span class="q">— шапка-герой, подменю с подсветкой текущего раздела</span></span></li>
+        <li><span><b>Мастер анкеты из семи шагов</b> <span class="q">— и та же форма при добавлении кандидата шадханом</span></span></li>
+        <li><span><b>Проверка на сервере</b> <span class="q">— возраст, рост, телефон, почта; обойти нельзя</span></span></li>
+        <li><span><b>Черновик анкеты в браузере</b> <span class="q">— без деликатных полей</span></span></li>
+        <li><span><b>Одна колонка на телефоне</b> <span class="q">— меню на весь экран, ничего не уезжает вбок</span></span></li>
+        <li><span><b>Доступность</b> <span class="q">— имена у иконок, подписи полей, заголовки, ориентиры</span></span></li>
+        <li><span><b>Уважение к «меньше движения»</b> <span class="q">— системная настройка отключает анимацию</span></span></li>
+        <li><span><b>Двенадцать экранов сняты до и после</b> <span class="q">— с отчётом по каждому</span></span></li>
+        <li><span><b>Стили и скрипты вынесены из шаблонов</b> <span class="q">— правка в одном месте, а не в десяти</span></span></li>
+      </ul>
+    </div>
+  </section>
+
+  <!-- объём: управление --------------------------------------------------- -->
+  <section class="slide" aria-label="Объём: управление и эксплуатация">
+    <div class="in stack">
+      <p class="eyebrow">Направление 6 · Управление</p>
+      <h2>Сервисом можно управлять, не вызывая программиста</h2>
+      <ul class="scope scope--2" style="margin-top: 1.1rem;">
+        <li><span><b>Семь экранов управления</b> <span class="q">— с общими правилами доступа и защитой страниц</span></span></li>
+        <li><span><b>Ключ и модель меняются в браузере</b> <span class="q">— без выкатки и без программиста</span></span></li>
+        <li><span><b>Проверка подключения одной кнопкой</b> <span class="q">— отвечает ли провайдер и знает ли модель</span></span></li>
+        <li><span><b>Расход по дням и видам обращений</b> <span class="q">— видно, что именно тратит деньги</span></span></li>
+        <li><span><b>Рассылка по сегменту</b> <span class="q">— предпросмотр числа получателей, отписка дописывается сама</span></span></li>
+        <li><span><b>Отправка порциями</b> <span class="q">— чтобы почтовые службы не сочли рассылку спамом</span></span></li>
+        <li><span><b>Очередь сигналов внимания</b> <span class="q">— закрывает администратор или ведущий шадхан</span></span></li>
+        <li><span><b>Экран согласий</b> <span class="q">— счётчики, выгрузка без медданных, повторный запрос письмом</span></span></li>
+        <li><span><b>Статистика подбора</b> <span class="q">— работает ли подбор, без опроса шадханов</span></span></li>
+        <li><span><b>Поздравления с днём рождения</b> <span class="q">— переписаны, без повторных писем</span></span></li>
+        <li><span><b>Единый часовой пояс</b> <span class="q">— «сегодня» одинаково у сайта и у базы</span></span></li>
+        <li><span><b>Ранбук выкатки</b> <span class="q">— порядок, окно для рискованных шагов, откат</span></span></li>
+        <li><span><b>Тестовый стенд</b> <span class="q">— обезличенная копия, письма наружу не уходят</span></span></li>
+        <li><span><b>Приёмка одной командой</b> <span class="q">— 33 проверки после каждой выкатки</span></span></li>
+      </ul>
+    </div>
+  </section>
+
+  <!-- разделитель --------------------------------------------------------- -->
+  <section class="slide slide--navy slide--break" aria-label="Раздел: как это выглядит">
+    <div class="in">
+      <p class="eyebrow">На экранах</p>
+      <h1>Как это<br>выглядит</h1>
+      <p class="sub">Дальше — снимки с работающего сервиса, а не макеты.</p>
     </div>
   </section>
 
@@ -566,7 +797,7 @@ tr.is-pick td:first-child { font-weight: 500; box-shadow: inset 3px 0 0 var(--go
 <nav class="bar" aria-label="Навигация по слайдам">
   <div class="dots" id="dots"></div>
   <span class="hint">← → или пробел</span>
-  <span class="count" id="count">1 / 16</span>
+  <span class="count" id="count">1 / 25</span>
 </nav>
 
 <script>
