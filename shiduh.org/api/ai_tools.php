@@ -19,6 +19,7 @@
  */
 
 require_once dirname(__FILE__) . '/admin_lib.php';   // shiduh_log()
+require_once dirname(__FILE__) . '/anketa_target_lib.php';
 
 // В шапке, а не внутри функций: include в теле функции делает top-level
 // переменные подключаемого файла локальными для будущих точек входа
@@ -198,10 +199,7 @@ function ai_tool_apply($db, $user_id, $args, $chat_message_id = 0, $thread = 1) 
         return $report;
     }
 
-    $anketa_id = (int)$db->get_var(
-        "SELECT `Message_ID` FROM `Message204` WHERE `User_ID`=$user_id "
-        . "ORDER BY `Message_ID` LIMIT 1"
-    );
+    $anketa_id = ai_target_anketa($db, $user_id);
     if (!$anketa_id) {
         $report['skipped']['_'] = 'анкета не найдена';
         return $report;
@@ -410,6 +408,30 @@ function ai_tool_value_label($db, $column, $type, $stored) {
     return mb_substr(trim((string)$clean), 0, 200);
 }
 
+/*
+ * Одно и то же значение, записанное по-разному: регистр, знаки, «г.»/«город»
+ * перед названием, одно содержит другое («Москва» и «Москва, Россия»).
+ * Только для решения «это прежний вопрос или новый» — не для записи.
+ */
+function ai_value_norm($v) {
+    $v = mb_strtolower(trim((string)$v));
+    $v = preg_replace('/[^\p{L}\p{N}]+/u', ' ', $v);
+    $v = preg_replace('/^(г|город|гор)\s+/u', '', trim((string)$v));
+    return trim((string)preg_replace('/\s+/u', ' ', (string)$v));
+}
+
+function ai_values_same($a, $b) {
+    $a = ai_value_norm($a);
+    $b = ai_value_norm($b);
+    if ($a === '' || $b === '') {
+        return false;
+    }
+    // Только равенство после нормализации («г. Ашдод» = «Ашдод»). Вхождение
+    // подстроки не годится: «Ростов» → «Ростов-на-Дону», «дети» → «дети и
+    // родители» — это новое предложение, а не переформулировка старого.
+    return $a === $b;
+}
+
 /* Снять вопрос по одному полю (ответили, протух или стал бессмысленным). */
 function ai_pending_drop($db, $user_id, $column) {
     $db->query(
@@ -473,6 +495,33 @@ function ai_pending_clear($db, $user_id) {
 function ai_pending_ask($db, $user_id, $key, $column, $type, $current, $proposed, $chat_message_id, $thread = 1) {
     $current_label  = ai_tool_value_label($db, $column, $type, $current);
     $proposed_label = ai_tool_value_label($db, $column, $type, $proposed);
+
+    /*
+     * Тот же вопрос, лишь переформулированный («Москва» → «г. Москва»), —
+     * не новый вопрос. Модель часто в ходе «да» сначала заново предлагает
+     * значение своими словами и только потом подтверждает; сдвинутый номер
+     * реплики превращал согласие в «собеседник ещё не ответил», и консультант
+     * спрашивал «поменять?» по кругу. Оставляем прежний вопрос как есть —
+     * с тем значением, которое человек видел и на которое согласился.
+     */
+    $prev = $db->get_row(
+        "SELECT `proposed_value`, `proposed_label`, `current_label`, `asked_message_id`, `thread` "
+        . "FROM `ai_pending_overwrites` WHERE `user_id`=" . (int)$user_id
+        . " AND `field`='" . $db->prepare($column) . "' "
+        . "AND `asked_at` >= DATE_SUB(NOW(), INTERVAL " . (int)AI_PENDING_TTL_HOURS . " HOUR)",
+        ARRAY_A
+    );
+    if ($prev && (int)$prev['thread'] === (int)$thread
+        && (int)$prev['asked_message_id'] < (int)$chat_message_id
+        && $type !== 'dict'
+        && ai_values_same((string)$prev['proposed_value'], (string)$proposed)) {
+        return array(
+            'сейчас' => (string)$prev['current_label'],
+            'предложено' => (string)$prev['proposed_label'],
+            'что_делать' => 'этот вопрос уже задан; если собеседник согласился, '
+                . 'вызовите confirm_profile_update с этим полем',
+        );
+    }
 
     /*
      * По полю висит ровно один вопрос — последний: передумавшая по ходу
@@ -559,10 +608,7 @@ function ai_pending_list($db, $user_id, $thread = null) {
         return array();
     }
 
-    $anketa_id = (int)$db->get_var(
-        "SELECT `Message_ID` FROM `Message204` WHERE `User_ID`=$user_id "
-        . "ORDER BY `Message_ID` LIMIT 1"
-    );
+    $anketa_id = ai_target_anketa($db, $user_id);
     if (!$anketa_id) {
         return array();
     }
@@ -654,10 +700,7 @@ function ai_tool_confirm($db, $user_id, $args, $chat_message_id = 0, $thread = n
         return $report;
     }
 
-    $anketa_id = (int)$db->get_var(
-        "SELECT `Message_ID` FROM `Message204` WHERE `User_ID`=$user_id "
-        . "ORDER BY `Message_ID` LIMIT 1"
-    );
+    $anketa_id = ai_target_anketa($db, $user_id);
     if (!$anketa_id) {
         $report['skipped']['_'] = 'анкета не найдена';
         return $report;

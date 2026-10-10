@@ -14,10 +14,11 @@
  */
 
 require_once dirname(__FILE__) . '/lk_lib.php';
+require_once dirname(__FILE__) . '/auth_rules_lib.php';
 
 if (!defined('MATCH_MIN_AGE')) {
     // тот же порог, что в подборе (api/match_lib.php) и при регистрации
-    define('MATCH_MIN_AGE', 18);
+    define('MATCH_MIN_AGE', AUTH_MIN_AGE);
 }
 define('SHOWCASE_PER_PAGE', 24);
 define('SHOWCASE_MAX_AGE', 120);
@@ -38,7 +39,7 @@ function showcase_age_bounds($age, $required = true) {
     $from = max(MATCH_MIN_AGE, (int)$from);
     $to   = ($to === null || $to <= 0) ? SHOWCASE_MAX_AGE : min(SHOWCASE_MAX_AGE, $to);
     if ($to < $from) {
-        // просили диапазон целиком ниже совершеннолетия — пусто, а не «18»
+        // просили диапазон целиком ниже порога — пусто, а не «MATCH_MIN_AGE»
         $to = $from - 1;
     }
     return array($from, $to);
@@ -105,4 +106,30 @@ function showcase_age_text($dob) {
         $age--;
     }
     return $age >= 0 && $age <= SHOWCASE_MAX_AGE ? (string)$age : '';
+}
+
+/*
+ * Приёмка 2026-10: «Поиск кандидатов» у кандидата открывается сразу списком
+ * тех, кто подходит по его анкете — по формуле подбора (жёсткие фильтры +
+ * совпадение профилей, api/match_lib.php), от большего процента к меньшему.
+ * Возвращает array('ids' => [порядок], 'pct' => [id => процент или null])
+ * или null, если своей проверенной анкеты нет (тогда обычная витрина).
+ * Процент null — профиль ещё не посчитан у одной из сторон (опрос не пройден):
+ * «0%» читался бы как «вы никому не подходите». Настоящий 0% показывается.
+ */
+function showcase_match_order($db, $uid) {
+    require_once dirname(__FILE__) . '/match_lib.php';
+    $own = match_own_anketa($db, $uid);
+    if (!$own) {
+        return null;
+    }
+    list($anketa, $lead) = $own;
+    $ids = array();
+    $pct = array();
+    foreach (match_list($db, $anketa, 500, $lead) as $r) {
+        $id = (int)$r['anketa_id'];
+        $ids[] = $id;
+        $pct[$id] = $r['profiled'] ? (int)round((float)$r['score'] * 100) : null;
+    }
+    return array('ids' => $ids, 'pct' => $pct);
 }

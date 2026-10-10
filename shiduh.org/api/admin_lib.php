@@ -128,8 +128,12 @@ function shiduh_require_auth() {
  * (AUDIT №36: единой точки проверки прав нет) — одна правка политики означала
  * семь правок кода.
  */
+function shiduh_user_type($db, $uid) {
+    return (int)$db->get_var("SELECT `Type` FROM `User` WHERE `User_ID`=" . (int)$uid);
+}
+
 function shiduh_require_shadhan($db, $uid) {
-    if ((int)$db->get_var("SELECT `Type` FROM `User` WHERE `User_ID`=" . (int)$uid) !== 2) {
+    if (shiduh_user_type($db, $uid) !== 2) {
         shiduh_json(403, array('error' => 'Доступно только шадхану'));
     }
 }

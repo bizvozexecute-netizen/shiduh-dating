@@ -49,6 +49,36 @@
             <div class="lk-questionnaire__body-table-cell lk-questionnaire__body-table-cell--key"><b>Страна проживания:</b></div>
             <div class="lk-questionnaire__body-table-cell lk-questionnaire__body-table-cell--value"><?= $f_Country; ?></div>
           </div>
+          <? if(trim((string)$f_City) !== ''): ?>
+          <div class="lk-questionnaire__body-table-row">
+            <div class="lk-questionnaire__body-table-cell lk-questionnaire__body-table-cell--key"><b>Город проживания:</b></div>
+            <div class="lk-questionnaire__body-table-cell lk-questionnaire__body-table-cell--value"><?= nl2br($f_City); ?></div>
+          </div>
+          <? endif; ?>
+          <? if(trim((string)$f_Shadhan_origin) !== ''): ?>
+          <div class="lk-questionnaire__body-table-row">
+            <div class="lk-questionnaire__body-table-cell lk-questionnaire__body-table-cell--key"><b>Происхождение:</b></div>
+            <div class="lk-questionnaire__body-table-cell lk-questionnaire__body-table-cell--value"><?= nl2br($f_Shadhan_origin); ?></div>
+          </div>
+          <? endif; ?>
+          <? if(trim((string)$f_Shadhan_about) !== ''): ?>
+          <div class="lk-questionnaire__body-table-row">
+            <div class="lk-questionnaire__body-table-cell lk-questionnaire__body-table-cell--key"><b>О себе:</b></div>
+            <div class="lk-questionnaire__body-table-cell lk-questionnaire__body-table-cell--value"><?= nl2br($f_Shadhan_about); ?></div>
+          </div>
+          <? endif; ?>
+          <? if(trim((string)$f_Shadhan_specialization) !== ''): ?>
+          <div class="lk-questionnaire__body-table-row">
+            <div class="lk-questionnaire__body-table-cell lk-questionnaire__body-table-cell--key"><b>Специализация:</b></div>
+            <div class="lk-questionnaire__body-table-cell lk-questionnaire__body-table-cell--value"><?= nl2br($f_Shadhan_specialization); ?></div>
+          </div>
+          <? endif; ?>
+          <? if(trim((string)$f_Shadhan_focus) !== ''): ?>
+          <div class="lk-questionnaire__body-table-row">
+            <div class="lk-questionnaire__body-table-cell lk-questionnaire__body-table-cell--key"><b>С какими кандидатами работает:</b></div>
+            <div class="lk-questionnaire__body-table-cell lk-questionnaire__body-table-cell--value"><?= nl2br($f_Shadhan_focus); ?></div>
+          </div>
+          <? endif; ?>
           <div class="lk-questionnaire__body-table-row">
             <div class="lk-questionnaire__body-table-cell lk-questionnaire__body-table-cell--key"><b>Телефон:</b></div>
             <div class="lk-questionnaire__body-table-cell lk-questionnaire__body-table-cell--value"><?= $f_Phone; ?></div>

@@ -3,12 +3,21 @@
 //  $warnText = 'Error sending the message';
 //  $posting = 0;
 //}
-if (!$f_ToUser || $f_ToUser==$AUTH_USER_ID) {
-  $warnText = 'Error sending the message';
+// Тексты отказов — по-русски и с причиной (приёмка 2026-10: «фото прикрепить
+// не удалось» — человек видел английское «Error sending the message» или
+// ничего). Частый случай: шадхан пишет «кандидату» по анкете, которую завёл
+// сам, — адресатом выходит он же.
+if (!$f_ToUser) {
+  $warnText = 'Не указан получатель сообщения.';
+  $posting = 0;
+}
+if ($f_ToUser && $f_ToUser==$AUTH_USER_ID) {
+  $warnText = 'Нельзя отправить сообщение самому себе. Если анкету кандидата завели вы, '
+    . 'у кандидата ещё нет своего аккаунта — пригласите его по ссылке из карточки анкеты.';
   $posting = 0;
 }
 if($nc_core->user->get_by_id($f_ToUser, "Type" ) === 'Кандидат' && $nc_core->user->get_by_id($AUTH_USER_ID, "Type" ) === 'Кандидат') {
- $warnText = 'Error sending the message candidate to candidate';
+ $warnText = 'Кандидаты не переписываются напрямую — напишите шадхану кандидата.';
  $posting = 0;
 }
 $f_Status = 0;

@@ -106,21 +106,17 @@ $userID = $nc_sh_uid;
       </a>
     </li>
     <?php endif; ?>
+    <?php /* Приёмка 2026-10: «Поиск шидуха» и «Создание шидуха» повторяли подбор
+       пар с ИИ и путали — их заменил один раздел «Подбор пар с ИИ» (выбрать
+       кандидата → рекомендации → «Предложить шидух» создаёт шидух). История
+       одна: шадхану — созданные им шидухи, кандидату — предложенные ему. */ ?>
     <?php if ($nc_sh_type === 2 && $nc_sh_uid !== 119): ?>
-    <li class="lk-aside__nav-item<?= $sub == 81 ? ' lk-aside__nav-item--active' : '' ?>">
-      <a class="lk-aside__nav-link" href="/my/poisk-shiduha/">
-        <div class="lk-aside__nav-link-icon-wrap">
-          <svg class="lk-aside__nav-link-icon lk-aside__nav-link-icon--lk-user-search"><use xlink:href="/images/sprite2.svg#lk-user-search"></use></svg>
-        </div>
-        <span class="lk-aside__nav-link-text">Поиск шидуха</span>
-      </a>
-    </li>
-    <li class="lk-aside__nav-item<?= $sub == 76 ? ' lk-aside__nav-item--active' : '' ?>">
-      <a class="lk-aside__nav-link" href="/my/sozdanie-shiduha/">
+    <li class="lk-aside__nav-item<?= $sub == 90 ? ' lk-aside__nav-item--active' : '' ?>">
+      <a class="lk-aside__nav-link" href="/my/podbor-par/">
         <div class="lk-aside__nav-link-icon-wrap">
           <svg class="lk-aside__nav-link-icon lk-aside__nav-link-icon--lk-2hearts"><use xlink:href="/images/sprite1.svg#lk-2hearts"></use></svg>
         </div>
-        <span class="lk-aside__nav-link-text">Создание шидуха</span>
+        <span class="lk-aside__nav-link-text">Подбор пар с ИИ</span>
       </a>
     </li>
     <li class="lk-aside__nav-item<?= $sub == 77 ? ' lk-aside__nav-item--active' : '' ?>">
@@ -128,17 +124,17 @@ $userID = $nc_sh_uid;
         <div class="lk-aside__nav-link-icon-wrap">
           <svg class="lk-aside__nav-link-icon lk-aside__nav-link-icon--lk-heart-paper"><use xlink:href="/images/sprite1.svg#lk-heart-paper"></use></svg>
         </div>
-        <span class="lk-aside__nav-link-text">История Шидуха</span>
+        <span class="lk-aside__nav-link-text">История шидухов</span>
       </a>
     </li>
     <?php endif; ?>
-    <?php if ($nc_sh_type === 1 || $nc_sh_type === 2): ?>
+    <?php if ($nc_sh_type === 1): ?>
     <li class="lk-aside__nav-item<?= $sub == 78 ? ' lk-aside__nav-item--active' : '' ?>">
       <a class="lk-aside__nav-link" href="/my/predlozhennye-kandidaty/">
         <div class="lk-aside__nav-link-icon-wrap">
-          <svg class="lk-aside__nav-link-icon lk-aside__nav-link-icon--lk-3user-2"><use xlink:href="/images/sprite1.svg#lk-3user-2"></use></svg>
+          <svg class="lk-aside__nav-link-icon lk-aside__nav-link-icon--lk-heart-paper"><use xlink:href="/images/sprite1.svg#lk-heart-paper"></use></svg>
         </div>
-        <span class="lk-aside__nav-link-text">Предложенные кандидаты</span>
+        <span class="lk-aside__nav-link-text">История шидухов</span>
         <span class="lk-aside__nav-link-counter"><?= nc_objects_list(77, 82, "&nc_ctpl=291"); ?></span>
       </a>
     </li>
@@ -248,6 +244,18 @@ $userID = $nc_sh_uid;
         <span class="lk-aside__nav-link-text">Правила</span>
       </a>
     </li>
+    <?php /* C8 + приёмка 2026-10: вход в админ-консоль — обычным пунктом меню,
+       а не мелкой ссылкой в подвале (её не нашли). Только администратору. */
+    if (shiduh_is_admin(nc_core::get_object()->db, $nc_sh_uid)): ?>
+    <li class="lk-aside__nav-item lk-aside__nav-item--admin">
+      <a class="lk-aside__nav-link" href="<?= htmlspecialchars(admin_home_url(), ENT_QUOTES) ?>">
+        <div class="lk-aside__nav-link-icon-wrap">
+          <svg class="lk-aside__nav-link-icon lk-aside__nav-link-icon--lk-add-article"><use xlink:href="/images/sprite.svg#lk-add-article"></use></svg>
+        </div>
+        <span class="lk-aside__nav-link-text">Администрирование и ИИ</span>
+      </a>
+    </li>
+    <?php endif; ?>
     <?php if ($nc_sh_super): ?>
     <li class="lk-aside__nav-item<?= $sub == 74 ? ' lk-aside__nav-item--active' : '' ?>">
       <a class="lk-aside__nav-link" href="/my/add-article/">
@@ -276,10 +284,6 @@ $userID = $nc_sh_uid;
     <a class="lk-aside__footer-exit" href="<?= htmlspecialchars(lk_logoff_url(), ENT_QUOTES) ?>">Выход из системы</a>
     <?php if ($nc_sh_uid !== 119): ?>
     <a class="lk-aside__write" href="/my/message/add_soobscheniya.html?uid=119">Написать админу</a>
-    <?php endif; ?>
-    <?php /* C8: экраны администрирования — только администратору */
-    if (shiduh_is_admin(nc_core::get_object()->db, $nc_sh_uid)): ?>
-    <a class="lk-aside__write lk-aside__admin" href="<?= htmlspecialchars(admin_home_url(), ENT_QUOTES) ?>">Администрирование</a>
     <?php endif; ?>
   </div>
 </div>

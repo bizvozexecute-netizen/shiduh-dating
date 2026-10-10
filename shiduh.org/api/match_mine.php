@@ -37,23 +37,11 @@ if (!$uid) {
 
 $db = $nc_core->db;
 
-$anketa = $db->get_row(
-    "SELECT `Message_ID`, `User_ID`, `Shadhan_1`, `Shadhan_2`, `Shadhan_3`, "
-    . "`Gender`, `Date_of_birth`, `City`, `Are_you_ready_to_move`, "
-    . "`Search_age_start`, `Search_age_end`, `Kashrut_level`, `Shabbat_level`, "
-    . "`Psychological_profile` "
-    . "FROM `Message204` WHERE `User_ID`=$uid AND `Checked`=1 "
-    . "ORDER BY `Message_ID` LIMIT 1",
-    ARRAY_A
-);
-
-if (!$anketa) {
+$own = match_own_anketa($db, $uid);
+if (!$own) {
     shiduh_json(200, array('ok' => true, 'has_anketa' => false, 'pairs' => array()));
 }
-
-$lead = (int)$anketa['Shadhan_1'];
-if (!$lead) { $lead = (int)$anketa['Shadhan_2']; }
-if (!$lead) { $lead = (int)$anketa['Shadhan_3']; }
+list($anketa, $lead) = $own;
 
 $shadhan_name = '';
 if ($lead) {

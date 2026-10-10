@@ -109,8 +109,44 @@ if (!$inside_admin && $to_user && $uid != $current_user['User_ID'] && $nc_core->
 <script>
 const form = document.querySelector('#write_message-new'); // #addForm
   if (form) {
+    // Показ отказа в форме: раньше сбой сети/сервера уходил только в консоль,
+    // и человек не понимал, почему фото «не прикрепилось» (приёмка 2026-10).
+    const showError = (text) => {
+      let box = form.querySelector('.js-upload-error-live');
+      if (!box) {
+        box = document.createElement('div');
+        box.className = 'js-upload-error-live';
+        box.setAttribute('role', 'alert');
+        box.style.cssText = 'background:#f8e3e3;border:1px solid #e3b6b6;color:#8a2a2a;border-radius:8px;padding:10px 13px;margin:10px 0';
+        form.prepend(box);
+      }
+      box.textContent = text;
+    };
+    // Те же пределы, что у поля на сервере (миграция 009): только картинки до 10 МБ.
+    const MAX_PHOTO = 10 * 1024 * 1024;
+    const checkFiles = () => {
+      const files = [];
+      form.querySelectorAll('input[type=file]').forEach((inp) => { Array.from(inp.files || []).forEach((f) => files.push(f)); });
+      for (const f of files) {
+        if (f.size > MAX_PHOTO) {
+          return 'Фото «' + f.name + '» больше 10 МБ (' + (f.size / 1048576).toFixed(1) + ' МБ). Уменьшите его или отправьте скриншот.';
+        }
+        if (/\.(heic|heif)$/i.test(f.name) || /heic|heif/i.test(f.type)) {
+          return 'Фото «' + f.name + '» в формате HEIC — его не откроют на компьютере. В настройках камеры iPhone выберите «Наиболее совместимый» формат (JPEG) или отправьте скриншот.';
+        }
+        if (f.type && f.type.indexOf('image/') !== 0) {
+          return 'Файл «' + f.name + '» — не изображение. В сообщении можно отправить только фотографии.';
+        }
+      }
+      return '';
+    };
     form.addEventListener('submit', (e) => {
       e.preventDefault();
+      const fileError = checkFiles();
+      if (fileError) {
+        showError(fileError);
+        return;
+      }
       
       //if(!CKEDITOR.instances['f_Message'].getData()) {
       //    return false;
@@ -139,23 +175,16 @@ const form = document.querySelector('#write_message-new'); // #addForm
         const marker = 'js-upload' + '-error';
         const m = html.match(new RegExp('<div class="' + marker + '[^"]*"[^>]*>([\\s\\S]*?)</div>'));
         if (m) {
-          let box = form.querySelector('.js-upload-error-live');
-          if (!box) {
-            box = document.createElement('div');
-            box.className = 'js-upload-error-live';
-            box.setAttribute('role', 'alert');
-            box.style.cssText = 'background:#f8e3e3;border:1px solid #e3b6b6;color:#8a2a2a;border-radius:8px;padding:10px 13px;margin:10px 0';
-            form.prepend(box);
-          }
-          box.textContent = m[1].replace(/<[^>]+>/g, '').trim();
+          showError(m[1].replace(/<[^>]+>/g, '').trim());
           return;
         }
         // Успешная отправка — перезагружаем список сообщений.
         window.location.href = '/my/message/';
       })
       .catch((error) => {
-        // Обработка ошибок, если есть
         console.error('Произошла ошибка:', error);
+        showError('Сообщение не отправлено: ' + (error && error.message ? error.message : 'нет связи с сервером')
+          + '. Проверьте интернет и попробуйте ещё раз; если прикладываете большое фото — уменьшите его.');
       });
       /* eslint-enable indent */
     });

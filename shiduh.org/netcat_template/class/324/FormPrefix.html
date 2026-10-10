@@ -1,0 +1,81 @@
+<?php
+/*
+ * Компонент «Подбор пар с ИИ» (приёмка 2026-10). Заменяет разделы «Поиск
+ * шидуха» и «Создание шидуха», которые повторяли подбор и путали шадханов.
+ *
+ *   1. шадхан выбирает своего кандидата (анкеты, где он владелец или один
+ *      из Shadhan_1..3 — то же правило ведения, что у api/match_list.php);
+ *   2. под ним — тот же блок рекомендаций, что в карточке кандидата
+ *      ([data-sh-match] + js/lk-card.js → api/match_list.php): процент,
+ *      из чего он сложился, «открыта / закрыта», «Предложить шидух»
+ *      (создаёт шидух и уведомляет стороны — api/shiduh_lib.php).
+ *
+ * Своей Message-таблицы компонент не читает; гостей отсекает макет ЛК.
+ */
+require_once $nc_core->DOCUMENT_ROOT . '/api/showcase_lib.php';
+$nc_uid = (int)$current_user['User_ID'];
+$nc_db = $nc_core->db;
+$nc_is_shadhan = $nc_uid && (int)$nc_db->get_var("SELECT `Type` FROM `User` WHERE `User_ID`=$nc_uid") === 2;
+?>
+<section class="lk-pairs">
+  <h1 class="lk-pairs__title title title--lk">Подбор пар с ИИ</h1>
+<?php if (!$nc_is_shadhan): ?>
+  <p class="lk-pairs__lead">Раздел для шадханов. Рекомендованные вам пары — в разделе «ИИ-консультант».</p>
+</section>
+<?php return; endif; ?>
+<?php
+$nc_rows = (array)$nc_db->get_results(
+    "SELECT `Message_ID`, `Name`, `Date_of_birth`, `City`, `Open` FROM `Message204` "
+    . "WHERE `Checked`=1 AND (`User_ID`=$nc_uid OR `Shadhan_1`=$nc_uid OR `Shadhan_2`=$nc_uid OR `Shadhan_3`=$nc_uid) "
+    . "ORDER BY `Name`, `Message_ID`",
+    ARRAY_A
+);
+$nc_sel = isset($_GET['anketa']) ? (int)$_GET['anketa'] : 0;
+$nc_cur = null;
+foreach ($nc_rows as $nc_r) {
+    if ((int)$nc_r['Message_ID'] === $nc_sel) {
+        $nc_cur = $nc_r;
+    }
+}
+$nc_label = function ($r) {
+    $name = trim((string)$r['Name']) !== '' ? $r['Name'] : 'ID ' . (int)$r['Message_ID'];
+    $age = showcase_age_text($r['Date_of_birth']);
+    $city = trim((string)$r['City']);
+    return $name . ($age !== '' ? ', ' . $age : '') . ($city !== '' ? ', ' . $city : '');
+};
+?>
+  <p class="lk-pairs__lead">Выберите кандидата — ИИ подберёт ему пары: сначала жёсткие фильтры (пол, возраст с обеих сторон, религиозная совместимость, география), затем совпадение ценностей. «Предложить шидух» создаёт шидух и отправляет предложение.</p>
+<?php if (!$nc_rows): ?>
+  <p class="lk-pairs__empty">У вас пока нет кандидатов. Добавьте кандидата в разделе «Добавить кандидата» или попросите кандидата выбрать вас шадханом.</p>
+<?php else: ?>
+  <form class="lk-pairs__pick" method="get" action="/my/podbor-par/">
+    <label class="lk-pairs__label" for="lkPairsAnketa">Кандидат</label>
+    <select class="sh-field__input lk-pairs__select" id="lkPairsAnketa" name="anketa" required>
+      <option value="">— выберите кандидата —</option>
+      <?php foreach ($nc_rows as $nc_r): ?>
+      <option value="<?= (int)$nc_r['Message_ID'] ?>"<?= (int)$nc_r['Message_ID'] === $nc_sel ? ' selected' : '' ?>><?= htmlspecialchars($nc_label($nc_r), ENT_QUOTES) ?></option>
+      <?php endforeach; ?>
+    </select>
+    <button type="submit" class="button button--fill">Подобрать пары</button>
+  </form>
+<?php endif; ?>
+
+<?php if ($nc_cur): ?>
+  <div class="lk-questionnaire__section lk-pairs__result" data-sh-match>
+    <div class="lk-questionnaire__section-title title title--lk">Пары для: <?= htmlspecialchars($nc_label($nc_cur), ENT_QUOTES) ?>
+      <a class="lk-pairs__card" href="/my/my-candidates/moi-kandidaty_<?= (int)$nc_cur['Message_ID'] ?>.html">карточка кандидата</a></div>
+    <div class="lk-questionnaire__body">
+      <div class="lk-questionnaire__wide">
+        <?php /* Кнопка нажимается сама (data-autoload): человек уже выбрал
+           кандидата и пришёл ради списка, второй клик ему не нужен. */ ?>
+        <button type="button" class="button button--secondary js-match-load" data-anketa="<?= (int)$nc_cur['Message_ID'] ?>" data-autoload>Обновить подбор</button>
+        <div class="js-match-msg lk-match__msg" role="status"></div>
+        <div class="js-match-list"></div>
+      </div>
+    </div>
+  </div>
+  <script src="/js/lk-card.js?v=<?= (int)@filemtime($nc_core->DOCUMENT_ROOT . '/js/lk-card.js') ?>" defer></script>
+<?php elseif ($nc_sel): ?>
+  <p class="lk-pairs__empty">Эта анкета не в вашем ведении или ещё не проверена модератором.</p>
+<?php endif; ?>
+</section>

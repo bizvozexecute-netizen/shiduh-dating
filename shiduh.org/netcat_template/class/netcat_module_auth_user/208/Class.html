@@ -29,11 +29,18 @@
         <use xlink:href="/images/sprite.svg#check"></use>
       </svg>
     </div>
+    <? /* Приёмка 2026-10: кандидату — кто шадхан и с кем работает (миграция 030) */ ?>
+    <? if(trim((string)$f_Shadhan_origin) !== '' || trim((string)$f_Shadhan_specialization) !== ''): ?>
+    <div class="lk-shadhans__item-spec">
+      <? if(trim((string)$f_Shadhan_origin) !== ''): ?><span>Происхождение: <?= $f_Shadhan_origin ?></span><? endif; ?>
+      <? if(trim((string)$f_Shadhan_specialization) !== ''): ?><span><?= $f_Shadhan_specialization ?></span><? endif; ?>
+    </div>
+    <? endif; ?>
     <a class="lk-shadhans__item-info-link" href="<?=$fullLink?>" title="">Подробнее</a>
   </div>
   <div class="lk-shadhans__item-address">
-    <div class="lk-shadhans__item-key">Страна</div>
-    <div class="lk-shadhans__item-address-value"> <?= $f_Country;?></div>
+    <div class="lk-shadhans__item-key">Где живёт</div>
+    <div class="lk-shadhans__item-address-value"> <?= $f_Country;?><?= trim((string)$f_City) !== '' ? ', ' . $f_City : '' ?></div>
   </div>
   <div class="lk-shadhans__item-age">
     <div class="lk-shadhans__item-key">Возраст</div>

@@ -23,7 +23,7 @@
     var v = el.validity;
     if (v.valueMissing) { return el.type === 'checkbox' ? 'Поставьте отметку.' : 'Заполните это поле.'; }
     if (el.type === 'date' && (v.rangeUnderflow || v.rangeOverflow || v.badInput)) {
-      return 'Кандидату должно быть от ' + (el.getAttribute('data-sh-min-age') || 18) + ' до ' + (el.getAttribute('data-sh-max-age') || 100) + ' лет.';
+      return 'Кандидату должно быть от ' + (el.getAttribute('data-sh-min-age') || 16) + ' до ' + (el.getAttribute('data-sh-max-age') || 100) + ' лет.';
     }
     if (el.type === 'number' && (v.rangeUnderflow || v.rangeOverflow || v.badInput)) {
       return 'Допустимо от ' + el.min + ' до ' + el.max + '.';

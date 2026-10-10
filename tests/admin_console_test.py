@@ -147,7 +147,7 @@ def test_sidebar_link_only_for_admin():
     code, html = get_text("/my/ai-consultant/", sid_of(ADMIN))
     assert code == 200
     assert "Администрирование" in html, "администратор не видит входа в консоль"
-    m = re.search(r'class="lk-aside__write lk-aside__admin" href="([^"]+)"', html)
+    m = re.search(r'class="lk-aside__nav-item lk-aside__nav-item--admin">\s*<a class="lk-aside__nav-link" href="([^"]+)"', html)
     assert m, "нет ссылки на консоль"
     code, _ = get_text(m.group(1), sid_of(ADMIN))
     assert code == 200, "ссылка из кабинета ведёт на %s → %d" % (m.group(1), code)
@@ -155,7 +155,7 @@ def test_sidebar_link_only_for_admin():
     for who in (SHADHAN, CANDIDATE):
         code, html = get_text("/my/ai-consultant/", sid_of(who))
         assert code == 200
-        assert "lk-aside__admin" not in html, "не администратор видит вход в консоль"
+        assert "lk-aside__nav-item--admin" not in html, "не администратор видит вход в консоль"
 
 
 # -------------------------------------------------------- страницы целы ---

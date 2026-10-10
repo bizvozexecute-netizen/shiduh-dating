@@ -154,7 +154,7 @@ def test_reply_tells_user_value_is_not_saved_yet():
     code, js = propose("Ашдод")
     reply = js.get("reply", "")
     assert "пока не изменено" in reply, "нет приписки о незаписанной замене: " + reply[:200]
-    assert "поле «город» пока не изменено — в анкете «Москва»" in reply, reply[:300]
+    assert "пока не изменено: город — «Москва»" in reply, reply[:300]
     assert "«Ашдод»" in reply, reply[:300]
     assert city() == "Москва"
     # приписка есть и в сохранённой истории — её видит и повторное открытие чата

@@ -8,7 +8,7 @@ A2 этапа «До идеала»: регистрация и вход.
 несовершеннолетних). Минимальной длины пароля не было (pass_min = 0),
 галочка согласия стояла заранее.
 
-Теперь: одно поле type="date", порог 18 лет и правила пароля проверяет
+Теперь: одно поле type="date", порог возраста (AUTH_MIN_AGE, 16 с 2026-10) и правила пароля проверяет
 сервер (api/auth_rules_lib.php из AddCond регистрации), ошибки печатаются у
 полей, введённое не теряется, согласия не предустановлены. Капча не мешает:
 пока серверный секрет не задан, заслон C7 пропускает (captcha_test).
@@ -27,6 +27,8 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from fake_llm import BASE, ROOT, NoRedirect, dbq, login, web  # noqa: E402
 
 WEBROOT = os.path.join(ROOT, "shiduh.org")
+# Порог возраста — AUTH_MIN_AGE в api/auth_rules_lib.php (решение заказчика 2026-10-09).
+MIN_AGE = 16
 AUTH_TPL = os.path.join(WEBROOT, "netcat_template", "class", "netcat_module_auth_user")
 LAYOUT = os.path.join(WEBROOT, "netcat_template", "template", "3")
 
@@ -135,7 +137,7 @@ def test_form_markup():
     assert m, "нет поля даты рождения nc_dob"
     dob = m.group(0)
     assert 'type="date"' in dob, "дата рождения — не type=date"
-    assert 'max="%s"' % php_years_ago(18) in dob, "max поля даты не равен «18 лет назад»: " + dob
+    assert 'max="%s"' % php_years_ago(MIN_AGE) in dob, "max поля даты не равен «MIN_AGE лет назад»: " + dob
     assert 'min="' in dob, "нет нижней границы даты"
     assert "f_Date_of_birth_year" not in html, "остались скрытые поля даты с датой по умолчанию"
     assert "datepicker__el" not in html.split("form--registration", 1)[1].split("</form>", 1)[0], \
@@ -209,7 +211,7 @@ def test_profile_edit_keeps_age_gate():
     if after != before:
         dbq("UPDATE `User` SET Date_of_birth='%s' WHERE User_ID=%s" % (before, uid))
     assert after == before, "дата рождения в профиле изменена на 2015"
-    assert "18 лет" in resp, "отказ без объяснения про 18 лет"
+    assert "%d лет" % MIN_AGE in resp, "отказ без объяснения про возраст"
 
 
 def test_form_has_no_inline_styles_and_no_ghost_fields():
@@ -259,18 +261,18 @@ def test_dotted_date_format_accepted():
     assert 'value="%s"' % iso(d) in html, "дата ДД.ММ.ГГГГ не нормализована при повторном показе"
 
 
-def test_exactly_18_accepted():
+def test_exactly_min_age_accepted():
     cleanup()
-    submit(fields(nc_dob=iso(years_ago(18))))
-    assert user_row(), "ровно 18 лет — отказ"
+    submit(fields(nc_dob=iso(years_ago(MIN_AGE))))
+    assert user_row(), "ровно %d лет — отказ" % MIN_AGE
     cleanup()
 
 
 def test_minor_rejected():
     cleanup()
-    code, html = submit(fields(nc_dob=iso(years_ago(18, days=1))))
+    code, html = submit(fields(nc_dob=iso(years_ago(MIN_AGE, days=1))))
     assert not user_row(), "несовершеннолетний зарегистрирован"
-    assert "18 лет" in html, "нет объяснения про 18 лет"
+    assert "%d лет" % MIN_AGE in html, "нет объяснения про возраст"
 
 
 def test_future_and_ancient_dates_rejected():
@@ -303,7 +305,7 @@ def test_without_age18_rejected():
     cleanup()
     code, html = submit(fields(nc_age18=None))
     assert not user_row(), "регистрация без подтверждения возраста прошла"
-    assert "18 лет" in html
+    assert "%d лет" % MIN_AGE in html
 
 
 def test_without_agreement_rejected():
@@ -351,8 +353,11 @@ def test_min_age_matches_matching():
     auth = read(os.path.join(WEBROOT, "api", "auth_rules_lib.php"))
     match = read(os.path.join(WEBROOT, "api", "match_lib.php"))
     a = re.search(r"define\('AUTH_MIN_AGE',\s*(\d+)\)", auth).group(1)
-    m = re.search(r"define\('MATCH_MIN_AGE',\s*(\d+)\)", match).group(1)
-    assert a == m == "18", (a, m)
+    assert a == str(MIN_AGE), a
+    # подбор не держит своего числа — выводит порог из AUTH_MIN_AGE
+    assert re.search(r"define\('MATCH_MIN_AGE',\s*AUTH_MIN_AGE\)", match), "MATCH_MIN_AGE задан отдельным числом"
+    show = read(os.path.join(WEBROOT, "api", "showcase_lib.php"))
+    assert re.search(r"define\('MATCH_MIN_AGE',\s*AUTH_MIN_AGE\)", show), "витрина держит свой порог"
 
 
 def test_validate_unit_cases():
@@ -363,8 +368,8 @@ def test_validate_unit_cases():
         "$base = array('name'=>'Ая','dob'=>'2000-02-29','phone'=>'+972 50 000 0000',"
         "  'password1'=>'12345678','password2'=>'12345678','age18'=>1,'agreed'=>1);"
         "$ok = auth_register_validate($base, 8, $t);"
-        "$b = $base; $b['dob'] = '2008-03-02'; $minor = auth_register_validate($b, 8, $t);"   # 17 лет 364 дня
-        "$b = $base; $b['dob'] = '2008-03-01'; $adult = auth_register_validate($b, 8, $t);"   # ровно 18
+        "$b = $base; $b['dob'] = '2010-03-02'; $minor = auth_register_validate($b, 8, $t);"   # 15 лет 364 дня
+        "$b = $base; $b['dob'] = '2010-03-01'; $adult = auth_register_validate($b, 8, $t);"   # ровно 16
         "$b = $base; $b['phone'] = '123'; $ph = auth_register_validate($b, 8, $t);"
         "$b = $base; $b['name'] = ' '; $nm = auth_register_validate($b, 8, $t);"
         "$b = $base; $b['password1'] = $b['password2'] = 'Пароль123'; $utf = auth_register_validate($b, 8, $t);"

@@ -1072,6 +1072,18 @@
 
 :where(.sh-msg[data-state="failed"]) { opacity: .6; }
 
+/* Плашка «В анкету записано» — факт с сервера, не реплика консультанта. */
+:where(.sh-msg-saved) {
+  align-self: flex-start;
+  max-width: 100%;
+  padding: var(--sh-s-1) var(--sh-s-2);
+  border-radius: var(--sh-r-s);
+  background: var(--sh-ok-bg);
+  color: var(--sh-ok-ink);
+  font-size: .875em;
+}
+:where(.sh-msg-saved) a { color: inherit; text-decoration: underline; }
+
 /* Разметка внутри ответа модели. Бандл сбрасывает списки (list-style:none),
    поэтому маркеры возвращаем здесь — иначе перечисление читается сплошным
    текстом. Отступы скромные: реплика в чате, а не статья. */
@@ -2036,3 +2048,13 @@ html { scroll-padding-top: 90px; }
   .header { transition: none; }
   .js [data-sh-lines]:not([data-sh-lines-ready]) { visibility: visible; animation: none; }
 }
+
+/* «Подбор пар с ИИ» (приёмка 2026-10): выбор кандидата и блок подбора. */
+.lk-pairs { display: grid; gap: var(--sh-s-4); }
+.lk-pairs__lead, .lk-pairs__empty { margin: 0; color: var(--sh-ink-2); max-width: 70ch; }
+.lk-pairs__pick { display: flex; flex-wrap: wrap; align-items: flex-end; gap: var(--sh-s-3); }
+.lk-pairs__label { flex-basis: 100%; font-weight: 600; }
+.lk-pairs__select { flex: 1 1 320px; max-width: 560px; }
+.lk-pairs__card { margin-left: var(--sh-s-3); font-size: .875rem; font-weight: 400; }
+.lk-match__rec--proposed { outline: 2px solid var(--sh-ok-ink); outline-offset: -2px; }
+.lk-shadhans__item-spec { display: grid; gap: 2px; margin: 4px 0; font-size: .875rem; color: var(--sh-ink-2); }

@@ -495,6 +495,19 @@ function chat_build_system($db, $uid, $text, $cfg, &$ctx, $emit = null) {
         $appended = true;
     }
 
+    /*
+     * Анкеты нет (не заполнена или это аккаунт шадхана) — инструмент записи
+     * всё равно ответит «анкета не найдена», но модель склонна пропускать
+     * это мимо и говорить «записал». Предупреждаем заранее.
+     */
+    if (!ai_target_anketa($db, $uid)) {
+        $system .= "\n\n"
+            . 'У собеседника нет анкеты, в которую можно записывать сведения. '
+            . 'Не говорите, что что-то записали или сохранили в анкету. Если он '
+            . 'рассказывает о себе, поблагодарите и предложите заполнить анкету в '
+            . 'разделе «Профиль» — тогда вы сможете дозаполнять её в беседе.';
+    }
+
     if ($appended) {
         $system .= "\n\n" . AI_SAFETY_PREAMBLE;
     }
@@ -528,6 +541,7 @@ function chat_dispatch_tools($db, $uid, $user_message_id, $ctx, array $tool_call
                 'name' => $name,
                 'applied' => array_keys((array)(isset($report['applied']) ? $report['applied'] : array())),
                 'pending' => array_keys((array)(isset($report['pending']) ? $report['pending'] : array())),
+                'skipped' => chat_tool_failures($report),
             ));
         } elseif ($name === 'confirm_profile_update') {
             // Замена ранее заполненного — только по вопросу, заданному в
@@ -538,6 +552,7 @@ function chat_dispatch_tools($db, $uid, $user_message_id, $ctx, array $tool_call
             chat_emit($emit, 'tool', array(
                 'name' => $name,
                 'applied' => array_keys((array)(isset($report['applied']) ? $report['applied'] : array())),
+                'skipped' => chat_tool_failures($report),
             ));
         } elseif ($name === 'record_case_answer' && !empty($ctx['has_case']) && !$case_recorded) {
             // не больше ОДНОГО ответа на кейс за запрос: параллельные вызовы
@@ -689,25 +704,186 @@ function chat_asked_now($emit) {
     return array_keys($keys);
 }
 
+/*
+ * Отказы записи, о которых человек должен узнать от сервера, а не от модели.
+ * «Уже заполнено» сюда не входит — о нём спрашивает chat_append_pending_note;
+ * «то же значение», «пустое» и «поле недоступно» ничего не обещали человеку.
+ */
+function chat_tool_failure_reasons() {
+    return array('анкета не найдена', 'значение вне справочника', 'ошибка записи',
+        'значение в анкете уже другое, спросите заново');
+}
+
+function chat_tool_failures(array $report) {
+    $out = array();
+    $wanted = chat_tool_failure_reasons();
+    foreach ((array)(isset($report['skipped']) ? $report['skipped'] : array()) as $key => $why) {
+        if (in_array((string)$why, $wanted, true)) {
+            $out[(string)$key] = (string)$why;
+        }
+    }
+    return $out;
+}
+
+function chat_collected_tool_events($emit) {
+    if (!is_array($emit) || empty($emit['collected'])) {
+        return array();
+    }
+    $collected = call_user_func($emit['collected']);
+    return (array)(isset($collected['tool_events']) ? $collected['tool_events'] : array());
+}
+
+function chat_applied_any($emit) {
+    foreach (chat_collected_tool_events($emit) as $ev) {
+        if (!empty($ev['applied'])) {
+            return true;
+        }
+    }
+    return false;
+}
+
+/*
+ * Живой прогон на стенде (2026-10-10, mistral-small): на «Шаббат соблюдаю не
+ * всегда» модель трижды ответила «Запишу в анкету» и ни разу не вызвала
+ * инструмент — ровно жалоба приёмки «пишет „внесли“, а анкета не меняется».
+ * Обещание записи узнаём по глаголу в первом лице / страдательном причастии;
+ * «не записано», «вы отметили», «спасибо, что обновили» (множественное число —
+ * про собеседника) и просьбы к человеку («запишите») — не обещание.
+ */
+function chat_claims_saved($text) {
+    $t = mb_strtolower((string)$text, 'UTF-8');
+    return (bool)preg_match(
+        '/(?<![\p{L}])(?<!не )(запишу|записала?|записано|записываю|отмечу|отметила?|отмечено|'
+        . 'внесу|вн[её]с|внесла|внесено|занесу|зан[её]с|занесла|занесено|сохраню|сохранила?|'
+        . 'сохранено|обновила?|обновлено|обновл[её]н|поменяла?|изменила?|'
+        . 'зафиксирую|зафиксировала?|зафиксировано)(?![\p{L}])/u',
+        $t
+    );
+}
+
+/* Пообещала записать, но инструмент не вызвала — одна просьба исправиться. */
+function chat_claim_nudge() {
+    return '[Служебное сообщение сервера, не от человека] В ответе выше вы пообещали записать сведения в анкету, '
+        . 'но инструмент записи не вызвали — в анкете ничего не изменилось. Если человек '
+        . 'сообщил сведения для анкеты, вызовите update_profile_fields сейчас. Если записывать '
+        . 'нечего — ответьте заново, не говоря о записи.';
+}
+
+/* Модель вернула пустой текст — просим ответ человеку. */
+function chat_empty_nudge() {
+    return '[Служебное сообщение сервера, не от человека] Вы не написали ответ человеку. '
+        . 'Ответьте ему коротко и по существу его последней реплики и продолжите беседу. '
+        . 'Не говорите о записи в анкету.';
+}
+
+/* После всех попыток: обещание есть, а записи (и вопроса о замене) нет. */
+function chat_append_claim_note($reply, $emit, array $asked_now) {
+    if ($asked_now || chat_applied_any($emit) || !chat_claims_saved($reply)) {
+        return $reply;
+    }
+    foreach (chat_collected_tool_events($emit) as $ev) {
+        if (!empty($ev['skipped']) || !empty($ev['pending'])) {
+            return $reply;            // об этом уже сказали заметки выше
+        }
+    }
+    return rtrim((string)$reply) . "\n\nОбратите внимание: в этом ответе в анкету ничего "
+        . 'не записано. Если сведения важны, повторите их или внесите в разделе «Профиль».';
+}
+
+function chat_append_failure_note($db, $reply, $emit) {
+    $titles = chat_pending_field_titles();
+    $map = ai_tool_field_map();
+    $notes = array();
+    $no_anketa = false;
+    foreach (chat_collected_tool_events($emit) as $ev) {
+        foreach ((array)(isset($ev['skipped']) ? $ev['skipped'] : array()) as $key => $why) {
+            if ($why === 'анкета не найдена') {
+                $no_anketa = true;
+                continue;
+            }
+            $column = isset($map[$key]) ? $map[$key]['column'] : '';
+            $title = isset($titles[$column]) ? $titles[$column] : (string)$key;
+            if ($why === 'значение вне справочника') {
+                $options = $column !== '' ? chat_dict_options($db, $column) : array();
+                $notes[$column] = 'поле «' . $title . '» не записано — такого варианта в анкете нет'
+                    . ($options ? ' (варианты: ' . implode(', ', $options) . ')' : '') . '.';
+            } elseif ($why === 'ошибка записи') {
+                $notes[$column] = 'поле «' . $title . '» не удалось записать — заполните его в анкете.';
+            } else {
+                $notes[$column] = 'поле «' . $title . '» не изменено — в анкете уже другое значение.';
+            }
+        }
+    }
+    if ($no_anketa) {
+        $notes = array('_' => 'в анкету ничего не записано: анкеты, привязанной к вашему аккаунту, '
+            . 'пока нет. Заполните её в разделе «Профиль» (/my/modify/) — тогда рассказанное '
+            . 'здесь будет сохраняться в неё.');
+    }
+    if (!$notes) {
+        return $reply;
+    }
+    return rtrim((string)$reply) . "\n\nОбратите внимание: " . implode(' ', $notes);
+}
+
+/* Имена вариантов справочника — для подсказки, что можно выбрать. */
+function chat_dict_options($db, $column) {
+    if (!preg_match('/^[A-Za-z_]+$/', $column)) {
+        return array();
+    }
+    $rows = (array)$db->get_col(
+        "SELECT `{$column}_Name` FROM `Classificator_{$column}` WHERE `Checked`=1 "
+        . "ORDER BY `{$column}_Priority`, `{$column}_ID` LIMIT 12"
+    );
+    return array_map('strval', $rows);
+}
+
+/*
+ * Модель уже сама спросила «поменять на Y?» — в одном предложении-вопросе есть
+ * новое значение и глагол замены. Тогда серверное «Уточню: …» только
+ * повторяет вопрос (прогон 2026-10-10: так было в каждом ответе с заменой).
+ */
+function chat_reply_asks_change($reply, $proposed_label) {
+    $want = ai_value_norm($proposed_label);
+    if ($want === '') {
+        return false;
+    }
+    $parts = preg_split('/(?<=[.!?…])\s+/u', (string)$reply);
+    foreach ((array)$parts as $s) {
+        $s = trim($s);
+        if ($s === '' || mb_substr($s, -1) !== '?') {
+            continue;
+        }
+        if (preg_match('/помен|замен|измен|обнов|исправ/u', mb_strtolower($s, 'UTF-8'))
+            && mb_strpos(ai_value_norm($s), $want) !== false) {
+            return true;
+        }
+    }
+    return false;
+}
+
 function chat_append_pending_note($db, $uid, $user_message_id, $thread, $reply, array $asked_now = array()) {
     $titles = chat_pending_field_titles();
     $notes = array();
     foreach (ai_pending_list($db, $uid, $thread) as $p) {
         $asked_here = (int)$p['asked_message_id'] === (int)$user_message_id
             || in_array((string)$p['tool_key'], $asked_now, true);
-        if (!$asked_here) {
+        if (!$asked_here || chat_reply_asks_change($reply, $p['proposed_label'])) {
             continue;
         }
         $title = isset($titles[$p['field']]) ? $titles[$p['field']] : (string)$p['field'];
-        $notes[] = 'поле «' . $title . '» пока не изменено — в анкете «'
-            . (string)$p['current_label'] . '». Поменять на «' . (string)$p['proposed_label'] . '»?';
+        $notes[] = 'В анкете пока не изменено: ' . $title . ' — «' . (string)$p['current_label']
+            . '». Поменять на «' . (string)$p['proposed_label'] . '»?';
     }
     if (!$notes) {
         return $reply;
     }
-    return rtrim((string)$reply) . "
-
-Уточню: " . implode(' ', $notes) . ' Ответьте «да» или «нет».';
+    /*
+     * Один вопрос за ход и без канцелярского «Ответьте „да“ или „нет“»: прогон
+     * манеры общения (2026-10-10) показал, что три приписки подряд к «привет»
+     * превращают разговор в допрос. Остальные предложения модель повторит
+     * позже — вопрос, не заданный человеку, снимается после хода.
+     */
+    return rtrim((string)$reply) . "\n\n" . $notes[0];
 }
 
 function chat_chips($db, $uid, $ctx = array()) {
@@ -735,7 +911,7 @@ function chat_chips($db, $uid, $ctx = array()) {
     $columns = array_keys($labels);
     $row = $db->get_row(
         "SELECT " . implode(', ', array_map(function ($c) { return "`$c`"; }, $columns))
-        . " FROM `Message204` WHERE `User_ID`=$uid ORDER BY `Message_ID` LIMIT 1",
+        . " FROM `Message204` WHERE `Message_ID`=" . ai_target_anketa($db, $uid),
         ARRAY_A
     );
 
@@ -797,7 +973,7 @@ function chat_greeting_text($db, $uid) {
     $columns = array_keys($questions);
     $row = $db->get_row(
         "SELECT " . implode(', ', array_map(function ($c) { return "`$c`"; }, $columns))
-        . " FROM `Message204` WHERE `User_ID`=" . (int)$uid . " ORDER BY `Message_ID` LIMIT 1",
+        . " FROM `Message204` WHERE `Message_ID`=" . ai_target_anketa($db, $uid),
         ARRAY_A
     );
 
@@ -963,6 +1139,31 @@ function chat_run($db, $uid, array $in, $emit = null) {
             'created_at' => $saved['created_at'], 'thread' => $thread, 'stopped' => true);
     }
 
+    /*
+     * Обещала записать без вызова инструмента — второй шанс, один раз. Черновик
+     * с обещанием клиенту стираем: окончательным будет ответ после проверки.
+     * Не вышло и со второго раза — правду допишет chat_append_claim_note.
+     */
+    if (empty($res['tool_calls']) && chat_claims_saved($res['content'])) {
+        $retry_messages = $messages;
+        $retry_messages[] = array('role' => 'assistant', 'content' => (string)$res['content']);
+        // роль user, а не system: Mistral отвергает system после assistant
+        $retry_messages[] = array('role' => 'user', 'content' => chat_claim_nudge());
+        if (!empty($emit['stream'])) {
+            chat_emit($emit, 'reset', array());
+        }
+        $retry = chat_call_model($retry_messages, $ctx, $uid, $emit);
+        if ($retry['ok'] && empty($retry['aborted'])
+            && (!empty($retry['tool_calls']) || trim((string)$retry['content']) !== '')) {
+            $tokens += (int)$retry['usage']['total_tokens'];
+            $messages = $retry_messages;
+            $res = $retry;
+        } elseif (!empty($emit['stream'])) {
+            // второй вызов не удался — возвращаем показанный черновик
+            chat_emit($emit, 'delta', array('text' => (string)$res['content']));
+        }
+    }
+
     if (!empty($res['tool_calls'])) {
         $messages[] = array(
             'role' => 'assistant',
@@ -1006,9 +1207,27 @@ function chat_run($db, $uid, array $in, $emit = null) {
     ai_pending_expire_answered($db, $uid, $user_message_id, $thread, $asked_now);
 
     // модель могла вернуть пустой текст (например, снова попросив инструмент)
+    // Записано ли что-то на самом деле, знает только сервер — «записал»
+    // без записи и было той жалобой, с которой пришли на приёмке.
     $reply = trim((string)$res['content']);
+    /*
+     * Прогон моделей 2026-10-10: после ответа инструмента claude-haiku молчал
+     * в 29 ходах из 102, gpt-5.6-luna — в 13, и человек получал шаблонное
+     * «расскажите ещё». Одна просьба ответить текстом; инструменты в ней уже
+     * не исполняются (как и во втором вызове выше).
+     */
+    if ($reply === '' && !empty($res['ok'])) {
+        $messages[] = array('role' => 'user', 'content' => chat_empty_nudge());
+        $again = chat_call_model($messages, $ctx, $uid, $emit);
+        if ($again['ok'] && empty($again['aborted'])) {
+            $tokens += (int)$again['usage']['total_tokens'];
+            $reply = trim((string)$again['content']);
+        }
+    }
     if ($reply === '') {
-        $reply = 'Записал, спасибо. Расскажите ещё что-нибудь о себе.';
+        $reply = chat_applied_any($emit)
+            ? 'Спасибо, отметил в анкете. Расскажите ещё что-нибудь о себе.'
+            : 'Спасибо! Расскажите ещё что-нибудь о себе.';
     }
 
     /*
@@ -1019,6 +1238,11 @@ function chat_run($db, $uid, array $in, $emit = null) {
      * открыты — и дописывает её сам, независимо от модели.
      */
     $reply = chat_append_pending_note($db, $uid, $user_message_id, $thread, $reply, $asked_now);
+    // То же для остальных отказов записи (нет анкеты, нет такого варианта,
+    // ошибка базы): модель о них знает, но нередко всё равно пишет «записал».
+    $reply = chat_append_failure_note($db, $reply, $emit);
+    // И случай без единого вызова: модель сказала «запишу», но так и не записала.
+    $reply = chat_append_claim_note($reply, $emit, $asked_now);
 
     $saved = chat_insert_assistant($db, $uid, $thread, $reply, $tokens);
     return array(

@@ -82,6 +82,18 @@
 
     function pct(x) { return Math.round(100 * x) + '%'; }
 
+    /* Открыта ли анкета и через кого связь (приёмка 2026-10): у закрытой —
+       шадхан кандидата и подсказка, что напрямую связаться нельзя. */
+    var CLOSED_HINT = 'Связь с кандидатом напрямую ограничена — вы можете предложить шидух через его шадхана.';
+    function openBadge(r) {
+      if (r.open) {
+        return '<span class="sh-pill sh-pill--ok">анкета открыта</span>';
+      }
+      var who = r.shadhan ? 'шадхан: ' + esc(r.shadhan) : 'шадхан не назначен';
+      return '<span class="sh-pill" title="' + esc(CLOSED_HINT) + '" tabindex="0" aria-label="Анкета закрыта. ' +
+        esc(CLOSED_HINT) + '">анкета закрыта · ' + who + '</span>';
+    }
+
     function partHtml(title, value) {
       return '<div class="lk-match__part">' + title + ' <b>' + pct(value) + '</b>' +
         '<div class="lk-match__track"><i style="width:' + pct(value) + '"></i></div></div>';
@@ -100,7 +112,7 @@
         var reasons = REASONS.map(function (o) { return '<option value="' + o[0] + '">' + o[1] + '</option>'; }).join('');
         return '<article class="lk-match__rec sh-card" data-target="' + parseInt(r.anketa_id, 10) + '">' +
           '<div class="lk-match__top"><div class="lk-match__who"><b>' + esc(r.name) + '</b>' +
-          '<span>' + parseInt(r.age, 10) + ' · ' + esc(r.city) + (r.shadhan ? ' · шадхан: ' + esc(r.shadhan) : '') + '</span></div>' +
+          '<span>' + parseInt(r.age, 10) + ' · ' + esc(r.city) + ' · ' + openBadge(r) + '</span></div>' +
           '<div class="lk-match__score"><b>' + pct(r.score) + '</b><div class="lk-match__sbar"><i style="width:' + pct(r.score) + '"></i></div></div></div>' +
           '<div class="lk-match__parts">' +
           partHtml('Ценности', r.breakdown.values_match) +
@@ -132,6 +144,9 @@
       }).catch(function () { btn.classList.remove('is-loading'); say(msg, 'Сервис временно недоступен.', 'err'); });
     });
 
+    // «Подбор пар с ИИ»: кандидат уже выбран — список грузится сразу
+    if (btn.hasAttribute('data-autoload')) { btn.click(); }
+
     list.addEventListener('click', function (e) {
       var t = e.target;
       var rec = (t.closest) ? t.closest('.lk-match__rec') : null;
@@ -150,7 +165,13 @@
             return;
           }
           if (rejected) { rec.classList.add('lk-match__rec--rejected'); say(state, 'Пара отклонена и уйдёт из выдачи.', 'ok'); }
-          else { say(state, 'Предложение зафиксировано.', 'ok'); }
+          else {
+            // сервер говорит, что именно произошло: шидух создан, кому ушло
+            // предложение и как дальше идёт общение (приёмка 2026-10)
+            var sh = r.data && r.data.shiduh;
+            rec.classList.add('lk-match__rec--proposed');
+            say(state, (sh && sh.message) ? sh.message : 'Шидух создан и записан в «Историю шидухов».', 'ok');
+          }
         }).catch(function () { say(state, 'Сервис временно недоступен.', 'err'); });
       }
 

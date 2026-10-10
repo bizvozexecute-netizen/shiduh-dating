@@ -20,6 +20,7 @@
 $NETCAT_FOLDER = realpath(dirname(__FILE__) . '/..') . '/';
 include_once $NETCAT_FOLDER . 'vars.inc.php';
 require_once dirname(__FILE__) . '/admin_lib.php';
+require_once dirname(__FILE__) . '/invite_lib.php';
 shiduh_bootstrap_api();   // JSON-заголовки и обработчик фаталов — до загрузки ядра
 require_once $ROOT_FOLDER . 'connect_io.php';
 
@@ -78,16 +79,11 @@ if (!$leads) {
 
 $owner_id = (int)$anketa['User_ID'];
 
-// Приглашение ПЕРЕДАЁТ владение анкетой. Это безопасно, только если анкету
-// ведёт сам шадхан (владелец) ИЛИ она уже принадлежит заготовке из прошлого
-// приглашения. Нельзя отбирать анкету у реального зарегистрированного
-// кандидата (иначе он потеряет доступ к своей анкете).
-$owner_is_placeholder = (bool)$db->get_var(
-    "SELECT 1 FROM `User` WHERE `User_ID`=$owner_id "
-    . "AND `Email` LIKE 'invite-%@invite.shiduh.org' LIMIT 1"
-);
-if ($owner_id !== $uid && !$owner_is_placeholder) {
-    shiduh_json(409, array('error' => 'Анкета принадлежит зарегистрированному кандидату'));
+// Приглашение ПЕРЕДАЁТ владение анкетой: кому его можно передать — в
+// api/invite_lib.php (то же правило решает, показывать ли кнопку в карточке).
+$owner_state = invite_owner_state($db, $anketa, $uid);
+if (!$owner_state['ok']) {
+    shiduh_json(409, array('error' => $owner_state['message'], 'reason' => $owner_state['reason']));
 }
 
 $base = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off' ? 'https' : 'http')
@@ -150,6 +146,12 @@ if ($db->is_error || !$db->insert_id) {
 
 // Передаём заготовке владение анкетой; сохраняем ведущего шадхана.
 $db->query("UPDATE `Message204` SET `User_ID`=$candidate_uid WHERE `Message_ID`=$anketa_id");
+// Анкету завёл другой шадхан — он остаётся при ней в свободном слоте.
+if ($owner_state['keep_slot'] !== '') {
+    $db->query("UPDATE `Message204` SET `" . $owner_state['keep_slot'] . "`=$owner_id "
+        . "WHERE `Message_ID`=$anketa_id");
+    $anketa[$owner_state['keep_slot']] = $owner_id;
+}
 if (!(int)$anketa['Shadhan_1']) {
     $db->query("UPDATE `Message204` SET `Shadhan_1`=$uid WHERE `Message_ID`=$anketa_id");
 }

@@ -296,6 +296,28 @@ class TestUp:
         assert dbq("SELECT File_Path FROM Class WHERE Class_ID=323") == "/323/"
         assert table_exists("Message323")
 
+    def test_acceptance_2026_10_sections(self):
+        # 028: раздел «Подбор пар с ИИ»; 029: «Поиск/Создание шидуха» выключены
+        assert dbq("SELECT Subdivision_ID FROM Subdivision WHERE EnglishName='podbor-par'") == "90"
+        assert dbq("SELECT COUNT(*) FROM Sub_Class WHERE Sub_Class_ID=100 AND Class_ID=324") == "1"
+        assert table_exists("Message324")
+        assert dbq("SELECT GROUP_CONCAT(Checked ORDER BY Subdivision_ID) FROM Subdivision "
+                   "WHERE Subdivision_ID IN (76,81)") == "0,0"
+
+    def test_acceptance_2026_10_fields_and_tables(self):
+        # 030: анкета шадхана в User; 031: заявки «Мне интересно»
+        for col in ("Shadhan_about", "Shadhan_origin", "Shadhan_specialization", "Shadhan_focus"):
+            assert dbq("SELECT COUNT(*) FROM information_schema.columns WHERE table_schema=DATABASE() "
+                       "AND table_name='User' AND column_name='%s'" % col) == "1", col
+            assert dbq("SELECT COUNT(*) FROM Field WHERE System_Table_ID=3 AND Field_Name='%s'" % col) == "1", col
+        assert table_exists("interest_requests")
+
+    def test_consultant_prompt_v2_active(self):
+        # 032: активная версия промпта — v2 (обещать запись можно только с инструментом)
+        active = dbq("SELECT content FROM ai_prompts WHERE `key`='consultant_system' "
+                     "ORDER BY version DESC, id DESC LIMIT 1")
+        assert "Чего вы не делаете" in active and "update_profile_fields" in active, active[:200]
+
     def test_data_not_damaged(self):
         assert count("Message204") == BASELINE_ROWS
         assert int(dbq("SELECT COUNT(*) FROM Message204 WHERE Name<>''")) == BASELINE_NAME_FILLED
@@ -394,6 +416,19 @@ class TestDown:
         assert dbq("SELECT COUNT(*) FROM Sub_Class WHERE Sub_Class_ID=99") == "0"
         assert dbq("SELECT COUNT(*) FROM Class WHERE Class_ID=323") == "0"
         assert not table_exists("Message323")
+
+    def test_acceptance_2026_10_reverted(self):
+        assert dbq("SELECT COUNT(*) FROM Subdivision WHERE Subdivision_ID=90") == "0"
+        assert dbq("SELECT COUNT(*) FROM Class WHERE Class_ID=324") == "0"
+        assert not table_exists("Message324")
+        assert not table_exists("interest_requests")
+        assert not table_exists("_hidden_sections_029")
+        # 029 вернул разделам прежнее значение Checked (в снимке прода — включены)
+        assert dbq("SELECT GROUP_CONCAT(Checked ORDER BY Subdivision_ID) FROM Subdivision "
+                   "WHERE Subdivision_ID IN (76,81)") == "1,1"
+        assert dbq("SELECT COUNT(*) FROM information_schema.columns WHERE table_schema=DATABASE() "
+                   "AND table_name='User' AND column_name LIKE 'Shadhan\\_%'") == "0"
+        assert dbq("SELECT COUNT(*) FROM Field WHERE System_Table_ID=3 AND Field_Name LIKE 'Shadhan\\_%'") == "0"
 
     def test_data_intact_after_rollback(self):
         assert count("Message204") == BASELINE_ROWS

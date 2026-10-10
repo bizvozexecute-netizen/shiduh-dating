@@ -65,12 +65,6 @@ $nc_c_avatar = ($nc_b1_super || $f_User_ID === $current_user['User_ID'] || $f_Sh
             <span class="button__text">Написать</span>
           </a>
           <? endif; ?>
-          <? if($current_user['Type_id'] !== 1): ?>
-          <a class="button button--secondary button--sm lk-candidates__item-info-link sh-card-hero__search" href="<?= '/my/poisk-shiduha/' ?>?ID=<?= $f_Message_ID; ?>&gender=<?= $f_Search_gender_id;?>&<?= $f_Search_education_id[0] === '1'  ? '' : http_build_query(['Education' => $f_Search_education_id]); ?>&<?= http_build_query(['Number_of_children' => $f_Search_number_of_children]); ?>&<?= http_build_query(['Marital_status' => $Marital_status]); ?>&<?= http_build_query(['Belonging_denomination' => $f_Search_belonging_denomination_id]); ?>&age[0]=<?= $f_Search_age_start ? $f_Search_age_start -5 : 0; ?>&age[1]=<?= $f_Search_age_end ? $f_Search_age_end + 5 :  300; ?>">
-            <svg class="lk-sort__search-icon lk-sort__search-icon--gold"><use xlink:href="/images/sprite.svg#search"></use></svg>
-            <span>Поиск шидуха</span>
-          </a>
-          <? endif; ?>
           <? if($f_User_ID === $current_user['User_ID']): ?>
           <a href="/my/edit-anket/?object=<?= (int)$f_Message_ID ?>" class="lk-questionnaire__head-write button button--write-short" aria-label="Редактировать анкету">
             <svg class="button__icon"><use xlink:href="/images/sprite.svg#write"></use></svg>
@@ -453,66 +447,8 @@ $nc_c_avatar = ($nc_b1_super || $f_User_ID === $current_user['User_ID'] || $f_Sh
     <?= nc_objects_list(77, 82, "&candidateID=$f_Message_ID&nc_ctpl=289" ); ?>
     <? endif;?>
     
-    <? if($current_user['Type_id'] === 2): ?>  
-    <? 
-    $Marital_status = [];
-    foreach ($f_Search_was_previously_married as &$value) {
-        if($value == 'Да'){
-          $Marital_status[] = 2;   
-        }
-        if($value == 'Нет'){
-          $Marital_status[] = 1;   
-        }
-    }
-    foreach ($f_Search_divorced as &$value) {
-        if($value == 'Да' && !in_array(2, $Marital_status)){
-          $Marital_status[] = 2;   
-        }
-     
-        if($value == 'Вдова/ец'){
-          $Marital_status[] = 3;   
-        }
-    }
-    $queryString = "&nc_ctpl=312";
-
-    if (!empty($f_Message_ID)) {
-        $queryString .= "&ID=$f_Message_ID";
-    }
-    if (!empty($f_Search_gender_id)) {
-        $queryString .= "&gender=$f_Search_gender_id";
-    }
-    if (!empty($f_Search_country_id)) {
-        foreach ((array) $f_Search_country_id as $id) {
-            $queryString .= "&country[]=$id";
-        }
-    }
-    if (!empty($f_Search_education_id)) {
-        foreach ((array) $f_Search_education_id as $id) {
-            $queryString .= "&Education[]=$id";
-        }
-    }
-    if (!empty($f_Search_number_of_children)) {
-        foreach ((array) $f_Search_number_of_children as $id) {
-            $queryString .= "&Number_of_children[]=$id";
-        }
-    }
-    if (!empty($Marital_status)) {
-        foreach ((array) $Marital_status as $id) {
-            $queryString .= "&Marital_status[]=$id";
-        }
-    }
-    if (!empty($f_Search_belonging_denomination_id)) {
-        foreach ((array) $f_Search_belonging_denomination_id as $id) {
-            $queryString .= "&Belonging_denomination[]=$id";
-        }
-    }
-    if (!empty($f_Search_age_start) || !empty($f_Search_age_end)) {
-        $queryString .= "&age[0]=" . ($f_Search_age_start ?? 0);
-        $queryString .= "&age[1]=" . ($f_Search_age_end ?? 300);
-    }
-    ?>
-    <?= nc_objects_list($sub, $cc, $queryString); ?>
-    <? endif;?>
+    <?php /* Приёмка 2026-10: встроенный «Поиск шидуха» (шаблон 312) убран —
+       подбор пар теперь в разделе «Подбор пар с ИИ» и в блоке «Рекомендации ИИ». */ ?>
     
     <? if($nc_b1_super || $f_User_ID === $current_user['User_ID'] || $f_Shadhan_1 === $current_user['User_ID'] || $f_Shadhan_2 === $current_user['User_ID'] || $f_Shadhan_3 === $current_user['User_ID'] || ($f_Open && !$nc_anon)): ?>
     <? if ($f_Photo_questionnaire->count()): ?>

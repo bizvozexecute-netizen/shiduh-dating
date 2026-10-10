@@ -170,6 +170,28 @@ def test_list_avatars_are_placeholders_for_candidate():
     assert not leaked, "у постороннего в списке настоящие фото анкет: %r" % leaked[:3]
 
 
+def test_list_shows_name_instead_of_id():
+    """Приёмка 2026-10, решение заказчика 2026-10-09: в списке поиска вместо
+    «ID N» — ФИО (и у закрытой анкеты), плюс «открыта / закрыта». Фото и
+    контакты в списке по-прежнему скрыты (тест выше)."""
+    url = "/my/candidate/?srchPat%%5B%%5D=&id_candidate=%d" % X
+    code, html = get_page(url, login(CANDIDATE))
+    assert code == 200, code
+    assert NAME_SENT in html, "в списке нет ФИО кандидата"
+    assert "открыта" in html
+    set_fields(Open=None)
+    try:
+        code, html = get_page(url, login(CANDIDATE))
+        assert NAME_SENT in html, "у закрытой анкеты в списке нет ФИО"
+        assert "закрыта" in html and "шадхану кандидата" in html, "нет пометки и подсказки про закрытую анкету"
+        has_shadhan = dbq("SELECT (IFNULL(Shadhan_1,0)+IFNULL(Shadhan_2,0)+IFNULL(Shadhan_3,0))>0 "
+                          "OR (SELECT Type FROM User WHERE User_ID=m.User_ID)=2 FROM Message204 m "
+                          "WHERE Message_ID=%d" % X) == "1"
+        assert ("js-interest" in html) == has_shadhan, "кнопка «Мне интересно» не по правилу"
+    finally:
+        set_fields(Open=1)
+
+
 def test_owner_not_on_showcase_at_all():
     # витрина фильтрует собственные анкеты на уровне выборки (свою человек
     # смотрит в кабинете) — фиксация фактического поведения: 404, не утечка

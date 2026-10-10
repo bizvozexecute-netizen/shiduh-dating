@@ -60,12 +60,22 @@ def matches(sid):
     return [r["anketa_id"] for r in data.get("matches", [])]
 
 
+MARK = {}
+
+
 def clear_feedback():
     dbq("DELETE FROM `match_feedback` WHERE shadhan_id=57")
+    # «Предложить» теперь создаёт шидух и уведомления (api/shiduh_lib.php) —
+    # убираем всё, что тест создал поверх снимка dev-БД
+    if MARK:
+        dbq("DELETE FROM `Message280` WHERE Message_ID>%d" % MARK["m280"])
+        dbq("DELETE FROM `Message6` WHERE Message_ID>%d" % MARK["m6"])
 
 
 def setup_module(module):
     global TARGETS
+    MARK["m280"] = int(dbq("SELECT IFNULL(MAX(Message_ID),0) FROM `Message280`"))
+    MARK["m6"] = int(dbq("SELECT IFNULL(MAX(Message_ID),0) FROM `Message6`"))
     TARGETS = [int(x) for x in dbq(
         "SELECT Message_ID FROM `Message204` WHERE Checked=1 AND Gender=2 "
         "AND Message_ID<>%d ORDER BY Message_ID DESC LIMIT 2" % A).split()]

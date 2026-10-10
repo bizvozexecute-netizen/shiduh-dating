@@ -28,9 +28,11 @@
  * при подключении эмбеддингов.
  */
 
-/* Минимальный возраст в подборе — совершеннолетие (см. match_hard_filter). */
+/* Минимальный возраст в подборе — тот же порог, что при регистрации
+   (AUTH_MIN_AGE, см. match_hard_filter). */
+require_once dirname(__FILE__) . '/auth_rules_lib.php';
 if (!defined('MATCH_MIN_AGE')) {
-    define('MATCH_MIN_AGE', 18);
+    define('MATCH_MIN_AGE', AUTH_MIN_AGE);
 }
 
 /*
@@ -144,7 +146,7 @@ function match_hard_filter($db, $anketa, $limit = 2000, $only_id = 0) {
         . " OR $my_age <= m.`Search_age_end`)";
 
     $db->query(
-        "SELECT m.`Message_ID`, m.`User_ID`, m.`Name`, m.`City`, m.`Gender`, "
+        "SELECT m.`Message_ID`, m.`User_ID`, m.`Name`, m.`City`, m.`Gender`, m.`Open`, "
         . "m.`Date_of_birth`, m.`Kashrut_level`, m.`Shabbat_level`, "
         // ведущий — первый заполненный из трёх слотов, не только Shadhan_1
         . "COALESCE(NULLIF(m.`Shadhan_1`,0), NULLIF(m.`Shadhan_2`,0), NULLIF(m.`Shadhan_3`,0)) AS lead_shadhan, "
@@ -153,14 +155,14 @@ function match_hard_filter($db, $anketa, $limit = 2000, $only_id = 0) {
         . "FROM `Message204` m "
         . "WHERE m.`Checked`=1 AND m.`Gender`=$want AND m.`Message_ID`<>$id "
         . "AND m.`Date_of_birth` IS NOT NULL AND m.`Date_of_birth` NOT LIKE '0000%' "
-        // Совершеннолетие — жёсткий предел, а не предпочтение: сервис ведёт
-        // к браку, пары с несовершеннолетними недопустимы. Тот же порог
+        // Минимальный возраст (MATCH_MIN_AGE) — жёсткий предел, а не предпочтение: сервис ведёт
+        // к браку, пары младше порога недопустимы. Тот же порог
         // отсекает мусорные даты рождения: у 224 анкет вместо даты рождения
         // стоит дата из 2020–2025 («возраст» 0–6) — очевидно, дата
         // регистрации. Без этого шадхану и кандидату показывались «пары»
         // 0–2 лет (найдено при осмотре интерфейса).
         . "AND $their_age >= " . MATCH_MIN_AGE . " "
-        // Симметрично: несовершеннолетней (или с мусорной датой) анкете подбор
+        // Симметрично: анкете младше порога (или с мусорной датой) подбор
         // не выдаётся вовсе. Выражение константное — при таком запрашивающем
         // запрос честно вернёт ноль строк.
         . "AND $my_age >= " . MATCH_MIN_AGE . " "
@@ -392,6 +394,32 @@ function match_explain_stub_text($facts) {
  * Сортировка по убыванию балла, при равенстве по Message_ID — чтобы
  * порядок был воспроизводим («Готовность Э3»).
  */
+/*
+ * Своя анкета кандидата для подбора — проверенная, первая по номеру (то же
+ * правило, что у «Рекомендованных пар» в консультанте). Вместе с ней —
+ * ведущий шадхан: его отклонения и веса действуют и в подборе кандидата.
+ * Возвращает array(анкета, id ведущего) или null.
+ */
+function match_own_anketa($db, $uid) {
+    $uid = (int)$uid;
+    $anketa = $db->get_row(
+        "SELECT `Message_ID`, `User_ID`, `Shadhan_1`, `Shadhan_2`, `Shadhan_3`, "
+        . "`Gender`, `Date_of_birth`, `City`, `Are_you_ready_to_move`, "
+        . "`Search_age_start`, `Search_age_end`, `Kashrut_level`, `Shabbat_level`, "
+        . "`Psychological_profile` "
+        . "FROM `Message204` WHERE `User_ID`=$uid AND `Checked`=1 "
+        . "ORDER BY `Message_ID` LIMIT 1",
+        ARRAY_A
+    );
+    if (!$anketa) {
+        return null;
+    }
+    $lead = (int)$anketa['Shadhan_1'];
+    if (!$lead) { $lead = (int)$anketa['Shadhan_2']; }
+    if (!$lead) { $lead = (int)$anketa['Shadhan_3']; }
+    return array($anketa, $lead);
+}
+
 function match_list($db, $anketa, $limit = 50, $shadhan_id = 0) {
     $candidates = match_hard_filter($db, $anketa);
     $profile_a = match_parse_profile($anketa['Psychological_profile']);
@@ -406,14 +434,19 @@ function match_list($db, $anketa, $limit = 50, $shadhan_id = 0) {
         if (isset($rejected[$key])) {
             continue;
         }
-        $scored = match_score($profile_a, match_parse_profile($r['Psychological_profile']), $weights);
+        $profile_b = match_parse_profile($r['Psychological_profile']);
+        $scored = match_score($profile_a, $profile_b, $weights);
         $out[] = array(
             'anketa_id' => (int)$r['Message_ID'],
             'name' => (string)$r['Name'],
             'age' => (int)$r['age'],
             'city' => (string)$r['City'],
+            // открыта ли анкета: закрытая — связь только через её шадхана
+            'open' => isset($r['Open']) && (int)$r['Open'] === 1,
             'score' => $scored['score'],
             'breakdown' => $scored['breakdown'],
+            // профиль есть у обеих сторон — иначе процент не о чем считать
+            'profiled' => $profile_a && $profile_b,
             'shadhan_id' => (int)$r['lead_shadhan'],
         );
     }

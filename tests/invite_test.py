@@ -211,6 +211,39 @@ def test_real_candidate_anketa_not_stolen():
     assert dbq("SELECT COUNT(*) FROM `User` WHERE Email LIKE '%s'" % PLACEHOLDER_LIKE) == "0"
 
 
+def test_anketa_of_other_shadhan_can_be_invited():
+    """Замечание приёмки 2026-10: анкету завёл другой шадхан, этот её ведёт
+    (Shadhan_N) — раньше 409 «принадлежит зарегистрированному кандидату».
+    Теперь приглашение создаётся, а прежний владелец-шадхан остаётся при
+    анкете в свободном слоте и доступа не теряет."""
+    reset_state()
+    row = dbq("SELECT m.Message_ID, m.User_ID FROM `Message204` m JOIN `User` u ON u.User_ID=m.User_ID "
+              "WHERE u.Type=2 AND m.User_ID<>57 AND IFNULL(m.Shadhan_1,0)<>57 "
+              "AND IFNULL(m.Shadhan_2,0)=0 AND IFNULL(m.Shadhan_3,0)=0 ORDER BY m.Message_ID LIMIT 1")
+    assert row, "нет анкеты другого шадхана со свободными слотами"
+    a, owner = [int(x) for x in row.split("\t")]
+    backup = dbq("SELECT IFNULL(Shadhan_1,'NULL'), IFNULL(Shadhan_2,'NULL'), IFNULL(Shadhan_3,'NULL') "
+                 "FROM `Message204` WHERE Message_ID=%d" % a).split("\t")
+    dbq("UPDATE `Message204` SET Shadhan_3=57 WHERE Message_ID=%d" % a)
+    try:
+        code, data = post_invite(login(SHADHAN), a)
+        assert code == 200, "приглашение по анкете другого шадхана не создано: %s" % data
+        slots = dbq("SELECT Shadhan_1, Shadhan_2, Shadhan_3 FROM `Message204` WHERE Message_ID=%d" % a).split("\t")
+        assert str(owner) in slots, "прежний владелец-шадхан потерял анкету: %s" % slots
+        assert "57" in slots
+    finally:
+        dbq("UPDATE `Message204` SET User_ID=%d, Shadhan_1=%s, Shadhan_2=%s, Shadhan_3=%s WHERE Message_ID=%d"
+            % (owner, backup[0], backup[1], backup[2], a))
+        reset_state()
+
+
+def test_registered_candidate_gets_clear_message():
+    reset_state()
+    code, data = post_invite(login(SHADHAN), STATE["real_anketa"])
+    assert code == 409
+    assert "уже зарегистрирован" in (data or {}).get("error", ""), data
+
+
 def test_foreign_origin_forbidden():
     # межсайтовый POST (чужой Origin) отклоняется до любых побочных эффектов
     reset_state()

@@ -6,6 +6,7 @@
  * anketa_id. action: proposed | rejected. Пара хранится нормализованно
  * (меньший id первым), повторное решение перезаписывает прошлое.
  *
+ * proposed создаёт шидух и уведомляет стороны (api/shiduh_lib.php).
  * Отклонённая пара исключается из выдачи подбора этого шадхана; причина
  * отклонения понижает вес соответствующего компонента (эвристика в
  * match_weights()).
@@ -17,6 +18,7 @@ shiduh_bootstrap_api();   // JSON-заголовки и обработчик ф�
 require_once $ROOT_FOLDER . 'connect_io.php';
 require_once dirname(__FILE__) . '/admin_lib.php';
 require_once dirname(__FILE__) . '/match_lib.php';
+require_once dirname(__FILE__) . '/shiduh_lib.php';
 
 $nc_core = nc_core::get_object();
 $nc_core->user->attempt_to_authorize();
@@ -91,6 +93,17 @@ $db->query(
 );
 if ($db->is_error) {
     shiduh_json(500, array('error' => 'Не удалось сохранить решение'));
+}
+
+// Приёмка 2026-10: «Предложить» — это настоящий шидух с уведомлениями, а не
+// только строка статистики (api/shiduh_lib.php). Ответ говорит шадхану, что
+// именно произошло и как дальше идёт общение.
+if ($action === 'proposed') {
+    $shiduh = shiduh_propose($db, $uid, $anketa_id, $target_id);
+    if (!empty($shiduh['error'])) {
+        shiduh_json(500, array('error' => $shiduh['error']));
+    }
+    shiduh_json(200, array('ok' => true, 'action' => $action, 'shiduh' => $shiduh));
 }
 
 shiduh_json(200, array('ok' => true, 'action' => $action));

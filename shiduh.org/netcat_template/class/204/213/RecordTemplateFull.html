@@ -50,10 +50,10 @@ $nc_c_avatar = trim((string)$f_Photo_avatar) !== '' ? (string)$f_Photo_avatar->r
             <span class="button__text">Написать</span>
           </a>
           <? endif; ?>
-          <? if($current_user['Type_id'] !== 1): ?>
-          <a class="button button--secondary button--sm lk-candidates__item-info-link sh-card-hero__search" href="<?= '/my/poisk-shiduha/' ?>?ID=<?= $f_Message_ID; ?>&gender=<?= $f_Search_gender_id;?>&<?= $f_Search_education_id[0] === '1'  ? '' : http_build_query(['Education' => $f_Search_education_id]); ?>&<?= http_build_query(['Number_of_children' => $f_Search_number_of_children]); ?>&<?= http_build_query(['Marital_status' => $Marital_status]); ?>&<?= http_build_query(['Belonging_denomination' => $f_Search_belonging_denomination_id]); ?>&age[0]=<?= $f_Search_age_start ? $f_Search_age_start -5 : 0; ?>&age[1]=<?= $f_Search_age_end ? $f_Search_age_end + 5 :  300; ?>">
+          <? if((int)$current_user['Type_id'] === 2): ?>
+          <a class="button button--secondary button--sm lk-candidates__item-info-link sh-card-hero__search" href="/my/podbor-par/?anketa=<?= (int)$f_Message_ID ?>">
             <svg class="lk-sort__search-icon lk-sort__search-icon--gold"><use xlink:href="/images/sprite.svg#search"></use></svg>
-            <span>Поиск шидуха</span>
+            <span>Подбор пар с ИИ</span>
           </a>
           <? endif; ?>
           <? if($f_User_ID === $current_user['User_ID']): ?>
@@ -65,6 +65,99 @@ $nc_c_avatar = trim((string)$f_Photo_avatar) !== '' ? (string)$f_Photo_avatar->r
       </div>
     </header>
     <nav class="sh-subnav" data-sh-subnav hidden aria-label="Разделы карточки"></nav>
+    <?php /* Приёмка 2026-10: резюме и психологический портрет — первыми,
+       сразу под шапкой: шадхан открывает карточку ради них, а анкета —
+       подробности ниже. */ ?>
+    <?php /* Э0.3. Резюме от ИИ по кандидату — только шадхану. Показывает поле
+       AI_summary; переписка кандидата с ИИ здесь НЕ выводится (приватность).
+       Кнопка «Обновить резюме» вызывает генерацию (Э1.4): в модель уходит
+       только белый список полей анкеты — без ФИО, контактов и данных о
+       здоровье (api/summary_lib.php). */ ?>
+    <? if($current_user['Type_id'] === 2): ?>
+    <div class="lk-questionnaire__section" id="sec-summary" data-sh-sec="Резюме от ИИ">
+      <div class="lk-questionnaire__section-title title title--lk">Резюме от ИИ</div>
+      <div class="lk-questionnaire__body">
+        <?php /* .lk-questionnaire__body — flex-строка (как у нативных блоков,
+           где внутри ровно один элемент). Оборачиваем содержимое в один
+           контейнер, иначе элементы блока выстраиваются в ряд и сжимаются. */ ?>
+        <div class="lk-questionnaire__wide">
+        <? if(trim((string)$f_AI_summary) !== ''): ?>
+          <?php /* $f_AI_summary уже экранирован NetCat при выводе (тип 3, пустой
+             Format) — как и остальные поля анкеты здесь. htmlspecialchars дал бы
+             двойное экранирование; выводим сырым, добавляя только переносы строк. */ ?>
+          <div class="lk-questionnaire__ai-summary"><?= nl2br($f_AI_summary); ?></div>
+        <? else: ?>
+          <div class="lk-questionnaire__ai-summary lk-questionnaire__ai-summary--empty">Резюме ещё не сформировано</div>
+        <? endif; ?>
+        <button type="button" class="button button--secondary js-ai-summary-refresh"
+                data-anketa="<?= (int)$f_Message_ID; ?>">Обновить резюме</button>
+        <div class="js-ai-summary-msg lk-questionnaire__msg" role="status"></div>
+        </div>
+      </div>
+    </div>
+    <? endif; ?>
+
+    <?php /* Э2.4. Психологический портрет — только шадхану. Профиль зафиксирован
+       при опросе (Э2.3) и здесь только читается: просмотр ничего не пересчитывает.
+       Радар рисуется на сервере как SVG — без JS и без библиотеки, поэтому он
+       одинаков при каждом открытии и его видно в тестах.
+       $f_Psychological_profile брать нельзя: NetCat экранирует поля типа 3 при
+       выводе, и json_decode вернул бы null. Читаем колонку из БД — этой анкеты
+       (profile_load_anketa): через владельца не найти, если владелец — шадхан
+       или у него несколько анкет. */ ?>
+    <? if((int)$current_user['Type_id'] === 2): ?>
+    <?php
+    require_once $nc_core->DOCUMENT_ROOT . '/api/profile_view_lib.php';
+    $nc_psy = profile_load_anketa($nc_core->db, (int)$f_Message_ID);
+    ?>
+    <div class="lk-questionnaire__section" id="sec-psy" data-sh-sec="Психологический портрет">
+      <div class="lk-questionnaire__section-title title title--lk">Психологический портрет
+        <span class="lk-questionnaire__only">— только для шадхана</span></div>
+      <div class="lk-questionnaire__body">
+      <?php /* X-4: оговорка показывается ВСЕГДА, а не только при готовом
+         портрете — чтобы проценты нельзя было прочитать как диагноз. */ ?>
+      <div class="lk-questionnaire__wide">
+      <p class="sh-alert"><?= htmlspecialchars(profile_disclaimer(), ENT_QUOTES, 'UTF-8') ?></p>
+      <? if(!$nc_psy): ?>
+        <div class="lk-psy__empty">Тест не пройден.
+          <span class="lk-psy__hint">Кандидат может пройти ценностный опрос сам — в разделе «ИИ-консультант» своего кабинета. После этого здесь появятся диаграмма языков любви, ценностные измерения и психотип.</span></div>
+      <? else: ?>
+        <div class="lk-psy">
+          <div>
+            <div class="lk-psy__h">Языки любви</div>
+            <? $nc_radar = profile_radar_svg($nc_psy); ?>
+            <? if($nc_radar): ?><div class="lk-psy__chart"><?= $nc_radar ?></div><? endif; ?>
+            <?= profile_bars_html($nc_psy, 'love_language') ?>
+          </div>
+          <div>
+            <? if(profile_bars_html($nc_psy, 'family_value')): ?>
+            <div class="lk-psy__h">Ценностный профиль</div>
+            <?= profile_bars_html($nc_psy, 'family_value') ?>
+            <? endif; ?>
+            <div class="lk-psy__panel">
+              <div class="lk-psy__h">Психотип</div>
+              <? if(trim((string)($nc_psy['psychotype_text'] ?? '')) !== ''): ?>
+                <p class="lk-psy__text"><?= nl2br(htmlspecialchars($nc_psy['psychotype_text'], ENT_QUOTES, 'UTF-8')) ?></p>
+              <? else: ?>
+                <p class="lk-psy__text is-muted">Описание появится, когда кандидат ответит на несколько вопросов.</p>
+              <? endif; ?>
+              <div class="lk-psy__foot">
+                <span><?= (int)($nc_psy['cases_answered'] ?? 0) ?> <?= num2word((int)($nc_psy['cases_answered'] ?? 0), array('кейс','кейса','кейсов')) ?><?php
+                  $nc_when = profile_format_date($nc_psy['completed_at'] ?? '');
+                  echo $nc_when ? ' · зафиксировано ' . htmlspecialchars($nc_when, ENT_QUOTES, 'UTF-8') : '';
+                ?></span>
+                <span class="lk-psy__spacer"></span>
+                <span class="lk-psy__pill">версия <?= (int)($nc_psy['version'] ?? 1) ?></span>
+              </div>
+            </div>
+          </div>
+        </div>
+      <? endif; ?>
+      </div>
+      </div>
+    </div>
+    <? endif; ?>
+
     <div class="lk-questionnaire__body" id="sec-anketa" data-sh-sec="Анкета">
       <div class="lk-questionnaire__body-main lk-questionnaire__body-main--full">
         <div class="lk-questionnaire__body-table">
@@ -397,7 +490,11 @@ $nc_c_avatar = trim((string)$f_Photo_avatar) !== '' ? (string)$f_Photo_avatar->r
        самого кандидата, поэтому ОТДЕЛЬНАЯ самодостаточная секция (не внутри
        «Предпочтений»): показывается, когда заполнено хоть одно. Значения уже
        экранированы NetCat при выводе (тип 3), добавляем только переносы. */ ?>
-    <? if(trim((string)$f_Sport_attitude) !== ''
+    <? if(trim((string)$f_About_self) !== ''
+          || trim((string)$f_Kashrut_level) !== ''
+          || trim((string)$f_Shabbat_level) !== ''
+          || trim((string)$f_Family_values) !== ''
+          || trim((string)$f_Sport_attitude) !== ''
           || trim((string)$f_Housing_after_marriage) !== ''
           || trim((string)$f_Languages_spoken) !== ''
           || trim((string)$f_Diaspora_openness) !== ''
@@ -408,6 +505,31 @@ $nc_c_avatar = trim((string)$f_Photo_avatar) !== '' ? (string)$f_Photo_avatar->r
       <div class="lk-questionnaire__section-title title title--lk">Дополнительно о кандидате</div>
       <div class="lk-questionnaire__body">
         <div class="lk-questionnaire__body-table">
+          <?php /* Поля, которые дозаполняет ИИ-консультант (миграция 003). */ ?>
+          <? if(trim((string)$f_About_self) !== ''): ?>
+          <div class="lk-questionnaire__body-table-row">
+            <div class="lk-questionnaire__body-table-cell lk-questionnaire__body-table-cell--key"><b>О себе:</b></div>
+            <div class="lk-questionnaire__body-table-cell lk-questionnaire__body-table-cell--value"><?= nl2br($f_About_self); ?></div>
+          </div>
+          <? endif; ?>
+          <? if(trim((string)$f_Kashrut_level) !== ''): ?>
+          <div class="lk-questionnaire__body-table-row">
+            <div class="lk-questionnaire__body-table-cell lk-questionnaire__body-table-cell--key"><b>Кашрут:</b></div>
+            <div class="lk-questionnaire__body-table-cell lk-questionnaire__body-table-cell--value"><?= nl2br($f_Kashrut_level); ?></div>
+          </div>
+          <? endif; ?>
+          <? if(trim((string)$f_Shabbat_level) !== ''): ?>
+          <div class="lk-questionnaire__body-table-row">
+            <div class="lk-questionnaire__body-table-cell lk-questionnaire__body-table-cell--key"><b>Шаббат:</b></div>
+            <div class="lk-questionnaire__body-table-cell lk-questionnaire__body-table-cell--value"><?= nl2br($f_Shabbat_level); ?></div>
+          </div>
+          <? endif; ?>
+          <? if(trim((string)$f_Family_values) !== ''): ?>
+          <div class="lk-questionnaire__body-table-row">
+            <div class="lk-questionnaire__body-table-cell lk-questionnaire__body-table-cell--key"><b>Что важно в семье:</b></div>
+            <div class="lk-questionnaire__body-table-cell lk-questionnaire__body-table-cell--value"><?= nl2br($f_Family_values); ?></div>
+          </div>
+          <? endif; ?>
           <? if(trim((string)$f_Sport_attitude) !== ''): ?>
           <div class="lk-questionnaire__body-table-row">
             <div class="lk-questionnaire__body-table-cell lk-questionnaire__body-table-cell--key"><b>Спорт и активный отдых:</b></div>
@@ -519,34 +641,6 @@ $nc_c_avatar = trim((string)$f_Photo_avatar) !== '' ? (string)$f_Photo_avatar->r
     </div>
     <? endif; ?>
 
-    <?php /* Э0.3. Резюме от ИИ по кандидату — только шадхану. Показывает поле
-       AI_summary; переписка кандидата с ИИ здесь НЕ выводится (приватность).
-       Кнопка «Обновить резюме» вызывает генерацию (Э1.4): в модель уходит
-       только белый список полей анкеты — без ФИО, контактов и данных о
-       здоровье (api/summary_lib.php). */ ?>
-    <? if($current_user['Type_id'] === 2): ?>
-    <div class="lk-questionnaire__section" id="sec-summary" data-sh-sec="Резюме от ИИ">
-      <div class="lk-questionnaire__section-title title title--lk">Резюме от ИИ</div>
-      <div class="lk-questionnaire__body">
-        <?php /* .lk-questionnaire__body — flex-строка (как у нативных блоков,
-           где внутри ровно один элемент). Оборачиваем содержимое в один
-           контейнер, иначе элементы блока выстраиваются в ряд и сжимаются. */ ?>
-        <div class="lk-questionnaire__wide">
-        <? if(trim((string)$f_AI_summary) !== ''): ?>
-          <?php /* $f_AI_summary уже экранирован NetCat при выводе (тип 3, пустой
-             Format) — как и остальные поля анкеты здесь. htmlspecialchars дал бы
-             двойное экранирование; выводим сырым, добавляя только переносы строк. */ ?>
-          <div class="lk-questionnaire__ai-summary"><?= nl2br($f_AI_summary); ?></div>
-        <? else: ?>
-          <div class="lk-questionnaire__ai-summary lk-questionnaire__ai-summary--empty">Резюме ещё не сформировано</div>
-        <? endif; ?>
-        <button type="button" class="button button--secondary js-ai-summary-refresh"
-                data-anketa="<?= (int)$f_Message_ID; ?>">Обновить резюме</button>
-        <div class="js-ai-summary-msg lk-questionnaire__msg" role="status"></div>
-        </div>
-      </div>
-    </div>
-    <? endif; ?>
 
     <?php /* X-3. «Сигналы внимания» — только ведущему шадхану. Это НЕ
        характеристика человека и не поле анкеты: разовые наблюдения за
@@ -585,66 +679,6 @@ $nc_c_avatar = trim((string)$f_Photo_avatar) !== '' ? (string)$f_Photo_avatar->r
       </div>
     </div>
     <? endif; ?>
-    <? endif; ?>
-    <?php /* Э2.4. Психологический портрет — только шадхану. Профиль зафиксирован
-       при опросе (Э2.3) и здесь только читается: просмотр ничего не пересчитывает.
-       Радар рисуется на сервере как SVG — без JS и без библиотеки, поэтому он
-       одинаков при каждом открытии и его видно в тестах.
-       $f_Psychological_profile брать нельзя: NetCat экранирует поля типа 3 при
-       выводе, и json_decode вернул бы null. Читаем колонку из БД (profile_load),
-       тем же правилом, каким её пишет scoring_save_profile — по пользователю, а
-       не по анкете: профиль принадлежит человеку. */ ?>
-    <? if($current_user['Type_id'] === 2): ?>
-    <?php
-    require_once $nc_core->DOCUMENT_ROOT . '/api/profile_view_lib.php';
-    $nc_psy = profile_load($nc_core->db, (int)$f_User_ID);
-    ?>
-    <div class="lk-questionnaire__section" id="sec-psy" data-sh-sec="Психологический портрет">
-      <div class="lk-questionnaire__section-title title title--lk">Психологический портрет
-        <span class="lk-questionnaire__only">— только для шадхана</span></div>
-      <div class="lk-questionnaire__body">
-      <?php /* X-4: оговорка показывается ВСЕГДА, а не только при готовом
-         портрете — чтобы проценты нельзя было прочитать как диагноз. */ ?>
-      <div class="lk-questionnaire__wide">
-      <p class="sh-alert"><?= htmlspecialchars(profile_disclaimer(), ENT_QUOTES, 'UTF-8') ?></p>
-      <? if(!$nc_psy): ?>
-        <div class="lk-psy__empty">Тест не пройден.
-          <span class="lk-psy__hint">Кандидат может пройти ценностный опрос сам — в разделе «ИИ-консультант» своего кабинета. После этого здесь появятся диаграмма языков любви, ценностные измерения и психотип.</span></div>
-      <? else: ?>
-        <div class="lk-psy">
-          <div>
-            <div class="lk-psy__h">Языки любви</div>
-            <? $nc_radar = profile_radar_svg($nc_psy); ?>
-            <? if($nc_radar): ?><div class="lk-psy__chart"><?= $nc_radar ?></div><? endif; ?>
-            <?= profile_bars_html($nc_psy, 'love_language') ?>
-          </div>
-          <div>
-            <? if(profile_bars_html($nc_psy, 'family_value')): ?>
-            <div class="lk-psy__h">Ценностный профиль</div>
-            <?= profile_bars_html($nc_psy, 'family_value') ?>
-            <? endif; ?>
-            <div class="lk-psy__panel">
-              <div class="lk-psy__h">Психотип</div>
-              <? if(trim((string)($nc_psy['psychotype_text'] ?? '')) !== ''): ?>
-                <p class="lk-psy__text"><?= nl2br(htmlspecialchars($nc_psy['psychotype_text'], ENT_QUOTES, 'UTF-8')) ?></p>
-              <? else: ?>
-                <p class="lk-psy__text is-muted">Описание появится, когда кандидат ответит на несколько вопросов.</p>
-              <? endif; ?>
-              <div class="lk-psy__foot">
-                <span><?= (int)($nc_psy['cases_answered'] ?? 0) ?> <?= num2word((int)($nc_psy['cases_answered'] ?? 0), array('кейс','кейса','кейсов')) ?><?php
-                  $nc_when = profile_format_date($nc_psy['completed_at'] ?? '');
-                  echo $nc_when ? ' · зафиксировано ' . htmlspecialchars($nc_when, ENT_QUOTES, 'UTF-8') : '';
-                ?></span>
-                <span class="lk-psy__spacer"></span>
-                <span class="lk-psy__pill">версия <?= (int)($nc_psy['version'] ?? 1) ?></span>
-              </div>
-            </div>
-          </div>
-        </div>
-      <? endif; ?>
-      </div>
-      </div>
-    </div>
     <? endif; ?>
 
     <?php /* Э3.3-a. Рекомендации ИИ — подбор пар для этой анкеты, только шадхану.
@@ -687,8 +721,20 @@ $nc_c_avatar = trim((string)$f_Photo_avatar) !== '' ? (string)$f_Photo_avatar->r
            где внутри ровно один элемент). Оборачиваем содержимое в один
            контейнер, иначе элементы блока выстраиваются в ряд и сжимаются. */ ?>
         <div class="lk-questionnaire__wide">
+        <?php
+        // Тем же правилом, что и сервер: кнопка не должна обещать отказ.
+        require_once $nc_core->DOCUMENT_ROOT . '/api/invite_lib.php';
+        $nc_inv = invite_owner_state($nc_core->db, array(
+            'User_ID' => (int)$f_User_ID, 'Shadhan_1' => (int)$f_Shadhan_1,
+            'Shadhan_2' => (int)$f_Shadhan_2, 'Shadhan_3' => (int)$f_Shadhan_3,
+        ), (int)$current_user['User_ID']);
+        ?>
+        <? if ($nc_inv['ok']): ?>
         <p class="lk-questionnaire__lead">Кандидат заполнит анкету сам через ИИ-консультанта — без регистрации. Отправьте ему ссылку.</p>
         <button type="button" class="button button--secondary js-invite-create" data-anketa="<?= (int)$f_Message_ID ?>">Создать ссылку-приглашение</button>
+        <? else: ?>
+        <p class="lk-questionnaire__lead"><?= htmlspecialchars($nc_inv['message'], ENT_QUOTES) ?></p>
+        <? endif; ?>
         <div class="js-invite-result lk-invite" hidden>
           <div class="lk-invite__row">
             <input type="text" class="js-invite-link sh-field__input lk-invite__input" readonly aria-label="Ссылка-приглашение">
@@ -711,66 +757,8 @@ $nc_c_avatar = trim((string)$f_Photo_avatar) !== '' ? (string)$f_Photo_avatar->r
     <?= nc_objects_list(77, 82, "&candidateID=$f_Message_ID&nc_ctpl=289" ); ?>
     <? endif;?>
     
-    <? if($current_user['Type_id'] === 2): ?>  
-    <? 
-    $Marital_status = [];
-    foreach ($f_Search_was_previously_married as &$value) {
-        if($value == 'Да'){
-          $Marital_status[] = 2;   
-        }
-        if($value == 'Нет'){
-          $Marital_status[] = 1;   
-        }
-    }
-    foreach ($f_Search_divorced as &$value) {
-        if($value == 'Да' && !in_array(2, $Marital_status)){
-          $Marital_status[] = 2;   
-        }
-     
-        if($value == 'Вдова/ец'){
-          $Marital_status[] = 3;   
-        }
-    }
-    $queryString = "&nc_ctpl=312";
-
-    if (!empty($f_Message_ID)) {
-        $queryString .= "&ID=$f_Message_ID";
-    }
-    if (!empty($f_Search_gender_id)) {
-        $queryString .= "&gender=$f_Search_gender_id";
-    }
-    if (!empty($f_Search_country_id)) {
-        foreach ((array) $f_Search_country_id as $id) {
-            $queryString .= "&country[]=$id";
-        }
-    }
-    if (!empty($f_Search_education_id)) {
-        foreach ((array) $f_Search_education_id as $id) {
-            $queryString .= "&Education[]=$id";
-        }
-    }
-    if (!empty($f_Search_number_of_children)) {
-        foreach ((array) $f_Search_number_of_children as $id) {
-            $queryString .= "&Number_of_children[]=$id";
-        }
-    }
-    if (!empty($Marital_status)) {
-        foreach ((array) $Marital_status as $id) {
-            $queryString .= "&Marital_status[]=$id";
-        }
-    }
-    if (!empty($f_Search_belonging_denomination_id)) {
-        foreach ((array) $f_Search_belonging_denomination_id as $id) {
-            $queryString .= "&Belonging_denomination[]=$id";
-        }
-    }
-    if (!empty($f_Search_age_start) || !empty($f_Search_age_end)) {
-        $queryString .= "&age[0]=" . ($f_Search_age_start ?? 0);
-        $queryString .= "&age[1]=" . ($f_Search_age_end ?? 300);
-    }
-    ?>
-    <?= nc_objects_list($sub, $cc, $queryString); ?>
-    <? endif;?>
+    <?php /* Приёмка 2026-10: встроенный «Поиск шидуха» (шаблон 312) убран —
+       подбор пар теперь в разделе «Подбор пар с ИИ» и в блоке «Рекомендации ИИ». */ ?>
     
     <? if ($f_Photo_questionnaire->count()): ?>
     <div class="lk-questionnaire__gallery" id="sec-photos" data-sh-sec="Фото">

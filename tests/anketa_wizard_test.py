@@ -202,7 +202,7 @@ def test_edit_page_is_wizard_with_values():
 
 # ------------------------------------------------------------- добавление -
 
-@pytest.mark.parametrize("expr", ["-17 years", "-101 years", "+1 day"])
+@pytest.mark.parametrize("expr", ["-15 years", "-101 years", "+1 day"])
 def test_add_rejects_bad_dob_and_keeps_count(expr):
     sid = sid_of(SHADHAN)
     _, html = page(ADD_PAGE, sid)
@@ -268,11 +268,11 @@ def test_edit_rejects_minor_dob_keeps_row():
         _, html = page(EDIT_PAGE, sid)
         f = service_fields(html)
         assert f.get("message") == str(ANKETA)
-        f.update(dob_parts(php_date("-17 years")))
-        f["f_Name"] = "Проверка-17"
+        f.update(dob_parts(php_date("-15 years")))
+        f["f_Name"] = "Проверка-15"
         code, out = post("/netcat/message.php", f, sid)
         assert code == 200 and "<div class='warnText'" in out and 'id="err-Date_of_birth"' in out
-        assert 'value="Проверка-17"' in out, "введённое имя пропало после отказа"
+        assert 'value="Проверка-15"' in out, "введённое имя пропало после отказа"
         assert 'name=\'message\' type=\'hidden\' value=\'%d\'' % ANKETA in out, "после отказа форма потеряла id анкеты"
         row = dbq("SELECT Name, Date_of_birth FROM `Message204` WHERE Message_ID=%d" % ANKETA)
         assert row.split("\t") == [saved["Name"], saved["Date_of_birth"]], "строка изменилась при отказе"

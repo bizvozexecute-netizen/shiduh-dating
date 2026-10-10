@@ -109,9 +109,9 @@ def test_menu_rendered_twice_from_one_source_and_hooks_kept():
 
 def test_admin_link_only_for_admin():
     code, html = page("/my/message/", sid_of(ADMIN))
-    assert re.search(r'class="lk-aside__write lk-aside__admin" href="([^"]+)"', html), "у администратора нет ссылки в консоль"
+    assert re.search(r'class="lk-aside__nav-item lk-aside__nav-item--admin">\s*<a class="lk-aside__nav-link" href="([^"]+)"', html), "у администратора нет ссылки в консоль"
     code, html = page("/my/message/", sid_of(SHADHAN))
-    assert "lk-aside__admin" not in html
+    assert "lk-aside__nav-item--admin" not in html
 
 
 def test_unread_counter_hidden_when_zero():
@@ -224,15 +224,20 @@ def test_outgoing_letter_opens_thread():
 def test_menu_role_matrix():
     """Самое рискованное в объединении меню — условия пунктов по ролям."""
     cases = {
-        CANDIDATE: {"yes": ["/my/ai-consultant/", "/my/moi-shadhany/", "/my/candidate/", "/my/favourites/"],
-                    "no": ["/my/poisk-shiduha/", "/my/my-candidates/", "/my/aktivatsiya-shadhana/", "/my/delete-account/", "/my/add-article/"]},
-        SHADHAN: {"yes": ["/my/poisk-shiduha/", "/my/sozdanie-shiduha/", "/my/istoriya-shiduha/", "/my/access-candidates/",
+        # Приёмка 2026-10: «Поиск шидуха» и «Создание шидуха» убраны из меню —
+        # их заменил «Подбор пар с ИИ»; история шидухов одна на роль.
+        CANDIDATE: {"yes": ["/my/ai-consultant/", "/my/moi-shadhany/", "/my/candidate/", "/my/favourites/",
+                            "/my/predlozhennye-kandidaty/"],
+                    "no": ["/my/poisk-shiduha/", "/my/sozdanie-shiduha/", "/my/podbor-par/", "/my/istoriya-shiduha/",
+                           "/my/my-candidates/", "/my/aktivatsiya-shadhana/", "/my/delete-account/", "/my/add-article/"]},
+        SHADHAN: {"yes": ["/my/podbor-par/", "/my/istoriya-shiduha/", "/my/candidate/", "/my/access-candidates/",
                           "/my/my-candidates/", "/my/add_candidate/", "add_soobscheniya.html?uid=119"],
-                  "no": ["/my/ai-consultant/", "/my/moi-shadhany/", "/my/aktivatsiya-shadhana/", "/my/delete-account/", "/my/add-article/"]},
-        # директор (1) — сам типа «шадхан»: «Поиск шидуха» ему положен, а «Мои
+                  "no": ["/my/poisk-shiduha/", "/my/sozdanie-shiduha/", "/my/predlozhennye-kandidaty/",
+                         "/my/ai-consultant/", "/my/moi-shadhany/", "/my/aktivatsiya-shadhana/", "/my/delete-account/", "/my/add-article/"]},
+        # директор (1) — сам типа «шадхан»: подбор пар ему положен, а «Мои
         # кандидаты» и «Добавить кандидата» скрыты для служебных 1 и 119
-        ADMIN: {"yes": ["/my/aktivatsiya-shadhana/", "/my/delete-account/", "/my/add-article/", "/my/poisk-shiduha/"],
-                "no": ["/my/my-candidates/", "/my/add_candidate/", "/my/ai-consultant/"]},
+        ADMIN: {"yes": ["/my/aktivatsiya-shadhana/", "/my/delete-account/", "/my/add-article/", "/my/podbor-par/"],
+                "no": ["/my/my-candidates/", "/my/add_candidate/", "/my/ai-consultant/", "/my/poisk-shiduha/"]},
     }
     for email, exp in cases.items():
         code, html = page("/my/message/", sid_of(email))

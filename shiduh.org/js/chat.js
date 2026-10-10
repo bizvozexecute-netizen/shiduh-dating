@@ -295,11 +295,47 @@
     return body;
   }
 
+  // Колонка анкеты → подпись для плашки «записано».
+  var FIELD_TITLES = {
+    City: 'Город', Place_of_birth: 'Откуда родом', Kashrut_level: 'Кашрут', Shabbat_level: 'Шаббат',
+    Observance_growth: 'Рост в соблюдении', Family_values: 'Что важно в семье',
+    Housing_after_marriage: 'Жильё после свадьбы', Are_you_ready_to_move: 'Готовность к переезду',
+    Diaspora_openness: 'Открытость к другим общинам', About_self: 'О себе', Languages_spoken: 'Языки',
+    Sport_attitude: 'Спорт', Introvert_extrovert: 'Интроверт / экстраверт'
+  };
+
+  /*
+   * Что сервер на самом деле записал в анкету — отдельной плашкой под
+   * ответом. Слова модели «записал» человек проверить не может, а плашку
+   * печатает сервер по факту записи (замечание приёмки 2026-10: «пишет
+   * „внесли изменения“, а анкета не меняется»).
+   */
+  function savedNote(js) {
+    var cols = [];
+    (js.tool_events || []).forEach(function (ev) {
+      (ev.applied || []).forEach(function (col) {
+        if (cols.indexOf(col) === -1) { cols.push(col); }
+      });
+    });
+    if (!cols.length) { return; }
+    var el = document.createElement('div');
+    el.className = 'sh-msg-saved';
+    el.setAttribute('role', 'status');
+    var names = cols.map(function (c) { return FIELD_TITLES[c] || c; });
+    el.textContent = 'В анкету записано: ' + names.join(', ') + '. ';
+    var a = document.createElement('a');
+    a.href = '/my/modify/';
+    a.textContent = 'Открыть анкету';
+    el.appendChild(a);
+    log.appendChild(el);
+  }
+
   function finishOk(js, failedNode) {
     if (failedNode) {
       failedNode.dataset.state = 'sent';
       if (js.user_message_id) { failedNode.dataset.id = js.user_message_id; }
     }
+    savedNote(js);
     renderChips(js.chips);
     // Ответ на сценарий записан из диалога — блок опроса на странице должен
     // это увидеть, иначе он показывает уже отвеченный вопрос (B8).

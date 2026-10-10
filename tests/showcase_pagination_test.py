@@ -31,6 +31,7 @@ CANDIDATE = "u091ff2b36c83@example.local"   # User 50
 LIST = "/my/candidate/?srchPat%5B%5D="
 MINE = "/my/my-candidates/"
 PER_PAGE = 24
+MIN_AGE = 16   # AUTH_MIN_AGE в api/auth_rules_lib.php
 # условия, которые ядро добавляет к списку инфоблока 22 (раздел 23) само
 CORE_WHERE = "a.Checked=1 AND a.Subdivision_ID=23 AND a.Sub_Class_ID=22 AND a.Parent_Message_ID=0"
 
@@ -95,7 +96,7 @@ def test_first_page_is_limited_and_counted():
     total = int(dbq("SELECT COUNT(*) FROM `Message204` a INNER JOIN `User` u ON u.User_ID=a.User_ID AND u.Checked=1 "
                     "WHERE " + CORE_WHERE + " AND a.Height<>'' AND a.Phone<>'' "
                     "AND a.Date_of_birth IS NOT NULL AND a.Date_of_birth NOT LIKE '0000%%' "
-                    "AND TIMESTAMPDIFF(YEAR, a.Date_of_birth, CURDATE()) BETWEEN 18 AND 120"))
+                    "AND TIMESTAMPDIFF(YEAR, a.Date_of_birth, CURDATE()) BETWEEN %d AND 120" % MIN_AGE))
     m = re.search(r'sh-pager__state">(\d+)–(\d+) из (\d+)<', html)
     assert m, "нет пейджера"
     assert int(m.group(3)) == total, "«из N» %s не равно COUNT %d" % (m.group(3), total)
@@ -121,7 +122,7 @@ def test_second_page_has_other_rows():
 
 
 def test_minor_and_default_dates_excluded():
-    """17 лет 364 дня и «дата по умолчанию» не попадают на витрину; ровно 18 — да."""
+    """На день младше порога и «дата по умолчанию» не попадают на витрину; ровно порог — да."""
     aid = int(dbq("SELECT a.Message_ID FROM `Message204` a INNER JOIN `User` u ON u.User_ID=a.User_ID AND u.Checked=1 "
                   "WHERE " + CORE_WHERE + " AND a.Height<>'' AND a.Phone<>'' "
                   "AND TIMESTAMPDIFF(YEAR, a.Date_of_birth, CURDATE()) BETWEEN 25 AND 40 ORDER BY a.Message_ID LIMIT 1"))
@@ -140,12 +141,12 @@ def test_minor_and_default_dates_excluded():
         return aid in row_ids(html)
 
     assert listed(), "контрольная анкета не видна до правки"
-    set_dob(today.replace(year=today.year - 18) + datetime.timedelta(days=1))
-    assert not listed(), "17 лет 364 дня — на витрине"
+    set_dob(today.replace(year=today.year - MIN_AGE) + datetime.timedelta(days=1))
+    assert not listed(), "на день младше порога — на витрине"
     set_dob("2024-01-01")
     assert not listed(), "дата по умолчанию 2024 — на витрине"
-    set_dob(today.replace(year=today.year - 18))
-    assert listed(), "ровно 18 лет — не на витрине"
+    set_dob(today.replace(year=today.year - MIN_AGE))
+    assert listed(), "ровно порог — не на витрине"
     restore_row("Message204", aid, _ROW["backup"])
     _ROW.clear()
 
@@ -234,13 +235,13 @@ def test_class_html_matches_parts():
 def test_age_helper_unit():
     code = (
         "require '/var/www/html/api/showcase_lib.php';"
-        "echo json_encode(array(showcase_age_bounds(null, true), showcase_age_bounds(array('5','17'), true),"
+        "echo json_encode(array(showcase_age_bounds(null, true), showcase_age_bounds(array('5','15'), true),"
         " showcase_age_bounds(array('30','35'), true), showcase_age_bounds(null, false), showcase_age_bounds(array('40',''), false),"
         " showcase_age_bounds(array('x','999'), true), showcase_age_text('0000-00-00 00:00:00'), showcase_age_text('1990-06-15 00:00:00') !== ''));"
     )
     import json
     r = web("php", "-r", code)
     js = json.loads((r.stdout or "").strip().splitlines()[-1])
-    assert js[0] == [18, 120] and js[1] == [18, 17] and js[2] == [30, 35]   # 5–17 → пустой диапазон
-    assert js[3] is None and js[4] == [40, 120] and js[5] == [18, 120]
+    assert js[0] == [MIN_AGE, 120] and js[1] == [MIN_AGE, MIN_AGE - 1] and js[2] == [30, 35]   # 5–15 → пустой диапазон
+    assert js[3] is None and js[4] == [40, 120] and js[5] == [MIN_AGE, 120]
     assert js[6] == "" and js[7] is True

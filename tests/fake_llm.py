@@ -255,6 +255,39 @@ if (isset($raw['messages']) && is_array($raw['messages'])) {
     }
 }
 
+/* Живой прогон 2026-10-10: модель пишет «Запишу в анкету», не вызывая
+   инструмент. claim_then_tool — после служебной просьбы сервера исправляется
+   (2-й вызов — инструмент, 3-й — текст); claim_stubborn — так и не пишет. */
+if ($mode === 'claim_then_tool') {
+    if ($s['calls'] === 1) {
+        fake_emit('Запишу в анкету, спасибо!',
+            array('prompt_tokens' => 11, 'completion_tokens' => 7, 'total_tokens' => 18),
+            array(), $raw, $s);
+    }
+    if ($s['calls'] === 2) {
+        fake_emit('', array('prompt_tokens' => 11, 'completion_tokens' => 7, 'total_tokens' => 18),
+            array(array(
+                'id' => 'call_1',
+                'type' => 'function',
+                'function' => array(
+                    'name' => 'update_profile_fields',
+                    'arguments' => json_encode(
+                        isset($s['tool_args']) ? $s['tool_args'] : array(),
+                        JSON_UNESCAPED_UNICODE
+                    ),
+                ),
+            )), $raw, $s);
+    }
+    fake_emit('Спасибо, что рассказали. Что для вас важно в семье?',
+        array('prompt_tokens' => 12, 'completion_tokens' => 8, 'total_tokens' => 20),
+        array(), $raw, $s);
+}
+if ($mode === 'claim_stubborn') {
+    fake_emit('Запишу в анкету, спасибо!',
+        array('prompt_tokens' => 11, 'completion_tokens' => 7, 'total_tokens' => 18),
+        array(), $raw, $s);
+}
+
 /* Двухфазный конвейер: сначала модель просит записать поля, затем — по
    результату инструмента — продолжает диалог обычным текстом. */
 if ($mode === 'tool_call') {

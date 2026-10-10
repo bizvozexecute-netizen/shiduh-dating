@@ -22,7 +22,21 @@ $nc_int_list = function($v) {
   return $ids ? implode(',', $ids) : '0';
 };
 
-if(!count($_GET["srchPat"]) && $action !== 'full') {
+/*
+ * Приёмка 2026-10: кандидат открывает «Поиск кандидатов» — и сразу видит тех,
+ * кто подходит по его анкете, от большего процента совместимости к меньшему
+ * (формула подбора, api/showcase_lib.php → match_lib). С фильтром — обычный
+ * поиск. Без своей проверенной анкеты — как раньше, список по фильтру.
+ */
+$nc_sc_match = null;
+// ?filter=1 — человек сам хочет искать по фильтру: показываем форму.
+if ((int)$current_user['Type_id'] === 1 && !count((array)$_GET["srchPat"]) && empty($_GET['filter']) && $action !== 'full') {
+  $nc_sc_match = showcase_match_order($db, (int)$current_user['User_ID']);
+}
+$GLOBALS['nc_sc_match_pct'] = $nc_sc_match ? $nc_sc_match['pct'] : array();
+$GLOBALS['nc_sc_match_on'] = (bool)$nc_sc_match;
+
+if(!count($_GET["srchPat"]) && $action !== 'full' && !$nc_sc_match) {
    $ignore_all = 1;
    $query_limit = 0;
 }
@@ -182,6 +196,15 @@ if (!$ignore_all && $action !== 'full') {
   $query_select = 'u.`Type` AS UType';
   $query_order = 'a.Created DESC, a.Message_ID DESC';
   $recNum = SHOWCASE_PER_PAGE;
+}
+
+// Подбор по анкете: только прошедшие фильтры подбора и в его порядке.
+if ($nc_sc_match && $action !== 'full') {
+  $nc_sc_ids = $nc_sc_match['ids'] ? implode(',', array_map('intval', $nc_sc_match['ids'])) : '0';
+  $query_where .= ($query_where ? " AND " : "") . "a.Message_ID IN ($nc_sc_ids)";
+  if ($nc_sc_match['ids']) {
+    $query_order = "FIELD(a.Message_ID, $nc_sc_ids)";
+  }
 }
 
 

@@ -183,13 +183,8 @@ $nc_l_avatar = $f_Photo_avatar ? (string)$f_Photo_avatar->resize(96, 96)
     : ((int)$f_Gender_id === 1 ? '/images/avatar/man.png' : '/images/avatar/woman.png');
 $nc_l_link = htmlspecialchars((string)$fullLink, ENT_QUOTES);
 $nc_l_age = showcase_age_text($f_Date_of_birth);
-$nc_l_search = '/my/poisk-shiduha/?ID=' . (int)$f_Message_ID . '&gender=' . (int)$f_Search_gender_id
-    . '&' . ($f_Search_education_id[0] === '1' ? '' : http_build_query(['Education' => $f_Search_education_id], '', '&'))
-    . '&' . http_build_query(['Number_of_children' => $f_Search_number_of_children], '', '&')
-    . '&' . http_build_query(['Marital_status' => $Marital_status], '', '&')
-    . '&' . http_build_query(['Belonging_denomination' => $f_Search_belonging_denomination_id], '', '&')
-    . '&age[0]=' . ($f_Search_age_start ? (int)$f_Search_age_start - 5 : 0)
-    . '&age[1]=' . ($f_Search_age_end ? (int)$f_Search_age_end + 5 : 300);
+// Приёмка 2026-10: «Поиск шидуха» заменён разделом «Подбор пар с ИИ»
+$nc_l_search = '/my/podbor-par/?anketa=' . (int)$f_Message_ID;
 $nc_l_search = htmlspecialchars($nc_l_search, ENT_QUOTES);
 ?>
 <div class="lk-candidates__item lk-sort-item <?= $nc_l_days <= 30 ? 'lk-candidates__item--new' : '' ?>" data-name="<?= lk_esc($f_Name) ?> " data-new="<?= $nc_l_days <= 30 ? 'true' : 'false' ?>">
@@ -210,7 +205,7 @@ $nc_l_search = htmlspecialchars($nc_l_search, ENT_QUOTES);
         <svg class="lk-sort__search-icon lk-sort__search-icon--gold">
           <use xlink:href="/images/sprite.svg#search"></use>
         </svg>
-        <span>Поиск шидуха</span>
+        <span>Подбор пар с ИИ</span>
       </a>
     </div>
   </div>
@@ -231,7 +226,7 @@ $nc_l_search = htmlspecialchars($nc_l_search, ENT_QUOTES);
         <svg class="lk-sort__search-icon lk-sort__search-icon--tight">
           <use xlink:href="/images/sprite.svg#search"></use>
         </svg>
-        <span>Поиск шидуха</span>
+        <span>Подбор пар с ИИ</span>
     </a>
     <a class="lk-candidates__more button js-scroll-link" href="<?= $nc_l_link ?>">Подробнее</a>
     <? if($nc_l_days <= 5): ?>

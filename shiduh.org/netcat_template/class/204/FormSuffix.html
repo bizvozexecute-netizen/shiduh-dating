@@ -1,4 +1,4 @@
-<? if(count($_GET["srchPat"])): ?>
+<? if(count($_GET["srchPat"]) || !empty($GLOBALS['nc_sc_match_on'])): ?>
 
         </div>
         <?php /* A4: страницы считает ядро; кнопка «Показать ещё» остаётся в
@@ -8,6 +8,7 @@
             <button class="lk-search-candidate-result__table-load-more-btn" type="button">Показать ещё</button>
           </div>
         <?= showcase_pager($totRows, $begRow, $endRow, $recNum, $prevLink, $nextLink) ?>
+        <script src="/js/interest.js?v=<?= (int)@filemtime($nc_core->DOCUMENT_ROOT . '/js/interest.js') ?>" defer></script>
       </div>
     </div>
   </div>

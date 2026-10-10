@@ -17,12 +17,13 @@
  * как карточка уже читает Message255.
  *
  * ПОЧЕМУ ПО User_ID, А НЕ ПО Message_ID:
- * scoring_save_profile() пишет профиль в ПЕРВУЮ анкету пользователя. Профиль
- * принадлежит человеку, а не конкретной анкете, поэтому читаем тем же правилом —
- * иначе у человека с несколькими анкетами профиль «пропадал» бы на всех, кроме
- * первой.
+ * scoring_save_profile() пишет профиль в анкету ai_target_anketa() (проверенную,
+ * при равенстве — первую). Профиль принадлежит человеку, а не конкретной
+ * анкете, поэтому читаем тем же правилом — иначе у человека с несколькими
+ * анкетами профиль «пропадал» бы на всех, кроме одной.
  */
 
+require_once dirname(__FILE__) . '/anketa_target_lib.php';
 require_once dirname(__FILE__) . '/cases_lib.php';
 
 /* Порядок осей радара — как в прототипе; в cases_groups() порядок другой. */
@@ -49,9 +50,22 @@ function profile_load($db, $user_id) {
     if ($user_id <= 0) {
         return null;
     }
+    // та же анкета, в которую профиль пишет scoring_save_profile
+    return profile_load_anketa($db, ai_target_anketa($db, $user_id));
+}
+
+/*
+ * Профиль конкретной анкеты. Карточке кандидата нужен профиль ЭТОЙ анкеты:
+ * через владельца его не найти, если владелец — шадхан (ai_target_anketa
+ * для шадхана — 0) или у владельца несколько анкет.
+ */
+function profile_load_anketa($db, $anketa_id) {
+    $anketa_id = (int)$anketa_id;
+    if ($anketa_id <= 0) {
+        return null;
+    }
     $raw = (string)$db->get_var(
-        "SELECT `Psychological_profile` FROM `Message204` WHERE `User_ID`=$user_id "
-        . "ORDER BY `Message_ID` LIMIT 1"
+        "SELECT `Psychological_profile` FROM `Message204` WHERE `Message_ID`=$anketa_id"
     );
     if (trim($raw) === '') {
         return null;

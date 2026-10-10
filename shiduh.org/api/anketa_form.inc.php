@@ -35,6 +35,7 @@ $nc_af_all = array('Name', 'Jewish_name', 'Gender', 'Date_of_birth', 'Date_of_bi
     'Observance_growth', 'Rabbinate_registration', 'Diaspora_openness',
     'Education', 'Specialization', 'What_does', 'Hobby_description', 'Bad_habits', 'Sport_attitude', 'Languages_spoken',
     'Introvert_extrovert', 'Housing_after_marriage', 'Health_status', 'Consent_sensitive', 'Consent_sensitive_at', 'Consent_sensitive_version',
+    'About_self', 'Kashrut_level', 'Shabbat_level', 'Family_values',
     'Income_property', 'Health_conditions', 'Medications',
     'Search_gender', 'Search_height_start', 'Search_height_end', 'Search_age_start', 'Search_age_end', 'Search_place_of_birth',
     'Search_country', 'Search_belonging_denomination', 'Search_education', 'Search_was_previously_married', 'Search_number_of_children',
@@ -55,7 +56,8 @@ $nc_af_sel = array();
 foreach (array('Gender', 'Country', 'Jewishness', 'Origin', 'Mother_Origin', 'Father_Origin', 'Marital_status', 'Number_of_children',
     'Are_you_ready_to_move', 'Course_of_compliance', 'Belonging_denomination', 'Education', 'Bad_habits', 'Search_gender',
     'Degree_of_compliance', 'Country_of_relocation', 'Search_country', 'Search_belonging_denomination', 'Search_education',
-    'Search_was_previously_married', 'Search_number_of_children', 'Search_are_you_ready_to_move') as $nc_af_n) {
+    'Search_was_previously_married', 'Search_number_of_children', 'Search_are_you_ready_to_move',
+    'Kashrut_level', 'Shabbat_level') as $nc_af_n) {
     $nc_af_sel[$nc_af_n] = isset(${'f_' . $nc_af_n . '_id'}) ? ${'f_' . $nc_af_n . '_id'} : ${'f_' . $nc_af_n};
 }
 
@@ -397,6 +399,10 @@ $nc_af_step = function ($n, $title, $id) {
 <?= $nc_af_step(3, 'Религиозность', $nc_af_pref . '_religion') ?>
   <fieldset class="form__fieldset">
     <?= $nc_af_multi('Degree_of_compliance', 'Степень соблюдения', $nc_af_sel['Degree_of_compliance']) ?>
+    <?php /* Уровни кашрута и шаббата (миграции 002/003) заполняет и ИИ-консультант:
+       без этих полей в форме человек не видел записанного в диалоге. */ ?>
+    <?= $nc_af_list('Kashrut_level', 'Кашрут', 'Kashrut_level', $nc_af_sel['Kashrut_level']) ?>
+    <?= $nc_af_list('Shabbat_level', 'Шаббат', 'Shabbat_level', $nc_af_sel['Shabbat_level']) ?>
     <?= $nc_af_list('Course_of_compliance', 'Течение соблюдения', 'Course_of_compliance', $nc_af_sel['Course_of_compliance'], array('flag' => '1')) ?>
     <?= $nc_af_list('Belonging_denomination', 'Принадлежность к конфессии', 'Belonging_denomination', $nc_af_sel['Belonging_denomination'], array('flag' => '1')) ?>
     <?= $nc_af_text('Your_ravin', 'Ваш раввин', $f_Your_ravin, array('placeholder' => 'Имя раввина')) ?>
@@ -419,6 +425,8 @@ $nc_af_step = function ($n, $title, $id) {
     <?= $nc_af_area('Languages_spoken', 'Языки, на которых говорите', $f_Languages_spoken, 'Например: русский, иврит, английский') ?>
     <?= $nc_af_area('Introvert_extrovert', 'Скорее интроверт или экстраверт?', $f_Introvert_extrovert, 'Как вам комфортнее') ?>
     <?= $nc_af_area('Housing_after_marriage', 'Жильё после свадьбы', $f_Housing_after_marriage, 'С семьёй, отдельно, пока не решили…') ?>
+    <?= $nc_af_area('Family_values', 'Что важно в семье', $f_Family_values, 'Своими словами: роли в доме, дети, родители, бюджет') ?>
+    <?= $nc_af_area('About_self', 'О себе', $f_About_self, 'Чем живёте, что любите, какой вы человек') ?>
     <?= $nc_af_text('Health_status', 'Состояние здоровья', $f_Health_status, array('placeholder' => 'Заполнять не обязательно', 'class' => 'form__item--2col', 'hint' => 'По желанию, видно только шадхану', 'private' => 1)) ?>
     <?php /* X-5 (152-ФЗ): здоровье — специальная категория, отдельное согласие
        показываем целиком рядом с полем. Серверная гарантия — api/consent_lib.php. */ ?>

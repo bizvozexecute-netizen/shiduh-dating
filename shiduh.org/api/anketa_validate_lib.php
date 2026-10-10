@@ -18,7 +18,7 @@
 
 require_once dirname(__FILE__) . '/auth_rules_lib.php';
 
-define('ANKETA_MIN_AGE', AUTH_MIN_AGE);   // 18 — как при регистрации и в подборе
+define('ANKETA_MIN_AGE', AUTH_MIN_AGE);   // как при регистрации и в подборе
 define('ANKETA_MAX_AGE', AUTH_MAX_AGE);   // 100
 define('ANKETA_HEIGHT_MIN', 100);          // сантиметры; в базе встречались «1.75»
 define('ANKETA_HEIGHT_MAX', 250);

@@ -1,9 +1,15 @@
-<? if(count($_GET["srchPat"])): ?>
+<? $nc_sc_on = !empty($GLOBALS['nc_sc_match_on']); /* приёмка 2026-10: подбор по анкете кандидата, см. Settings.html */ ?>
+<? if(count($_GET["srchPat"]) || $nc_sc_on): ?>
 <section class="lk-search-candidate-result">
   <div class="lk-search-candidate-result__wrapper">
     <div class="lk-head lk-search-candidate-result__head">
+      <? if($nc_sc_on): ?>
+      <h1 class="lk-head__title">Подходят по вашей анкете</h1>
+      <div class="lk-head__subtitle">Сначала — с наибольшей совместимостью: возраст, город и религиозная совместимость с обеих сторон, затем совпадение ценностей (процент появляется после ценностного опроса у ИИ-консультанта). По закрытой анкете нажмите «Мне интересно» — шадхан кандидата получит сообщение.</div>
+      <? else: ?>
       <h1 class="lk-head__title">Результаты поиска </h1>
       <div class="lk-head__subtitle">Более подробные данные анкет можно получить у Шадхана кандидата</div>
+      <? endif; ?>
     </div>
     
     <div class="lk-search-candidate-result__manage">
@@ -12,8 +18,8 @@
         <button id="sortNew" class="lk-search-candidate-result__manage-sort-button lk-search-candidate-result__manage-sort-button--active">Новые анкеты</button>
     
       </div>
-      <a class="lk-search-candidate-result__manage-search" href="/my/candidate/" title="">
-        <span class="lk-search-candidate-result__manage-search-text">Поиск</span>
+      <a class="lk-search-candidate-result__manage-search" href="/my/candidate/<?= $nc_sc_on ? '?filter=1' : '' ?>" title="">
+        <span class="lk-search-candidate-result__manage-search-text"><?= $nc_sc_on ? 'Искать по фильтру' : 'Поиск' ?></span>
         <svg class="lk-search-candidate-result__manage-search-icon">
           <use xlink:href="/images/sprite.svg#search"></use>
         </svg>
@@ -24,7 +30,7 @@
       <div class="lk-search-candidate-result__table">
         <div class="lk-search-candidate-result__table-head">
           <div class="lk-search-candidate-result__table-cell lk-search-candidate-result__table-cell--photo">Фото</div>
-          <div class="lk-search-candidate-result__table-cell lk-search-candidate-result__table-cell--id">ID</div>
+          <div class="lk-search-candidate-result__table-cell lk-search-candidate-result__table-cell--id">Кандидат</div>
           <div class="lk-search-candidate-result__table-cell lk-search-candidate-result__table-cell--country">Страна</div>
           <div class="lk-search-candidate-result__table-cell lk-search-candidate-result__table-cell--city">Город</div>
           <div class="lk-search-candidate-result__table-cell lk-search-candidate-result__table-cell--age">Возраст</div>

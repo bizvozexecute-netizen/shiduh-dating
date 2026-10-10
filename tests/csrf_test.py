@@ -51,6 +51,7 @@ ENDPOINTS = [
     ("/api/invite_create.php", SHADHAN, {"anketa_id": "0"}),
     ("/api/invite_send_email.php", SHADHAN, {"anketa_id": "0", "email": ""}),
     ("/api/invite_claim.php", CANDIDATE, {"email": "", "password": ""}),
+    ("/api/interest_send.php", CANDIDATE, {"anketa_id": "0"}),     # 400: анкета не указана
     ("/api/mailing_preview.php", ADMIN, {"gender": "1"}),          # только SELECT
     ("/api/mailing_send.php", ADMIN, {"subject": "", "body": ""}),
 ]

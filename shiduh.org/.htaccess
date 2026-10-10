@@ -49,6 +49,10 @@ php_value short_open_tag on
 
 <IfModule mod_rewrite.c>
 RewriteEngine On
+# Приёмка 2026-10: «Поиск шидуха» и «Создание шидуха» заменены разделом
+# «Подбор пар с ИИ» (миграции 028/029). Старые закладки и ссылки из писем
+# ведут туда, а не на 404.
+RewriteRule ^my/(poisk-shiduha|sozdanie-shiduha)(/.*)?$ /my/podbor-par/ [R=302,L]
 RewriteCond %{REQUEST_FILENAME} !-f
 RewriteCond %{REQUEST_FILENAME} !-d
 RewriteCond %{REQUEST_FILENAME} !-l

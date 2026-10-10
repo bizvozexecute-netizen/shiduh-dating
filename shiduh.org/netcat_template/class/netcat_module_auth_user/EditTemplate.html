@@ -94,6 +94,32 @@
         </div>
         
       </fieldset>
+      <?php /* Приёмка 2026-10: кандидаты выбирают шадхана — им нужно знать, кто
+         он, откуда и с кем работает (миграция 030). Показывается в списке
+         «Шадханы» и на странице шадхана. */
+      if ((int)$current_user['Type_id'] === 2): ?>
+      <div class="form__body-title">О вас для кандидатов</div>
+      <fieldset class="form__fieldset">
+        <div class="form__item">
+          <label class="form__item-name" for="f_Shadhan_origin">Происхождение</label>
+          <div class="select form__select">
+            <?= nc_list_select("Origin", "Shadhan_origin", (isset($f_Shadhan_origin_id) ? $f_Shadhan_origin_id : $f_Shadhan_origin), "", "", "<select id='f_Shadhan_origin' class='select__el' name='f_Shadhan_origin'><option data-placeholder='true' value=''>-- Выбрать --</option>", "<option value='\$value_id' \$value_selected>\$value_name</option>") ?>
+          </div>
+        </div>
+        <div class="form__item form__item--2col">
+          <label class="form__item-name" for="f_Shadhan_about">О себе</label>
+          <textarea class="form__textarea" id="f_Shadhan_about" name="f_Shadhan_about" placeholder="Кто вы, как давно помогаете создавать семьи, ваша община"><?= $f_Shadhan_about ?></textarea>
+        </div>
+        <div class="form__item form__item--2col">
+          <label class="form__item-name" for="f_Shadhan_specialization">На чём специализируетесь</label>
+          <textarea class="form__textarea" id="f_Shadhan_specialization" name="f_Shadhan_specialization" placeholder="Например: повторные браки, кандидаты из Израиля, религиозные семьи"><?= $f_Shadhan_specialization ?></textarea>
+        </div>
+        <div class="form__item form__item--2col">
+          <label class="form__item-name" for="f_Shadhan_focus">С какими кандидатами работаете больше всего</label>
+          <textarea class="form__textarea" id="f_Shadhan_focus" name="f_Shadhan_focus" placeholder="Возраст, город, община, уровень соблюдения"><?= $f_Shadhan_focus ?></textarea>
+        </div>
+      </fieldset>
+      <?php endif; ?>
     </div>
   </div>
   </div>

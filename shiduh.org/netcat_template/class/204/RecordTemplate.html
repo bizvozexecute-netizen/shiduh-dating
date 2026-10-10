@@ -28,6 +28,16 @@ foreach (array($f_Shadhan_1, $f_Shadhan_2, $f_Shadhan_3) as $nc_l_sid) {
         $nc_l_shadhans[] = (int)$nc_l_sid;
     }
 }
+// Приёмка 2026-10: вместо «ID N» — ФИО (решение заказчика 2026-10-09, меняет
+// B-1 в части имени; фото и контакты постороннему по-прежнему скрыты),
+// процент совместимости по анкете и «открыта / закрыта».
+$nc_l_open = (int)$f_Open === 1;
+$nc_l_pct_map = isset($GLOBALS['nc_sc_match_pct']) ? $GLOBALS['nc_sc_match_pct'] : array();
+$nc_l_pct = array_key_exists((int)$f_Message_ID, $nc_l_pct_map) ? $nc_l_pct_map[(int)$f_Message_ID] : false;
+$nc_l_name = trim((string)$f_Name) !== '' ? $f_Name : 'ID ' . (int)$f_Message_ID;
+$nc_l_closed_hint = (int)$current_user['Type_id'] === 2
+    ? 'Связь с кандидатом напрямую ограничена — вы можете предложить шидух через его шадхана.'
+    : 'Анкета закрыта — о своей заинтересованности можно сообщить шадхану кандидата.';
 ?>
 <div class="lk-search-candidate-result__table-row" <? if($nc_l_days <= 30): ?>data-new="true"<? endif; ?> >
 
@@ -45,7 +55,7 @@ foreach (array($f_Shadhan_1, $f_Shadhan_2, $f_Shadhan_3) as $nc_l_sid) {
     </div>
   <? endif; ?>
   <a href="<?= $nc_l_link ?>" class="lk-search-candidate-result__table-cell lk-search-candidate-result__table-cell--id js-scroll-link">
-    <div class="lk-search-candidate-result__table-cell-name">ID</div>
+    <div class="lk-search-candidate-result__table-cell-name">Кандидат</div>
     <div class="lk-search-candidate-result__table-cell-value">
         <div class="lk-search-candidate-result__table-cell-value-check">
           <svg class="lk-search-candidate-result__table-cell-value-check-item tooltip <? if($f_Success_docs):?>lk-search-candidate-result__table-cell-value-check-item--checked<? endif; ?>" data-tippy-content="Свидетельство о рождении <? if(!$f_Success_docs):?>не<? endif; ?> подтверждено">
@@ -55,7 +65,15 @@ foreach (array($f_Shadhan_1, $f_Shadhan_2, $f_Shadhan_3) as $nc_l_sid) {
             <use xlink:href="/images/sprite.svg#check"></use>
           </svg>
         </div>
-        ID <?= (int)$f_Message_ID ?>
+        <span class="lk-search-candidate-result__name"><?= lk_esc($nc_l_name) ?></span>
+        <?php if ($nc_l_pct !== false): ?>
+        <span class="sh-pill sh-pill--gold" title="Совместимость по формуле подбора: ценности и языки любви"><?= $nc_l_pct === null ? 'совместимость — после опроса' : (int)$nc_l_pct . '%' ?></span>
+        <?php endif; ?>
+        <?php if ($nc_l_open): ?>
+        <span class="sh-pill sh-pill--ok">открыта</span>
+        <?php else: ?>
+        <span class="sh-pill" title="<?= htmlspecialchars($nc_l_closed_hint, ENT_QUOTES) ?>">закрыта</span>
+        <?php endif; ?>
     </div>
   </a>
   <a href="<?= $nc_l_link ?>" class="lk-search-candidate-result__table-cell lk-search-candidate-result__table-cell--country js-scroll-link">
@@ -72,7 +90,7 @@ foreach (array($f_Shadhan_1, $f_Shadhan_2, $f_Shadhan_3) as $nc_l_sid) {
   </a>
   <div class="lk-search-candidate-result__table-cell lk-search-candidate-result__table-cell--shadhans">
     <?php foreach ($nc_l_shadhans as $nc_l_sid): $nc_l_sh = lk_user_brief($nc_l_sid, 96); ?>
-    <a class="lk-search-candidate-result__table-shadhan" href="/my/shadhany/shadhan_<?= $nc_l_sid ?>.html" title="<?= lk_esc($nc_l_sh['name']) ?>">
+    <a class="lk-search-candidate-result__table-shadhan" href="/my/shadhany/shadhan_<?= $nc_l_sid ?>.html" title="<?= lk_esc($nc_l_sh['name']) ?><?= $nc_l_open ? '' : '. ' . htmlspecialchars($nc_l_closed_hint, ENT_QUOTES) ?>">
       <img class="lk-search-candidate-result__table-shadhan-img js-lazy" data-src="<?= htmlspecialchars($nc_l_sh['avatar'], ENT_QUOTES) ?>" width="45" height="45" alt="">
     </a>
     <?php endforeach; ?>
@@ -89,14 +107,12 @@ foreach (array($f_Shadhan_1, $f_Shadhan_2, $f_Shadhan_3) as $nc_l_sid) {
 
     <?= nc_objects_list(72, 74, "&IDCandidate=$f_Message_ID" ); ?>
 
-    <? if($current_user['Type_id'] !== 1): ?>
-    <a  class="button button button--write lk-search-candidate-result__table-write" href="<?= '/my/poisk-shiduha/' ?>?ID=<?= $f_Message_ID; ?>&gender=<?= $f_Search_gender_id;?>&<?= $f_Search_education_id[0] === '1'  ? '' : http_build_query(['Education' => $f_Search_education_id]); ?>&<?= http_build_query(['Number_of_children' => $f_Search_number_of_children]); ?>&<?= http_build_query(['Marital_status' => $Marital_status]); ?>&<?= http_build_query(['Belonging_denomination' => $f_Search_belonging_denomination_id]); ?>&age[0]=<?= $f_Search_age_start ? $f_Search_age_start -5 : 0; ?>&age[1]=<?= $f_Search_age_end ? $f_Search_age_end + 5 :  300; ?>" title="">
-      <svg class="button__icon" >
-        <use xlink:href="/images/sprite.svg#search"></use>
-      </svg>
-      <span class="button__text">Поиск шидуха</span>
-    </a>
-    <? endif; ?>
+    <?php /* Приёмка 2026-10: кандидат одной кнопкой сообщает шадхану анкеты о
+       заинтересованности (api/interest_send.php, js/interest.js). */
+    if ((int)$current_user['Type_id'] === 1 && $nc_l_uid !== (int)$f_User_ID && $nc_l_shadhans): ?>
+    <button type="button" class="button button--sm button--secondary js-interest" data-anketa="<?= (int)$f_Message_ID ?>">Мне интересно</button>
+    <?php endif; ?>
+
 
     <? if($f_User_ID !== $current_user['User_ID'] && $current_user['Type_id'] !== 1): ?>
     <a class="lk-search-candidate-result__table-write button button--write" href="<?= nc_auth_messages_url($f_User_ID); ?>" title="">

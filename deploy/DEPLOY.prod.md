@@ -50,7 +50,7 @@ tar czf webroot_$(date +%F_%H%M).tar.gz /path/to/webroot   # без netcat_files
 - `shiduh.org/js/lk-card.js` — поведение карточки кандидата (A5): резюме от ИИ, подбор пар, приглашение, подменю разделов; подключается из шаблонов карточек после `js/csrf.js`
 - `shiduh.org/api/showcase_lib.php` — витрина: возраст в SQL, JOIN владельца, пейджер (A4); его подключают `class/204/Settings.html` и `class/204/213/Settings.html`
 - `shiduh.org/api/lk_lib.php` — помощники кабинета (A3): миниатюры аватаров через ядро, ссылка выхода, краткая карточка собеседника; его подключают партиалы кабинета и шаблоны сообщений 265
-- `shiduh.org/api/auth_rules_lib.php` — правила регистрации (A2.1): порог 18 лет, пароль, телефон, тип; его подключают `class/netcat_module_auth_user/{AddCond,EditCond}.html`
+- `shiduh.org/api/auth_rules_lib.php` — правила регистрации (A2.1): порог возраста (16 лет с 2026-10), пароль, телефон, тип; его подключают `class/netcat_module_auth_user/{AddCond,EditCond}.html`
 - `shiduh.org/migrations/` — раннер и наборы (применяются отдельно, §6)
 
 **Шаблоны компонентов и макеты (правились — копировать целиком, см. ловушку §4):**
@@ -67,6 +67,13 @@ tar czf webroot_$(date +%F_%H%M).tar.gz /path/to/webroot   # без netcat_files
 - `class/netcat_module_auth_message/265/*` и `266/{Class,RecordTemplate}.html` — список и письмо (A3). **`Class.html` — источник, части пересобираются ядром**; копировать папки целиком. `AddTemplate.html` не менялся (там хэш виджета фото)
 - `template/3/4/{Template,Header}.html` — лендинг (A2.2): счётчики из базы, лента городов, вход героя на слое. **Копировать оба файла**: `Header.html` — это секция Header из `Template.html`, ядро сверяет md5
 - **`class/netcat_module_auth_user/` — копировать целиком** (A2.1): корневые `AddTemplate.html` (форма регистрации), `AddCond.html`, `EditCond.html` и во ВСЕХ подшаблонах `208, 232, 237, 261–264, 268, 269, 313, 318` файлы `AddCond.html`/`EditCond.html` теперь подключают корневые — без этого POST с `cc` подшаблона обходит порог 18+ и капчу
+
+**Замечания приёмки 2026-10 (раздел XIII ROADMAP) — дополнительно к списку выше:**
+- новые файлы: `api/anketa_target_lib.php`, `api/invite_lib.php`, `api/shiduh_lib.php`, `api/interest_send.php`, `js/interest.js`, папка `class/324/` (раздел «Подбор пар с ИИ», `Class.html` нет), миграции `028`–`032` (`032` — промпт консультанта v2: ложится новой версией в историю промптов, прежнюю можно вернуть из админки)
+- изменены: `api/{ai_tools,chat_lib,ai_client,scoring_lib,profile_view_lib,match_lib,match_mine,match_list,match_feedback,match_stats_lib,showcase_lib,auth_rules_lib,anketa_validate_lib,anketa_form.inc,invite_create}.php`, `js/{chat,lk-card,anketa-wizard}.js`, `css/one.css`
+- шаблоны **парами**: `class/204/{Settings,FormPrefix,FormSuffix,RecordTemplate,Class,RecordTemplateFull}.html`, `class/204/213/{RecordTemplate,Class,RecordTemplateFull}.html`, `class/netcat_module_auth_user/EditTemplate.html`, `class/netcat_module_auth_user/208/{RecordTemplate,Class,RecordTemplateFull}.html`, `class/netcat_module_auth_message/265/{AddTemplate,AddCond}.html`, `template/3/15/{Header,Template}.html`, `template/3/16/{Header,Template}.html`, `template/3/partials/lk-aside-body.html`
+- **`.htaccess` в корне** — перенаправление `/my/poisk-shiduha/` и `/my/sozdanie-shiduha/` на `/my/podbor-par/` (выкатывать вместе с миграцией `029`, иначе старые ссылки уйдут в 404)
+- порог возраста теперь **16** (`AUTH_MIN_AGE` в `api/auth_rules_lib.php`, решение заказчика 2026-10-09)
 
 **Настройки БД** (§ниже) и, опционально, **RAG-сервис** (§8).
 
@@ -156,7 +163,7 @@ php migrations/migrate.php up        # применить неприменённ
 ```
 
 - `up` идемпотентен: уже применённые пропускаются, повторный запуск безопасен.
-- **В нумерации осознанная дыра на `014`.** Набор `014_subscriptions` (монетизация Э4) был реализован и откачен — файла нет намеренно. Ожидаемый результат `status`: применены `001`–`013` и `015`–`026`, `014` отсутствует. **Не пытайтесь «восстановить» 014** — монетизация отложена заказчиком (см. ROADMAP Раздел VII).
+- **В нумерации осознанная дыра на `014`.** Набор `014_subscriptions` (монетизация Э4) был реализован и откачен — файла нет намеренно. Ожидаемый результат `status`: применены `001`–`013` и `015`–`032`, `014` отсутствует. **Не пытайтесь «восстановить» 014** — монетизация отложена заказчиком (см. ROADMAP Раздел VII).
 - Откат: `php migrations/migrate.php down` (последняя) или `down-all` (все в обратном порядке). Каждый набор обратим.
 
 ---

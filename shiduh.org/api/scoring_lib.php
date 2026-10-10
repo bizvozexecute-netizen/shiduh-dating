@@ -18,6 +18,7 @@
  */
 
 require_once dirname(__FILE__) . '/admin_lib.php';   // shiduh_log()
+require_once dirname(__FILE__) . '/anketa_target_lib.php';
 
 require_once dirname(__FILE__) . '/ai_client.php';
 require_once dirname(__FILE__) . '/cases_lib.php';
@@ -308,10 +309,7 @@ function scoring_psychotype_text($profile, $user_id = 0) {
 /* Фиксация профиля в анкете. */
 function scoring_save_profile($db, $user_id, $profile) {
     $user_id = (int)$user_id;
-    $anketa_id = (int)$db->get_var(
-        "SELECT `Message_ID` FROM `Message204` WHERE `User_ID`=$user_id "
-        . "ORDER BY `Message_ID` LIMIT 1"
-    );
+    $anketa_id = ai_target_anketa($db, $user_id);
     if (!$anketa_id) {
         return false;
     }
@@ -390,10 +388,7 @@ function scoring_record_answer($db, $user_id, $case_row, $answer) {
     // Профиль и текст психотипа живут в анкете. Без анкеты сохранять некуда,
     // и кэш «психотип раз на версию» не работал бы — каждый ответ порождал бы
     // новую платную генерацию текста. Поэтому без анкеты не генерируем вовсе.
-    $anketa_id = (int)$db->get_var(
-        "SELECT `Message_ID` FROM `Message204` WHERE `User_ID`=$user_id "
-        . "ORDER BY `Message_ID` LIMIT 1"
-    );
+    $anketa_id = ai_target_anketa($db, $user_id);
     if ($profile && $anketa_id) {
         // Текст психотипа — один раз на версию: если уже посчитан, переносим
         // как есть, модель не тревожим.

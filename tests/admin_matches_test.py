@@ -43,7 +43,7 @@ def get(path, sid):
 
 def setup_module(module):
     # UNIQUE pair_shadhan(anketa_a, anketa_b, shadhan_id): каждой строке — своя пара
-    for i, (action, reason) in enumerate((("propose", ""), ("reject", "age"), ("reject", "geography"))):
+    for i, (action, reason) in enumerate((("proposed", ""), ("rejected", "age"), ("rejected", "geography"))):
         dbq("INSERT INTO `match_feedback` (anketa_a, anketa_b, shadhan_id, action, reason, created_at) "
             "VALUES (%d, %d, 57, '%s', '%s', NOW())" % (A, B + i, action, reason))
         STATE["ids"].append(int(dbq("SELECT MAX(id) FROM `match_feedback`")))
@@ -73,11 +73,11 @@ def test_numbers_match_sql():
     assert num(html, "statFeedback") == int(dbq("SELECT COUNT(*) FROM `match_feedback`"))
     assert num(html, "statExplain") == int(dbq("SELECT COUNT(*) FROM `match_explanations`"))
     assert num(html, "statExplain7") == int(dbq("SELECT COUNT(*) FROM `match_explanations` WHERE created_at > DATE_SUB(NOW(), INTERVAL 7 DAY)"))
-    assert num(html, "statPairs") == int(dbq("SELECT COUNT(DISTINCT CONCAT(LEAST(anketa_a,anketa_b),'-',GREATEST(anketa_a,anketa_b))) FROM `match_feedback` WHERE action='propose'"))
-    rejects = int(dbq("SELECT COUNT(*) FROM `match_feedback` WHERE action='reject'"))
-    m = re.search(r'data-action="reject">.*?<td class="u-right">(\d+)</td>', html, re.S)
+    assert num(html, "statPairs") == int(dbq("SELECT COUNT(DISTINCT CONCAT(LEAST(anketa_a,anketa_b),'-',GREATEST(anketa_a,anketa_b))) FROM `match_feedback` WHERE action='proposed'"))
+    rejects = int(dbq("SELECT COUNT(*) FROM `match_feedback` WHERE action='rejected'"))
+    m = re.search(r'data-action="rejected">.*?<td class="u-right">(\d+)</td>', html, re.S)
     assert m and int(m.group(1)) == rejects, "число отклонений не совпало"
-    age = int(dbq("SELECT COUNT(*) FROM `match_feedback` WHERE action='reject' AND reason='age'"))
+    age = int(dbq("SELECT COUNT(*) FROM `match_feedback` WHERE action='rejected' AND reason='age'"))
     m = re.search(r'data-reason="age">.*?<td class="u-right">(\d+)</td>', html, re.S)
     assert m and int(m.group(1)) == age
     assert "Возраст" in html and 'data-shadhan="57"' in html and MARK_MODEL in html

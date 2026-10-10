@@ -21,6 +21,7 @@
 
     python -m pytest tests/match_test.py -q
 """
+import datetime
 import json
 import os
 import sys
@@ -233,7 +234,7 @@ def test_minors_and_junk_birthdates_never():
     set_fields(A, Search_age_start=None, Search_age_end=None)
     set_fields(TARGETS[0], Search_age_start=None, Search_age_end=None)
     try:
-        for years, label in ((17, "17 лет"), (2, "мусорная дата, возраст 2"),
+        for years, label in ((15, "15 лет"), (2, "мусорная дата, возраст 2"),
                              (0, "мусорная дата, возраст 0")):
             set_fields(TARGETS[0], Date_of_birth="%d-01-01" % (2026 - years))
             _, data = match(sid)
@@ -249,11 +250,12 @@ def test_minors_and_junk_birthdates_never():
 
 
 def test_minor_requester_gets_no_matches():
-    """Защита симметрична: несовершеннолетней анкете подбор не выдаётся вовсе.
-    В базе такие есть — у тестового кандидата собственная анкета с мусорной
-    датой рождения («возраст» 3) и поиском 13–18 лет."""
+    """Защита симметрична: анкете младше порога (AUTH_MIN_AGE = 16) подбор не
+    выдаётся вовсе. В базе такие есть — у тестового кандидата собственная
+    анкета с мусорной датой рождения («возраст» 3) и поиском 13–18 лет."""
     sid = login(SHADHAN)
-    set_fields(A, Date_of_birth="2010-01-01")   # 16 лет
+    # 15 лет: на год младше порога при любой дате прогона
+    set_fields(A, Date_of_birth="%d-01-01" % (datetime.date.today().year - 15))
     try:
         _, data = match(sid)
         assert data.get("matches") == [], \

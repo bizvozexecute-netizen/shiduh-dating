@@ -121,6 +121,8 @@ def test_height_filter_works():
 INJ_ID = "id_candidate=" + q("0 OR 1=1")
 INJ_NAME = "name=" + q("' OR '1'='1")
 INJ_LIST = q("1) OR (1=1")
+# /my/sozdanie-shiduha/ и /my/poisk-shiduha/ выключены (миграция 029, приёмка
+# 2026-10) и перенаправляются на «Подбор пар с ИИ» — проб на них больше нет.
 LIST_PROBES = [
     ("/my/my-candidates/",        INJ_ID,                              "id_candidate=999999999"),
     ("/my/my-candidates/",        INJ_NAME,                            "name=zzzzqqqq"),
@@ -128,16 +130,6 @@ LIST_PROBES = [
     ("/en/my/my-candidates/",     INJ_ID,                              "id_candidate=999999999"),
     ("/en/my/my-candidates/",     INJ_NAME,                            "name=zzzzqqqq"),
     ("/en/my/my-candidates/",     "country[]=" + INJ_LIST,             "country[]=999999"),
-    ("/my/sozdanie-shiduha/",     "gender=" + q("0 OR 1=1"),           "gender=999"),
-    ("/my/sozdanie-shiduha/",     INJ_ID,                              "id_candidate=999999999"),
-    ("/my/sozdanie-shiduha/",     INJ_NAME,                            "name=zzzzqqqq"),
-    ("/my/sozdanie-shiduha/",     "country[]=" + INJ_LIST,             "country[]=999999"),
-    ("/my/poisk-shiduha/",        "gender=" + q("0 OR 1=1"),           "gender=999"),
-    ("/my/poisk-shiduha/",        INJ_ID,                              "id_candidate=999999999"),
-    ("/my/poisk-shiduha/",        INJ_NAME,                            "name=zzzzqqqq"),
-    ("/my/poisk-shiduha/",        "country[]=" + INJ_LIST,             "country[]=999999"),
-    ("/my/poisk-shiduha/",        "Education[]=" + INJ_LIST,           "Education[]=999999"),
-    ("/my/poisk-shiduha/",        "Belonging_denomination[]=" + INJ_LIST, "Belonging_denomination[]=999999"),
     ("/my/access-candidates/",    "country[]=" + INJ_LIST,             "country[]=999999"),
     ("/en/my/access-candidates/", "country[]=" + INJ_LIST,             "country[]=999999"),
     ("/my/favourites/",           "country[]=" + INJ_LIST,             "country[]=999999"),

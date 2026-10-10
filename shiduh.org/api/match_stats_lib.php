@@ -24,8 +24,8 @@ function match_stats_reason_titles() {
 
 function match_stats_action_titles() {
     return array(
-        'propose' => 'Предложено',
-        'reject'  => 'Отклонено',
+        'proposed' => 'Предложено',
+        'rejected'  => 'Отклонено',
     );
 }
 
@@ -37,12 +37,12 @@ function match_stats($db) {
     $db->query("SELECT `action`, COUNT(*) AS `n` FROM `match_feedback` GROUP BY `action` ORDER BY `n` DESC", ARRAY_A);
     $s['by_action'] = (array)$db->last_result;
 
-    $db->query("SELECT `reason`, COUNT(*) AS `n` FROM `match_feedback` WHERE `action`='reject' GROUP BY `reason` ORDER BY `n` DESC", ARRAY_A);
+    $db->query("SELECT `reason`, COUNT(*) AS `n` FROM `match_feedback` WHERE `action`='rejected' GROUP BY `reason` ORDER BY `n` DESC", ARRAY_A);
     $s['by_reason'] = (array)$db->last_result;
 
     $db->query(
         "SELECT f.`shadhan_id`, u.`Name`, COUNT(*) AS `n`, "
-        . "SUM(f.`action`='propose') AS `proposed`, SUM(f.`action`='reject') AS `rejected` "
+        . "SUM(f.`action`='proposed') AS `proposed`, SUM(f.`action`='rejected') AS `rejected` "
         . "FROM `match_feedback` f LEFT JOIN `User` u ON u.`User_ID`=f.`shadhan_id` "
         . "GROUP BY f.`shadhan_id`, u.`Name` ORDER BY `n` DESC LIMIT 10",
         ARRAY_A
@@ -60,7 +60,7 @@ function match_stats($db) {
     // сколько уникальных пар предложено — грубая мера пользы подбора
     $s['pairs_proposed'] = (int)$db->get_var(
         "SELECT COUNT(DISTINCT CONCAT(LEAST(`anketa_a`,`anketa_b`), '-', GREATEST(`anketa_a`,`anketa_b`))) "
-        . "FROM `match_feedback` WHERE `action`='propose'"
+        . "FROM `match_feedback` WHERE `action`='proposed'"
     );
     return $s;
 }
