@@ -167,6 +167,43 @@ def test_invalid_dictionary_value_discarded():
     assert field("Kashrut_level") == "", "невалидное словарное значение записано"
 
 
+def test_dictionary_value_with_extra_words():
+    # Модель пересказывает: «строгий, только с хехшером» вместо «Строгий».
+    # Раньше это отбрасывалось как «вне справочника», и человек слышал
+    # «не записано», хотя сказал ровно то, что есть в списке.
+    clear_fields()
+    code, data = run_tool({"kashrut_level": "строгий, только с надёжным хехшером",
+                           "shabbat_level": "Частично соблюдаю",
+                           "relocation_ready": "Да, готов к переезду"})
+    assert code == 200, "конвейер не отработал: %s" % data
+    assert field("Kashrut_level") == "4", "кашрут с пояснением не распознан: " + field("Kashrut_level")
+    assert field("Shabbat_level") == "2", "шаббат с пояснением не распознан: " + field("Shabbat_level")
+    assert field("Are_you_ready_to_move") == "1", "«Да, готов» не распознано: " + field("Are_you_ready_to_move")
+
+
+def test_dictionary_negation_not_matched():
+    # «не строгий» не должно стать «Строгий»: значение распознаётся только
+    # с начала фразы, отрицание перед ним — уже другое значение
+    clear_fields()
+    code, _ = run_tool({"kashrut_level": "не строгий"})
+    assert code == 200
+    assert field("Kashrut_level") == "", "отрицание записано как «Строгий»: " + field("Kashrut_level")
+
+
+def test_same_value_reported_as_unchanged():
+    # Значение уже в анкете — запись не нужна, но событие инструмента не
+    # должно быть пустым: иначе не отличить «уже записано» от «ничего не вышло»
+    clear_fields()
+    set_field("Kashrut_level", "4")
+    code, data = run_tool({"kashrut_level": "Строгий"})
+    assert code == 200, "конвейер не отработал: %s" % data
+    ev = [e for e in data.get("tool_events") or [] if e.get("name") == "update_profile_fields"]
+    assert ev, "нет события инструмента: %s" % data
+    assert "kashrut_level" in (ev[0].get("unchanged") or []), "«уже записано» не отражено: %s" % ev
+    # «уже записано» — правда, поправка «ничего не записано» здесь лишняя
+    assert "ничего не записано" not in data.get("reply", ""), data.get("reply")
+
+
 def test_yes_no_dictionary():
     clear_fields()
     code, _ = run_tool({"relocation_ready": "Да"})

@@ -542,6 +542,10 @@ function chat_dispatch_tools($db, $uid, $user_message_id, $ctx, array $tool_call
                 'applied' => array_keys((array)(isset($report['applied']) ? $report['applied'] : array())),
                 'pending' => array_keys((array)(isset($report['pending']) ? $report['pending'] : array())),
                 'skipped' => chat_tool_failures($report),
+                // уже стоит то же значение: записывать нечего, но и «ничего
+                // не вышло» это не значит
+                'unchanged' => array_keys(array_filter((array)(isset($report['skipped']) ? $report['skipped'] : array()),
+                    function ($why) { return $why === 'там уже это же значение'; })),
             ));
         } elseif ($name === 'confirm_profile_update') {
             // Замена ранее заполненного — только по вопросу, заданному в
@@ -784,6 +788,9 @@ function chat_append_claim_note($reply, $emit, array $asked_now) {
     foreach (chat_collected_tool_events($emit) as $ev) {
         if (!empty($ev['skipped']) || !empty($ev['pending'])) {
             return $reply;            // об этом уже сказали заметки выше
+        }
+        if (!empty($ev['unchanged'])) {
+            return $reply;            // «сохранено» — правда: значение уже в анкете
         }
     }
     return rtrim((string)$reply) . "\n\nОбратите внимание: в этом ответе в анкету ничего "

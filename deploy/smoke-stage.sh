@@ -75,7 +75,10 @@ least "витрина: пейджер" 1 "$(count 'sh-pager__state' "$SHOW")"
 least "витрина: миниатюры" 1 "$(count 'netcat_files/' "$SHOW")"
 is "мои кандидаты" 200 "$(code "$SS" /my/my-candidates/)"
 is "добавление кандидата: семь шагов" 7 "$(count 'data-sh-step' "$(body "$SS" /my/add_candidate/)")"
-is "поиск шидуха" 200 "$(code "$SS" /my/poisk-shiduha/)"
+is "подбор пар с ИИ" 200 "$(code "$SS" /my/podbor-par/)"
+is "подбор пар: выбор кандидата" 1 "$(count 'id="lkPairsAnketa"' "$(body "$SS" /my/podbor-par/)")"
+# «Поиск шидуха» заменён «Подбором пар с ИИ» (приёмка 2026-10) — старый адрес уводит туда
+is "поиск шидуха → подбор пар" 302 "$(code "$SS" /my/poisk-shiduha/)"
 is "админ-консоль шадхану закрыта" 403 "$(code "$SS" /admin-ai.php)"
 
 echo "== Администратор =="

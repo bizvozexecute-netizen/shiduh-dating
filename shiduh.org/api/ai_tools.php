@@ -150,11 +150,23 @@ function ai_tool_profile_definitions() {
         'sport' => 'Отношение к спорту и активному отдыху',
         'introvert_extrovert' => 'Скорее интроверт или экстраверт',
     );
+    // Справочные поля — списком допустимых значений: модель выбирает пункт,
+    // а не пересказывает его. Список повторяет справочники (миграция 002 и
+    // Classificator_Are_you_ready_to_move); разойдётся — сервер всё равно
+    // сверит значение со справочником (ai_tool_dict_id).
+    $enums = array(
+        'kashrut_level' => array('Не соблюдаю', 'Базовый', 'Традиционный', 'Строгий'),
+        'shabbat_level' => array('Не соблюдаю', 'Частично', 'Традиционный', 'Строгий'),
+        'relocation_ready' => array('Да', 'Нет'),
+    );
     foreach (ai_tool_field_map() as $key => $spec) {
         $props[$key] = array(
             'type' => 'string',
             'description' => isset($descr[$key]) ? $descr[$key] : $key,
         );
+        if (isset($enums[$key])) {
+            $props[$key]['enum'] = $enums[$key];
+        }
     }
     return array(array(
         'type' => 'function',
@@ -172,7 +184,15 @@ function ai_tool_profile_definitions() {
     ));
 }
 
-/* Значение справочника → ID (по имени, без учёта регистра). 0, если нет. */
+/*
+ * Значение справочника → ID (по имени, без учёта регистра). 0, если нет.
+ *
+ * Модель нередко пересказывает значение: «строгий, только с хехшером»,
+ * «частично соблюдаю», «Да, готов». Точного совпадения нет — тогда берём
+ * пункт справочника, которым фраза НАЧИНАЕТСЯ (дальше — не буква). Только
+ * с начала: «не строгий» — уже не «Строгий». Из нескольких подходящих —
+ * самый длинный («Не соблюдаю» длиннее гипотетического «Не»).
+ */
 function ai_tool_dict_id($db, $column, $value) {
     $table = 'Classificator_' . $column;
     // имя таблицы — из нашей карты, не из запроса; значение экранируется
@@ -181,7 +201,36 @@ function ai_tool_dict_id($db, $column, $value) {
         . "WHERE LOWER(`{$column}_Name`)=LOWER('" . $db->prepare($value) . "') "
         . "AND `Checked`=1 LIMIT 1"
     );
-    return $id;
+    if ($id) {
+        return $id;
+    }
+
+    $norm = function ($s) {
+        return str_replace('ё', 'е', mb_strtolower(trim((string)$s), 'UTF-8'));
+    };
+    $phrase = $norm($value);
+    $best = 0;
+    $best_len = 0;
+    $rows = (array)$db->get_results(
+        "SELECT `{$column}_ID` AS `id`, `{$column}_Name` AS `name` FROM `$table` WHERE `Checked`=1",
+        ARRAY_A
+    );
+    foreach ($rows as $r) {
+        $name = $norm($r['name']);
+        $len = mb_strlen($name, 'UTF-8');
+        if ($len === 0 || mb_substr($phrase, 0, $len, 'UTF-8') !== $name) {
+            continue;
+        }
+        $next = mb_substr($phrase, $len, 1, 'UTF-8');
+        if ($next !== '' && preg_match('/\p{L}/u', $next)) {
+            continue;   // «Да» не должно ловить «Дальше»
+        }
+        if ($len > $best_len) {
+            $best = (int)$r['id'];
+            $best_len = $len;
+        }
+    }
+    return $best;
 }
 
 /*
