@@ -143,10 +143,13 @@ def test_avatars_are_thumbnails():
         import pytest
         pytest.skip("у шадхана-фикстуры нет фото")
     # в обезличенном комплекте netcat_files файла может не быть, хотя поле в
-    # базе заполнено — тогда ядру не из чего резать миниатюру
-    if web("test", "-f", "/var/www/html/netcat_files/UserFields/Photo_avatar/" + src.split(":")[0]).returncode != 0:
+    # базе заполнено — тогда ядру не из чего резать миниатюру. Путь хранения —
+    # четвёртая часть значения «имя:тип:размер:путь» (netcat_files/u/…);
+    # заглушки кладёт tools/stage/avatar_placeholders.php
+    rel = src.split(":", 3)[3] if src.count(":") >= 3 else ""
+    if not rel or web("test", "-f", "/var/www/html/netcat_files/" + rel).returncode != 0:
         import pytest
-        pytest.skip("файла аватара нет на стенде (обезличенные данные): " + src.split(":")[0])
+        pytest.skip("файла аватара нет на стенде (обезличенные данные): " + (rel or src))
     code, html = page("/my/", sid_of(SHADHAN))
     m = re.search(r'lk-aside__avatar-img[^>]*data-src="([^"]*)"', html)
     assert m and "/netcat_files/generated/User/Photo_avatar/290x290/57/" in m.group(1), m and m.group(1)
