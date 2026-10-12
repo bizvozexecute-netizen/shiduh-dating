@@ -8,6 +8,7 @@
     python -m pytest tests/ai_summary_test.py -q
 """
 import os
+import shutil
 import re
 import subprocess
 import urllib.error
@@ -15,7 +16,8 @@ import urllib.parse
 import urllib.request
 
 BASE = "http://localhost:8080"
-DOCKER = r"C:\Program Files\Docker\Docker\resources\bin\docker.exe"
+# Docker Desktop на Windows или docker из PATH (Ubuntu, tests/run_ubuntu.sh)
+DOCKER = os.environ.get("SHIDUH_DOCKER") or shutil.which("docker") or r"C:\Program Files\Docker\Docker\resources\bin\docker.exe"
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 PASSWORD = "shiduh"
 SHADHAN = "u3f9bb8c20b01@example.local"     # User_ID 57

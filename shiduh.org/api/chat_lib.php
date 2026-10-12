@@ -1223,7 +1223,10 @@ function chat_run($db, $uid, array $in, $emit = null) {
      * «расскажите ещё». Одна просьба ответить текстом; инструменты в ней уже
      * не исполняются (как и во втором вызове выше).
      */
-    if ($reply === '' && !empty($res['ok'])) {
+    // Если модель и во втором вызове просила инструменты — она зациклилась
+    // на них; просьба «ответьте текстом» дала бы третий вызов с тем же
+    // исходом (проверено фейком tool_call_always). Тогда сразу фолбэк.
+    if ($reply === '' && !empty($res['ok']) && empty($res['tool_calls'])) {
         $messages[] = array('role' => 'user', 'content' => chat_empty_nudge());
         $again = chat_call_model($messages, $ctx, $uid, $emit);
         if ($again['ok'] && empty($again['aborted'])) {

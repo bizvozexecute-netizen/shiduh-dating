@@ -22,6 +22,7 @@ MD5. Как и migrations_test — гонять отдельно или в од�
     python -m pytest tests/password_test.py -q
 """
 import os
+import shutil
 import re
 import sys
 import urllib.error
@@ -32,6 +33,9 @@ import pytest
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from fake_llm import BASE, NoRedirect, dbq, login  # noqa: E402
+
+# Docker Desktop на Windows или docker из PATH (Ubuntu, tests/run_ubuntu.sh)
+DOCKER = os.environ.get("SHIDUH_DOCKER") or shutil.which("docker") or r"C:\Program Files\Docker\Docker\resources\bin\docker.exe"
 
 CANDIDATE = "uad322c9ddbba@example.local"   # User 44
 UID = 44
@@ -135,7 +139,7 @@ def test_change_password_writes_bcrypt():
            "echo shiduh_password_verify('abc12345', md5('abc12345')) ? ' M1' : ' M0'; "
            "echo shiduh_password_verify('abc12346', md5('abc12345')) ? ' W1' : ' W0'; "
            "echo shiduh_password_needs_rehash(md5('x')) ? ' R1' : ' R0';")
-    out = subprocess.run(["C:\\Program Files\\Docker\\Docker\\resources\\bin\\docker.exe", "compose", "exec", "-T",
+    out = subprocess.run([DOCKER, "compose", "exec", "-T",
                           "web", "php", "-r", php], capture_output=True, text=True, timeout=60,
                          cwd=os.path.join(os.path.dirname(os.path.abspath(__file__)), "..")).stdout
     assert out.strip() == "OK V1 M1 W0 R1", "библиотека паролей: " + out
@@ -161,7 +165,7 @@ def test_admin_change_password_strips_slashes():
            "$hash = shiduh_password_hash($plain); "
            "echo shiduh_password_verify(%r, $hash) ? 'LOGIN_OK' : 'LOCKED_OUT';"
            % (tricky, tricky))                            # вход подаёт stripslashes(глобал)=tricky
-    out = subprocess.run(["C:\\Program Files\\Docker\\Docker\\resources\\bin\\docker.exe", "compose",
+    out = subprocess.run([DOCKER, "compose",
                           "exec", "-T", "web", "php", "-r", php], capture_output=True, text=True,
                          timeout=60, cwd=os.path.join(os.path.dirname(os.path.abspath(__file__)), "..")).stdout
     assert "LOGIN_OK" in out, "хэш админ-пароля не сходится со входом: " + out

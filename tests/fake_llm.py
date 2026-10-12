@@ -32,6 +32,7 @@
 import base64
 import json
 import os
+import shutil
 import re
 import subprocess
 import time
@@ -39,7 +40,8 @@ import urllib.error
 import urllib.parse
 import urllib.request
 
-DOCKER = r"C:\Program Files\Docker\Docker\resources\bin\docker.exe"
+# Docker Desktop на Windows или docker из PATH (Ubuntu, tests/run_ubuntu.sh)
+DOCKER = os.environ.get("SHIDUH_DOCKER") or shutil.which("docker") or r"C:\Program Files\Docker\Docker\resources\bin\docker.exe"
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 FAKE_DIR = "/tmp/fakellm"
 FAKE_PORT = 8099

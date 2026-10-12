@@ -25,7 +25,9 @@ from fake_llm import (BASE, backup_row, clear_ai_settings, dbq, login, post_json
                       restore_row, set_fake_mode, start_fake_server,
                       stop_fake_server, use_fake_provider)
 
-CANDIDATE = "uad322c9ddbba@example.local"   # User_ID 44, одна анкета
+# User 50, анкета 42 (Checked=1): /my/modify/ показывает форму только для
+# включённой анкеты — у User 44 она в дампе выключена, и формы просто нет
+CANDIDATE = "u091ff2b36c83@example.local"
 SHADHAN = "u3f9bb8c20b01@example.local"     # User 57
 CHAT = "/api/ai_chat.php"
 EDIT_PAGE = "/my/modify/"
@@ -97,7 +99,10 @@ def test_ai_fields_are_in_the_anketa_form():
     req.add_header("Cookie", "PHP_AUTH_SID=%s; PHP_AUTH_LANG=Russian" % sid_of(CANDIDATE))
     html = urllib.request.urlopen(req, timeout=120).read().decode("utf-8", "replace")
     for f in FIELDS[1:]:
-        assert 'name="f_%s"' % f in html, "поля %s нет в форме анкеты — записанное ИИ не видно" % f
+        # текст и textarea печатаются формой с двойными кавычками, select
+        # собирает ядро (nc_list_select) — с одинарными
+        assert ('name="f_%s"' % f in html) or ("name='f_%s'" % f in html), \
+            "поля %s нет в форме анкеты — записанное ИИ не видно" % f
 
 
 # ------------------------------------------------------ правда от сервера ---

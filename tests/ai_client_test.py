@@ -14,13 +14,15 @@
 """
 import json
 import os
+import shutil
 import re
 import urllib.error
 import urllib.parse
 import urllib.request
 
 BASE = "http://localhost:8080"
-DOCKER = r"C:\Program Files\Docker\Docker\resources\bin\docker.exe"
+# Docker Desktop на Windows или docker из PATH (Ubuntu, tests/run_ubuntu.sh)
+DOCKER = os.environ.get("SHIDUH_DOCKER") or shutil.which("docker") or r"C:\Program Files\Docker\Docker\resources\bin\docker.exe"
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 PASSWORD = "shiduh"
 CANDIDATE = "u091ff2b36c83@example.local"     # User 50

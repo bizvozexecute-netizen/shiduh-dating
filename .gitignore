@@ -72,3 +72,7 @@ desktop.ini
 *.key
 bench*.json
 bench*.log
+
+# колёса pytest/RAG для tests/run_ubuntu.sh (кладутся на месте, не в git)
+.pylib/
+.pylib-rag/

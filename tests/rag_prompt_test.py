@@ -34,11 +34,24 @@ def chat(sid, text):
     return post_json("/api/ai_chat.php", sid, {"message": text})
 
 
+def _rag_alive():
+    try:
+        with urllib.request.urlopen("http://127.0.0.1:%d/health" % RAG_PORT, timeout=2) as r:
+            return r.status == 200
+    except Exception:
+        return False
+
+
 def start_rag():
     global RAG_PROC
+    # Стенд Linux (docker-compose.tests.yml) уже держит сервис контейнером
+    # в сети тестов (файрвол сервера не пускает контейнер к хосту):
+    # тогда свой экземпляр не поднимаем и в teardown не гасим.
+    if _rag_alive():
+        return
     # 0.0.0.0 сознательно (README советует 127.0.0.1): PHP ходит из
     # контейнера через host.docker.internal — это работает на Docker Desktop;
-    # на Linux-CI понадобился бы extra_hosts: host-gateway
+    # на Linux сервис живёт в docker-compose.tests.yml под тем же именем
     RAG_PROC = subprocess.Popen(
         [sys.executable, "-m", "uvicorn", "--factory", "rag.service.app:get_app",
          "--host", "0.0.0.0", "--port", str(RAG_PORT)],

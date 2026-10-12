@@ -69,9 +69,10 @@ def rows(html):
 
 
 def row_ids(html):
-    """ID анкет из строк таблицы (не «ID 57» из сайдбара пользователя)."""
+    """ID анкет из строк таблицы — по ссылке на карточку. Раньше парсили
+    текст «ID N», но с приёмки 2026-10 на карточке ФИО (решение заказчика)."""
     body = html.split('lk-search-candidate-result__table-body', 1)[-1]
-    return [int(x) for x in re.findall(r'</div>\s*ID (\d+)\s*</div>', body)]
+    return list(dict.fromkeys(int(x) for x in re.findall(r'candidate_(\d+)\.html', body)))
 
 
 def no_php_errors(html, where):
@@ -158,9 +159,9 @@ def test_age_filter_applies_in_sql():
     ages = dbq("SELECT TIMESTAMPDIFF(YEAR, Date_of_birth, CURDATE()) FROM `Message204` WHERE Message_ID IN (%s)"
                % ",".join(str(i) for i in ids)).split()
     assert all(30 <= int(a) <= 35 for a in ages), ages
-    # нижняя граница не опускается ниже совершеннолетия
-    code, html = page(LIST + "&age%5B0%5D=5&age%5B1%5D=17", sid_of(SHADHAN))
-    assert not row_ids(html), "фильтр 5–17 отдал анкеты"
+    # нижняя граница не опускается ниже порога регистрации (16 с приёмки 2026-10)
+    code, html = page(LIST + "&age%%5B0%%5D=5&age%%5B1%%5D=%d" % (MIN_AGE - 1), sid_of(SHADHAN))
+    assert not row_ids(html), "фильтр 5–%d отдал анкеты" % (MIN_AGE - 1)
 
 
 def test_owner_unchecked_excluded_by_join():

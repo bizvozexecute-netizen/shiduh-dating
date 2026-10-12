@@ -138,9 +138,15 @@ def test_logoff_links_encoded():
 
 def test_avatars_are_thumbnails():
     """Аватар в сайдбаре — миниатюра ядра, а не оригинал на несколько МБ."""
-    if not dbq("SELECT Photo_avatar FROM `User` WHERE User_ID=57"):
+    src = dbq("SELECT Photo_avatar FROM `User` WHERE User_ID=57")
+    if not src:
         import pytest
         pytest.skip("у шадхана-фикстуры нет фото")
+    # в обезличенном комплекте netcat_files файла может не быть, хотя поле в
+    # базе заполнено — тогда ядру не из чего резать миниатюру
+    if web("test", "-f", "/var/www/html/netcat_files/UserFields/Photo_avatar/" + src.split(":")[0]).returncode != 0:
+        import pytest
+        pytest.skip("файла аватара нет на стенде (обезличенные данные): " + src.split(":")[0])
     code, html = page("/my/", sid_of(SHADHAN))
     m = re.search(r'lk-aside__avatar-img[^>]*data-src="([^"]*)"', html)
     assert m and "/netcat_files/generated/User/Photo_avatar/290x290/57/" in m.group(1), m and m.group(1)

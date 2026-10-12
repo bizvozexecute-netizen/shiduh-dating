@@ -16,6 +16,7 @@ slow → 5 c, иначе failed; фейк записывает присланн�
 """
 import json
 import os
+import shutil
 import subprocess
 import sys
 import urllib.error
@@ -28,7 +29,8 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from fake_llm import (BASE, FAKE_BASE, NoRedirect, ROOT, dbq,  # noqa: E402
                       start_fake_server, stop_fake_server)
 
-DOCKER = r"C:\Program Files\Docker\Docker\resources\bin\docker.exe"
+# Docker Desktop на Windows или docker из PATH (Ubuntu, tests/run_ubuntu.sh)
+DOCKER = os.environ.get("SHIDUH_DOCKER") or shutil.which("docker") or r"C:\Program Files\Docker\Docker\resources\bin\docker.exe"
 VALIDATE = FAKE_BASE + "/validate"          # изнутри контейнера — 127.0.0.1:8099
 ADDCOND = os.path.join(ROOT, "shiduh.org", "netcat_template", "class")
 MARK = "captcha-test-193-marker-60606"

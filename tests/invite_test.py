@@ -10,6 +10,7 @@
 """
 import json
 import os
+import shutil
 import re
 import subprocess
 import urllib.error
@@ -20,7 +21,8 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from fake_llm import browser_headers  # Origin и X-CSRF-Token, как их шлёт браузер
 
 BASE = "http://localhost:8080"
-DOCKER = r"C:\Program Files\Docker\Docker\resources\bin\docker.exe"
+# Docker Desktop на Windows или docker из PATH (Ubuntu, tests/run_ubuntu.sh)
+DOCKER = os.environ.get("SHIDUH_DOCKER") or shutil.which("docker") or r"C:\Program Files\Docker\Docker\resources\bin\docker.exe"
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 PASSWORD = "shiduh"
 SHADHAN = "u3f9bb8c20b01@example.local"          # User_ID 57 (Type=2)

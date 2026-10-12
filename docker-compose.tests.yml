@@ -1,0 +1,99 @@
+# Стенд для автотестов на Linux (Ubuntu): tests/run_ubuntu.sh.
+#
+# Отличия от docker-compose.yml (Windows, Docker Desktop):
+#   - все порты только на 127.0.0.1: тестовый стенд с паролем
+#     root_local_dev не должен торчать в интернет, даже на минуту;
+#   - host.docker.internal заведён вручную (на Linux его нет), его ждёт
+#     tests/rag_prompt_test.py;
+#   - MySQL и PHP урезаны по памяти: прогон должен уживаться на маленькой
+#     машине рядом с другими контейнерами (2 ГБ ОЗУ, без swap);
+#   - база — только из обезличенного дампа dump-out/dump.anonymized.sql
+#     (сырой дамп прода сюда не монтируется вовсе).
+#
+# Тесты зашиты на http://localhost:8080 и пароль root_local_dev — их и даём.
+
+name: shiduh-tests
+
+services:
+
+  web:
+    build:
+      context: ./docker/php
+    ports:
+      - "127.0.0.1:8080:80"
+    environment:
+      NC_MYSQL_HOST: db
+      NC_MYSQL_PORT: 3306
+      NC_MYSQL_DB_NAME: shiduh_org
+      NC_MYSQL_USER: shiduh_org
+      NC_MYSQL_PASSWORD: tests_local_dev
+      NC_HTTP_HOST: localhost:8080
+    volumes:
+      - ./shiduh.org:/var/www/html
+      - ./docker/php/php.ini:/usr/local/etc/php/conf.d/zz-netcat.ini:ro
+      - ./tools:/tools:ro
+    mem_limit: 512m
+    depends_on:
+      db:
+        condition: service_healthy
+
+  db:
+    image: mysql:5.7
+    # Параметры командной строки перекрывают my.cnf: там буферы под живую
+    # базу (256M + 128M), тестам хватает в разы меньше.
+    command: >
+      --default-authentication-plugin=mysql_native_password --default-time-zone=+03:00
+      --innodb-buffer-pool-size=64M --key-buffer-size=16M --myisam-sort-buffer-size=8M
+      --performance-schema=OFF --max-connections=40
+    environment:
+      MYSQL_ROOT_PASSWORD: root_local_dev
+      MYSQL_DATABASE: shiduh_org
+      MYSQL_USER: shiduh_org
+      MYSQL_PASSWORD: tests_local_dev
+    volumes:
+      - db-data:/var/lib/mysql
+      - ./docker/mysql/my.cnf:/etc/mysql/conf.d/netcat.cnf:ro
+      - ./dump-out/dump.anonymized.sql:/dump/anonymized.sql:ro
+    mem_limit: 512m
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "127.0.0.1", "-uroot", "-proot_local_dev"]
+      interval: 5s
+      timeout: 5s
+      retries: 40
+      start_period: 40s
+
+  # RAG-сервис для tests/rag_prompt_test.py. На Windows (Docker Desktop)
+  # тест сам поднимает uvicorn на хосте, и PHP ходит к нему через
+  # host.docker.internal; на Linux файрвол сервера режет контейнер→хост,
+  # поэтому сервис живёт контейнером в этой же сети под тем же именем
+  # (сетевой псевдоним), а наружу порт отдан только на 127.0.0.1 — тест
+  # видит /health с хоста и не поднимает второй экземпляр.
+  # Зависимости кладёт tests/run_ubuntu.sh в .pylib-rag; без них контейнер
+  # просто спит, и RAG-тесты честно падают, а не роняют весь стенд.
+  rag:
+    image: python:3.12-slim
+    working_dir: /app
+    command: sh -c "python3 -m uvicorn --factory rag.service.app:get_app --host 0.0.0.0 --port 8123 || sleep infinity"
+    environment:
+      PYTHONPATH: /app/.pylib-rag
+    volumes:
+      - ./:/app:ro
+    ports:
+      - "127.0.0.1:8123:8123"
+    networks:
+      default:
+        aliases: ["host.docker.internal"]
+    mem_limit: 256m
+
+  # Вся исходящая почта — сюда (msmtp в образе web шлёт на хост «mail»)
+  mail:
+    image: axllent/mailpit:latest
+    ports:
+      - "127.0.0.1:18025:8025"
+    environment:
+      MP_SMTP_AUTH_ACCEPT_ANY: 1
+      MP_SMTP_AUTH_ALLOW_INSECURE: 1
+    mem_limit: 128m
+
+volumes:
+  db-data:
